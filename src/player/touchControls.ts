@@ -2,12 +2,26 @@ import { Vec2 } from '../pathfinding/trail';
 
 export type TouchDirection = 'up' | 'down' | 'left' | 'right';
 
+export interface AnalogStickResult {
+  /** Clamped visual knob offset in pixels from center */
+  knobX: number;
+  knobY: number;
+  /** Normalized 360-degree movement vector (-1..1) with magnitude <= 1 */
+  normX: number;
+  normZ: number;
+  /** Current tilt magnitude (0..1) */
+  magnitude: number;
+  /** Angle in degrees (-180..180) for optional UI feedback */
+  angleDeg: number;
+}
+
 /**
- * Shared zero-latency Set of currently held virtual D-Pad directions.
+ * Shared zero-latency state for mobile touch controls (360° analog joystick + directions).
  * Mutated directly by touch/pointer events so the 60fps Three.js loop
- * reads held directions without triggering React re-renders.
+ * reads the analog vector without triggering React re-renders.
  */
 const activeTouchDirections = new Set<TouchDirection>();
+const analogJoystickVector = { x: 0, z: 0 };
 let touchInteractCallback: (() => void) | null = null;
 
 export function getActiveTouchDirections(): ReadonlySet<TouchDirection> {
@@ -22,8 +36,19 @@ export function setTouchDirectionHeld(dir: TouchDirection, held: boolean): void 
   }
 }
 
+export function setAnalogJoystickVector(x: number, z: number): void {
+  analogJoystickVector.x = x;
+  analogJoystickVector.z = z;
+}
+
+export function getAnalogJoystickVector(): Readonly<{ x: number; z: number }> {
+  return analogJoystickVector;
+}
+
 export function clearAllTouchDirections(): void {
   activeTouchDirections.clear();
+  analogJoystickVector.x = 0;
+  analogJoystickVector.z = 0;
 }
 
 export function registerTouchInteractHandler(cb: (() => void) | null): void {
@@ -37,15 +62,69 @@ export function triggerTouchInteract(): void {
 }
 
 /**
- * Combines keyboard (WASD / Arrow keys) and mobile virtual D-Pad touch directions
- * into a unified movement intent vector on the XZ plane.
+ * Pure helper that converts a pointer offset (deltaX, deltaY in px) relative to
+ * the circular joystick center into a clamped visual knob position and a smooth
+ * 360-degree normalized movement vector with radial deadzone.
+ */
+export function computeAnalogStickState(
+  deltaX: number,
+  deltaY: number,
+  maxRadiusPx: number,
+  deadzoneRatio = 0.12
+): AnalogStickResult {
+  const safeRadius = Math.max(10, maxRadiusPx);
+  const rawDist = Math.hypot(deltaX, deltaY);
+
+  if (rawDist < 0.0001) {
+    return { knobX: 0, knobY: 0, normX: 0, normZ: 0, magnitude: 0, angleDeg: 0 };
+  }
+
+  const clampedDist = Math.min(rawDist, safeRadius);
+  const unitX = deltaX / rawDist;
+  const unitY = deltaY / rawDist;
+
+  const knobX = unitX * clampedDist;
+  const knobY = unitY * clampedDist;
+
+  const rawRatio = clampedDist / safeRadius;
+  if (rawRatio <= deadzoneRatio) {
+    return {
+      knobX: Number(knobX.toFixed(2)),
+      knobY: Number(knobY.toFixed(2)),
+      normX: 0,
+      normZ: 0,
+      magnitude: 0,
+      angleDeg: 0,
+    };
+  }
+
+  // Smoothly rescale [deadzoneRatio..1] -> [0..1]
+  const effectiveMag = Math.min(1, (rawRatio - deadzoneRatio) / (1 - deadzoneRatio));
+  const normX = unitX * effectiveMag;
+  const normZ = unitY * effectiveMag;
+  const angleDeg = (Math.atan2(unitY, unitX) * 180) / Math.PI;
+
+  return {
+    knobX: Number(knobX.toFixed(2)),
+    knobY: Number(knobY.toFixed(2)),
+    normX: Number(normX.toFixed(4)),
+    normZ: Number(normZ.toFixed(4)),
+    magnitude: Number(effectiveMag.toFixed(4)),
+    angleDeg: Number(angleDeg.toFixed(1)),
+  };
+}
+
+/**
+ * Combines keyboard (WASD / Arrow keys), directional inputs, and the 360° mobile
+ * analog thumbstick vector into a unified movement intent vector on the XZ plane.
  */
 export function computeMovementVector(
   keysHeld: ReadonlySet<string>,
-  touchDirs: ReadonlySet<TouchDirection>
+  touchDirs: ReadonlySet<TouchDirection>,
+  analogVec: Readonly<{ x: number; z: number }> = analogJoystickVector
 ): { moveX: number; moveZ: number } {
-  let moveX = 0;
-  let moveZ = 0;
+  let moveX = analogVec.x;
+  let moveZ = analogVec.z;
 
   if (keysHeld.has('KeyW') || keysHeld.has('ArrowUp') || touchDirs.has('up')) {
     moveZ -= 1;

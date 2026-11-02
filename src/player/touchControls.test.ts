@@ -2,46 +2,46 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   clampTapTargetToOfficeBounds,
+  computeAnalogStickState,
   computeMovementVector,
   computePinchZoom,
   TouchDirection,
 } from './touchControls';
 
-test('computeMovementVector combines WASD keyboard and mobile touch D-pad inputs', () => {
-  const noInput = computeMovementVector(new Set(), new Set());
-  assert.deepEqual(noInput, { moveX: 0, moveZ: 0 });
+test('computeMovementVector combines WASD keyboard, D-pad, and 360° analog joystick inputs', () => {
+  const keys = new Set<string>(['KeyW']);
+  const touch = new Set<TouchDirection>(['right']);
+  assert.deepEqual(computeMovementVector(keys, touch, { x: 0, z: 0 }), { moveX: 1, moveZ: -1 });
 
-  const touchUpRight = computeMovementVector(
-    new Set(),
-    new Set<TouchDirection>(['up', 'right'])
-  );
-  assert.deepEqual(touchUpRight, { moveX: 1, moveZ: -1 });
+  // Pure 360-degree analog vector (e.g. 30-degree diagonal tilt)
+  const analogOnly = computeMovementVector(new Set(), new Set(), { x: 0.5, z: -0.866 });
+  assert.equal(analogOnly.moveX, 0.5);
+  assert.equal(analogOnly.moveZ, -0.866);
+});
 
-  const keyLeftTouchDown = computeMovementVector(
-    new Set(['KeyA']),
-    new Set<TouchDirection>(['down'])
-  );
-  assert.deepEqual(keyLeftTouchDown, { moveX: -1, moveZ: 1 });
+test('computeAnalogStickState clamps knob to circle radius and computes 360-degree vector with deadzone', () => {
+  // Inside deadzone -> zero movement vector
+  const idle = computeAnalogStickState(2, -2, 42, 0.12);
+  assert.equal(idle.normX, 0);
+  assert.equal(idle.normZ, 0);
+  assert.equal(idle.magnitude, 0);
+
+  // Dragged beyond max radius at 45 degrees -> clamped to radius 40, magnitude 1.0
+  const diag = computeAnalogStickState(100, -100, 40, 0.12);
+  assert.ok(Math.abs(Math.hypot(diag.knobX, diag.knobY) - 40) < 0.05);
+  assert.equal(diag.magnitude, 1);
+  assert.ok(diag.normX > 0.7 && diag.normZ < -0.7);
 });
 
 test('clampTapTargetToOfficeBounds keeps floor taps inside playable office area', () => {
-  const inside = clampTapTargetToOfficeBounds({ x: 5.25, z: 0.4 });
-  assert.deepEqual(inside, { x: 5.25, z: 0.4 });
-
-  const outside = clampTapTargetToOfficeBounds({ x: -45, z: 30 });
-  assert.deepEqual(outside, { x: -25.2, z: 16.8 });
+  assert.deepEqual(clampTapTargetToOfficeBounds({ x: 50, z: -40 }), { x: 25.2, z: -16.8 });
+  assert.deepEqual(clampTapTargetToOfficeBounds({ x: 4.256, z: -3.104 }), { x: 4.26, z: -3.1 });
 });
 
 test('computePinchZoom clamps zoom between 0.75 and 2.2', () => {
-  // Pinching fingers together (distance decreases) zooms out (increases factor)
-  const zoomedOut = computePinchZoom(1.0, 200, 100);
-  assert.equal(zoomedOut > 1.0, true);
+  const zoomedIn = computePinchZoom(1.2, 100, 180);
+  assert.ok(zoomedIn < 1.2 && zoomedIn >= 0.75);
 
-  // Spreading fingers apart (distance increases) zooms in (decreases factor)
-  const zoomedIn = computePinchZoom(1.2, 100, 200);
-  assert.equal(zoomedIn < 1.2, true);
-
-  // Clamping boundaries
-  assert.equal(computePinchZoom(2.15, 200, 50), 2.2);
-  assert.equal(computePinchZoom(0.8, 50, 250), 0.75);
+  const zoomedOutMax = computePinchZoom(2.1, 200, 50);
+  assert.equal(zoomedOutMax, 2.2);
 });

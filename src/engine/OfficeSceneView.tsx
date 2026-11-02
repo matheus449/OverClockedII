@@ -743,7 +743,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         managerRig.headGroup.rotation.y = Math.sin(elapsedTime * 2.2) * 0.12;
         updateNpcsFrame(npcStates, npcRigs, playerPos, null, dt, elapsedTime);
       } else if (currentState === 'playing') {
-        // B. Player Movement (WASD / Arrows / Mobile Touch D-Pad or Auto-Walk along Trail)
+        // B. Player Movement (WASD / Arrows / 360° Mobile Analog Joystick or Auto-Walk along Trail)
         const touchHeld = getActiveTouchDirections();
         const { moveX, moveZ } = computeMovementVector(keysHeld, touchHeld);
         if ((moveX !== 0 || moveZ !== 0) && curAutoTarget) {
@@ -753,14 +753,15 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         const speed = 6.2;
         if (moveX !== 0 || moveZ !== 0) {
           const len = Math.hypot(moveX, moveZ);
-          const dx = (moveX / len) * speed * dt;
-          const dz = (moveZ / len) * speed * dt;
+          const analogScale = Math.min(1, len);
+          const dx = (moveX / len) * analogScale * speed * dt;
+          const dz = (moveZ / len) * analogScale * speed * dt;
           const next = resolvePlayerMovement(playerPos, { x: dx, z: dz }, colliders);
           const movedDist = Math.hypot(next.x - playerPos.x, next.z - playerPos.z);
           playerPos.x = next.x;
           playerPos.z = next.z;
 
-          if (movedDist > 0.001) {
+          if (movedDist > 0.0005) {
             const targetAngle = Math.atan2(dx, dz);
             let diff = targetAngle - playerRotY;
             while (diff < -Math.PI) diff += Math.PI * 2;
@@ -772,7 +773,8 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
               stepDistanceAccum = 0;
               soundEngine.playFootstep();
             }
-            const swing = Math.sin(elapsedTime * 11) * 0.48;
+            const swingAmp = 0.48 * Math.max(0.45, analogScale);
+            const swing = Math.sin(elapsedTime * 11) * swingAmp;
             playerRig.leftLeg.rotation.x = swing;
             playerRig.rightLeg.rotation.x = -swing;
             playerRig.leftArm.rotation.x = -swing * 0.7;
