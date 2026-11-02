@@ -1,6 +1,8 @@
 import { DifficultyLevel } from '../problems/validator';
 import {
   DEFAULT_CUSTOMIZATION,
+  DEFAULT_PURCHASED_ACCESSORIES,
+  DEFAULT_PURCHASED_OUTFITS,
   PlayerCustomization,
 } from '../progression/progressionSystem';
 import { InputControlMode } from '../player/touchControls';
@@ -19,6 +21,8 @@ export interface OverclockedSaveData {
   points: number;
   energy: number;
   unlockedMedals: string[];
+  purchasedOutfitIds: string[];
+  purchasedAccessoryIds: string[];
   playerCustomization: PlayerCustomization;
   recentProblemIds: string[];
 }
@@ -34,6 +38,8 @@ const DEFAULT_SAVE: OverclockedSaveData = {
   points: 0,
   energy: 100,
   unlockedMedals: [],
+  purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
+  purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
   playerCustomization: { ...DEFAULT_CUSTOMIZATION },
   recentProblemIds: [],
 };
@@ -41,7 +47,14 @@ const DEFAULT_SAVE: OverclockedSaveData = {
 export function loadSaveData(): OverclockedSaveData {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULT_SAVE, playerCustomization: { ...DEFAULT_CUSTOMIZATION } };
+    if (!raw) {
+      return {
+        ...DEFAULT_SAVE,
+        purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
+        purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+        playerCustomization: { ...DEFAULT_CUSTOMIZATION },
+      };
+    }
     const parsed = JSON.parse(raw);
 
     const cust = parsed.playerCustomization || {};
@@ -61,6 +74,14 @@ export function loadSaveData(): OverclockedSaveData {
       parsed.inputMode === 'keyboard_mouse' || parsed.inputMode === 'touch'
         ? parsed.inputMode
         : undefined;
+
+    const purchasedOutfitIds = Array.isArray(parsed.purchasedOutfitIds)
+      ? Array.from(new Set([...DEFAULT_PURCHASED_OUTFITS, ...parsed.purchasedOutfitIds]))
+      : [...DEFAULT_PURCHASED_OUTFITS];
+
+    const purchasedAccessoryIds = Array.isArray(parsed.purchasedAccessoryIds)
+      ? Array.from(new Set([...DEFAULT_PURCHASED_ACCESSORIES, ...parsed.purchasedAccessoryIds]))
+      : [...DEFAULT_PURCHASED_ACCESSORIES];
 
     return {
       playerName: typeof parsed.playerName === 'string' ? parsed.playerName : DEFAULT_SAVE.playerName,
@@ -85,13 +106,20 @@ export function loadSaveData(): OverclockedSaveData {
           ? Math.max(0, Math.min(100, Math.round(parsed.energy)))
           : 100,
       unlockedMedals: Array.isArray(parsed.unlockedMedals) ? parsed.unlockedMedals : [],
+      purchasedOutfitIds,
+      purchasedAccessoryIds,
       playerCustomization,
       recentProblemIds: Array.isArray(parsed.recentProblemIds)
         ? parsed.recentProblemIds.slice(-15)
         : [],
     };
   } catch {
-    return { ...DEFAULT_SAVE, playerCustomization: { ...DEFAULT_CUSTOMIZATION } };
+    return {
+      ...DEFAULT_SAVE,
+      purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
+      purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+      playerCustomization: { ...DEFAULT_CUSTOMIZATION },
+    };
   }
 }
 

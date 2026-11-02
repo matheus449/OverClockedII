@@ -24,11 +24,15 @@ import {
   voiceNarrator,
 } from './audio/voiceNarrator';
 import {
+  AccessoryItem,
   applyErrorPenalty,
   calculateTicketReward,
   computeNextTicketDelaySeconds,
   getMaxSimultaneousTickets,
+  OutfitItem,
   PlayerCustomization,
+  purchaseAccessoryWithPoints,
+  purchaseOutfitWithPoints,
   TicketScoreBreakdown,
 } from './progression/progressionSystem';
 import { OfficeSceneView } from './engine/OfficeSceneView';
@@ -116,6 +120,7 @@ export default function App() {
     return isLowEnergyWarning(startEnergy);
   });
   const [isSleepingBlackout, setIsSleepingBlackout] = useState<boolean>(false);
+  const [sleepFadeOpacity, setSleepFadeOpacity] = useState<number>(0);
   const [sleepPenaltyNotice, setSleepPenaltyNotice] = useState<{
     penalty: number;
     nextPoints: number;
@@ -127,6 +132,12 @@ export default function App() {
   );
 
   const [unlockedMedals, setUnlockedMedals] = useState<string[]>(initialSave.unlockedMedals);
+  const [purchasedOutfitIds, setPurchasedOutfitIds] = useState<string[]>(
+    initialSave.purchasedOutfitIds
+  );
+  const [purchasedAccessoryIds, setPurchasedAccessoryIds] = useState<string[]>(
+    initialSave.purchasedAccessoryIds
+  );
   const [playerCustomization, setPlayerCustomization] = useState<PlayerCustomization>(
     initialSave.playerCustomization
   );
@@ -193,6 +204,9 @@ export default function App() {
 
   useEffect(() => {
     document.body.dataset.state = gameState;
+    if (gameState === 'playing') {
+      soundEngine.startBackgroundTrack();
+    }
   }, [gameState]);
 
   useEffect(() => {
@@ -287,19 +301,25 @@ export default function App() {
     [recentIds]
   );
 
-  // Triggers the 2-second pure black screen ("dormiu no serviço") when energy hits 0%, deducting points
+  // Triggers the gradual-yet-fast fade-to-black screen ("dormiu no serviço") when energy hits 0%,
+  // playing bocejomasculino.mp3 or bocejofeminino.mp3 and restoring 10% energy.
   const triggerSleepOnJobBlackout = useCallback(
     (basePoints: number) => {
       setIsSleepingBlackout(true);
+      setSleepFadeOpacity(0);
       setLowEnergyAlertOpen(false);
       setActiveToolModal('none');
       setAutoWalkTarget(null);
       voiceNarrator.stop();
-      soundEngine.playError();
+      soundEngine.playYawnSleepSound(playerCustomization.genero);
+
+      // Start gradual yet fast fade to black (700ms transition)
+      window.setTimeout(() => {
+        setSleepFadeOpacity(1);
+      }, 25);
 
       window.setTimeout(() => {
         const sleepRes = applySleepOnJobPenalty(basePoints, difficulty);
-        setIsSleepingBlackout(false);
         setPoints(sleepRes.nextPoints);
         setEnergy(sleepRes.recoveredEnergy);
         setSleepPenaltyNotice(sleepRes);
@@ -308,12 +328,17 @@ export default function App() {
           energy: sleepRes.recoveredEnergy,
         });
         soundEngine.playNotification();
-      }, 2000);
+        // Smooth fade out from black
+        setSleepFadeOpacity(0);
+        window.setTimeout(() => {
+          setIsSleepingBlackout(false);
+        }, 450);
+      }, 1900);
     },
-    [difficulty]
+    [difficulty, playerCustomization.genero]
   );
 
-  // Centralized helper whenever energy changes from tickets, errors, or shift fatigue
+  // Centralized helper whenever energy changes from attending tickets
   const applyEnergyChange = useCallback(
     (prevEnergy: number, rawNextEnergy: number, basePoints: number) => {
       const clamped = Math.max(0, Math.min(100, rawNextEnergy));
@@ -333,14 +358,14 @@ export default function App() {
     [triggerSleepOnJobBlackout]
   );
 
-  // If started directly at 0% energy (e.g. via URL param or saved 0% state), trigger the 2s blackout
+  // If started directly at 0% energy (e.g. via URL param or saved 0% state), trigger the sleep fade-out
   useEffect(() => {
     if (gameState === 'playing' && energy <= 0 && !isSleepingBlackout && !sleepPenaltyNotice) {
       triggerSleepOnJobBlackout(points);
     }
   }, [gameState, energy, isSleepingBlackout, sleepPenaltyNotice, points, triggerSleepOnJobBlackout]);
 
-  // Varied Ticket Pacing, Rush Hour Timer & Gradual Shift Energy Drain (ticks every 1s during playing)
+  // Varied Ticket Pacing & Rush Hour Timer (ticks every 1s during playing; NO passive energy drain!)
   useEffect(() => {
     if (
       gameState !== 'playing' ||
@@ -351,28 +376,7 @@ export default function App() {
       return;
     }
 
-    let shiftSecondsCounter = 0;
     const timer = window.setInterval(() => {
-      shiftSecondsCounter++;
-
-      // Gradual shift exertion: drain 1% energy every 8 seconds when not inside the Cafeteria modal
-      if (shiftSecondsCounter % 8 === 0 && activeToolModal !== 'cafeteria') {
-        setEnergy((prevEnergy) => {
-          if (prevEnergy <= 0) return 0;
-          const nextE = Math.max(0, prevEnergy - 1);
-          if (nextE <= 0) {
-            triggerSleepOnJobBlackout(points);
-            return 0;
-          }
-          if (shouldTriggerLowEnergyAlert(prevEnergy, nextE)) {
-            soundEngine.playError();
-            setLowEnergyAlertOpen(true);
-          }
-          saveGameData({ energy: nextE });
-          return nextE;
-        });
-      }
-
       if (difficulty === 'dificil') {
         setRushHourRemaining((prevRem) => {
           if (prevRem > 1) return prevRem - 1;
@@ -404,13 +408,10 @@ export default function App() {
     resolvedModalData,
     showCustomizationModal,
     isSleepingBlackout,
-    activeToolModal,
-    points,
     difficulty,
     isRushHour,
     ticketQueue.length,
     enqueueNewTicket,
-    triggerSleepOnJobBlackout,
   ]);
 
   const resetWithRandomTicket = useCallback(
@@ -457,6 +458,7 @@ export default function App() {
 
   const handleBeginShiftFromStory = useCallback(() => {
     setGameState('playing');
+    soundEngine.startBackgroundTrack();
     soundEngine.playNotification();
   }, []);
 
@@ -590,10 +592,6 @@ export default function App() {
   const handleTalkToCafeteriaNpc = useCallback(
     (npc: CafeteriaNpc) => {
       soundEngine.playInteract();
-      setAutoWalkTarget({
-        x: npc.pos.x,
-        z: Math.min(2.8, npc.pos.z + 0.9),
-      });
       setActiveCafeteriaDialogue((prev) => {
         const line = pickRandomCafeteriaChat(
           npc,
@@ -745,27 +743,6 @@ export default function App() {
     }
   };
 
-  const handleWalkToActiveTicket = () => {
-    if (!activeProblem) return;
-    const sec = ALL_SECTORS.find((s) => s.id === activeProblem.setor);
-    if (!sec) return;
-    const npc = ALL_NPCS.find((n) => n.id === activeProblem.npc);
-    const offsetZ = Math.abs(sec.pcPos.rotY) > 1.5 ? -1.25 : 1.25;
-    setAutoWalkTarget({
-      x: sec.pcPos.x,
-      z: sec.pcPos.z + offsetZ,
-    });
-    if (npc) {
-      openNpcDialogueWithVoice(npc);
-    }
-  };
-
-  const handleWalkToCafeteria = () => {
-    soundEngine.playInteract();
-    // Only walks the player into the Cafeteria OverCoffee room (never opens the modal remotely!)
-    setAutoWalkTarget({ x: 5.25, z: 0.2 });
-  };
-
   const handleDrinkCoffee = (coffee: CoffeeItem) => {
     const res = purchaseAndDrinkCoffee(
       energy,
@@ -785,9 +762,59 @@ export default function App() {
     return { ok: res.success, reason: res.message };
   };
 
+  const handlePurchaseOutfit = (outfit: OutfitItem) => {
+    const res = purchaseOutfitWithPoints({
+      outfit,
+      currentPoints: points,
+      purchasedOutfitIds,
+      difficulty,
+      resolvedCount,
+    });
+    if (res.success) {
+      soundEngine.playSuccess();
+      setPoints(res.nextPoints);
+      setPurchasedOutfitIds(res.nextPurchasedOutfitIds);
+      const nextCust = { ...playerCustomization, roupaId: outfit.id };
+      setPlayerCustomization(nextCust);
+      saveGameData({
+        points: res.nextPoints,
+        purchasedOutfitIds: res.nextPurchasedOutfitIds,
+        playerCustomization: nextCust,
+      });
+    } else {
+      soundEngine.playError();
+    }
+    return { ok: res.success, message: res.message };
+  };
+
+  const handlePurchaseAccessory = (accessory: AccessoryItem) => {
+    const res = purchaseAccessoryWithPoints({
+      accessory,
+      currentPoints: points,
+      purchasedAccessoryIds,
+      difficulty,
+      resolvedCount,
+    });
+    if (res.success) {
+      soundEngine.playSuccess();
+      setPoints(res.nextPoints);
+      setPurchasedAccessoryIds(res.nextPurchasedAccessoryIds);
+      const nextCust = { ...playerCustomization, acessorioId: accessory.id };
+      setPlayerCustomization(nextCust);
+      saveGameData({
+        points: res.nextPoints,
+        purchasedAccessoryIds: res.nextPurchasedAccessoryIds,
+        playerCustomization: nextCust,
+      });
+    } else {
+      soundEngine.playError();
+    }
+    return { ok: res.success, message: res.message };
+  };
+
   return (
     <main className="relative w-screen h-screen overflow-hidden select-none">
-      {/* Persistent 3D Isometric Office Viewport */}
+      {/* Persistent 3D Isometric Office Viewport (Player walks mechanically via Analog Joystick or WASD/Setas) */}
       <OfficeSceneView
         gameState={gameState}
         activeProblem={resolvedModalData ? null : activeProblem}
@@ -795,18 +822,8 @@ export default function App() {
         playerCustomization={playerCustomization}
         autoWalkTarget={autoWalkTarget}
         onClearAutoWalk={() => setAutoWalkTarget(null)}
-        onTapFloorWalk={(target) => {
-          if (
-            activeToolModal !== 'none' ||
-            showCustomizationModal ||
-            showCreditsModal ||
-            resolvedModalData ||
-            lowEnergyAlertOpen ||
-            sleepPenaltyNotice
-          ) {
-            return;
-          }
-          setAutoWalkTarget(target);
+        onTapFloorWalk={() => {
+          // Player moves mechanically via joystick or keyboard
         }}
         onNearbyChange={handleNearbyChange}
         onInteractRequest={handleInteractRequest}
@@ -964,14 +981,10 @@ export default function App() {
           }}
           onOpenCustomization={() => setShowCustomizationModal(true)}
           onOpenCafeteria={() => {
-            if (!nearCafeteria) {
-              handleWalkToCafeteria();
-              return;
-            }
+            if (!nearCafeteria) return;
             soundEngine.playInteract();
             setActiveToolModal('cafeteria');
           }}
-          onWalkToCafeteria={handleWalkToCafeteria}
           onTalkToCafeteriaNpc={handleTalkToCafeteriaNpc}
           onCloseCafeteriaDialogue={() => {
             voiceNarrator.stop();
@@ -982,7 +995,6 @@ export default function App() {
           }
           onToggleFullMap={() => setCameraZoom((z) => (z >= 1.9 ? 1.0 : 2.1))}
           onOpenPause={() => setGameState('paused')}
-          onWalkToActiveTicket={handleWalkToActiveTicket}
           onOpenNpcDialogue={(n) => openNpcDialogueWithVoice(n.npc)}
           onCloseNpcDialogue={() => {
             voiceNarrator.stop();
@@ -1052,7 +1064,7 @@ export default function App() {
         />
       )}
 
-      {/* Character Customization, Wardrobe (16 Outfits & 21 Accessories) and Medals Modal */}
+      {/* Character Customization, Wardrobe (16 Outfits & 21 Accessories Purchased with Points) and Medals Modal */}
       {showCustomizationModal && (
         <CharacterCustomizationModal
           playerName={playerName}
@@ -1061,11 +1073,15 @@ export default function App() {
           resolvedCount={resolvedCount}
           difficulty={difficulty}
           unlockedMedals={unlockedMedals}
+          purchasedOutfitIds={purchasedOutfitIds}
+          purchasedAccessoryIds={purchasedAccessoryIds}
           onChangeCustomization={(next) => {
             soundEngine.playInteract();
             setPlayerCustomization(next);
             saveGameData({ playerCustomization: next });
           }}
+          onPurchaseOutfit={handlePurchaseOutfit}
+          onPurchaseAccessory={handlePurchaseAccessory}
           onClose={() => setShowCustomizationModal(false)}
         />
       )}
@@ -1162,32 +1178,21 @@ export default function App() {
                 <strong className="text-amber-300">Cafeteria OverCoffee</strong> para tomar um café agora mesmo! Se sua energia chegar a <strong>0%</strong>, você vai dormir no serviço e terá vários pontos descontados.
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setLowEnergyAlertOpen(false)}
-                  className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
-                >
-                  Continuar Mesmo Assim
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLowEnergyAlertOpen(false);
-                    setActiveToolModal('none');
-                    handleWalkToCafeteria();
-                  }}
                   className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
                 >
                   <Coffee className="w-4 h-4" />
-                  Ir para a Cafeteria Agora
+                  Entendido · Vou Caminhar até a Cafeteria
                 </button>
               </div>
             </div>
           </div>
         )}
 
-      {/* Wake-up Penalty Modal shown right after the 2-second 0% Energy Blackout finishes */}
+      {/* Wake-up Penalty Modal shown right after the 0% Energy Gradual Blackout finishes */}
       {gameState === 'playing' && sleepPenaltyNotice && !isSleepingBlackout && (
         <div
           role="alertdialog"
@@ -1238,37 +1243,38 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => setSleepPenaltyNotice(null)}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold cursor-pointer transition-colors"
-              >
-                Voltar ao Turno
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSleepPenaltyNotice(null);
-                  handleWalkToCafeteria();
-                }}
                 className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
               >
                 <Coffee className="w-4 h-4" />
-                Ir Tomar Café na Cafeteria
+                Voltar ao Turno ({sleepPenaltyNotice.recoveredEnergy}% Energia)
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* 0% Energy 2-Second Pure Blackout Screen ("quando chegar em 0% a tela deve ficar preta por 2s e depois voltar ao normal") */}
+      {/* 0% Energy Gradual-Yet-Fast Blackout Screen ("quando a energia acabar, a tela devera apagar gradualmente mas de maneira ainda rapida nao de maneira abrupta") */}
       {isSleepingBlackout && (
         <div
           data-testid="sleep-blackout-overlay"
-          aria-label="Tela preta — O jogador dormiu no serviço"
-          className="fixed inset-0 z-[200] bg-black pointer-events-auto"
-        />
+          aria-label="Tela escurecendo gradualmente — O jogador dormiu no serviço"
+          style={{
+            opacity: sleepFadeOpacity,
+            transition: 'opacity 700ms cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+          className="fixed inset-0 z-[200] bg-black pointer-events-auto flex items-center justify-center"
+        >
+          <div className="flex flex-col items-center gap-2 text-slate-400/80">
+            <Moon className="w-8 h-8 text-amber-300/70 animate-pulse" />
+            <span className="text-xs font-bold tracking-widest uppercase">
+              Exaustão (0% Energia)... Cochilando no turno
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Mandatory Landscape Mode Enforcer for Smartphones and Tablets (Independent of Keyboard/Mouse or Touch selection) */}

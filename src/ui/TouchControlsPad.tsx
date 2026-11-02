@@ -10,19 +10,20 @@ import {
   Cpu,
   Hand,
   Laptop,
-  Navigation,
+  MessageCircle,
 } from 'lucide-react';
 
 interface TouchControlsPadProps {
   hasNearbyNpc: boolean;
   nearbyNpcFirstName?: string;
   nearCafeteria: boolean;
+  nearbyCafeteriaNpcFirstName?: string;
   hasActiveProblem: boolean;
   isAtTargetSector: boolean;
-  onWalkToActiveTicket: () => void;
   onOpenHardwareWorkbench: () => void;
   onOpenVirtualOS: () => void;
   onOpenCafeteria: () => void;
+  onTalkToCafeteriaNpc?: () => void;
 }
 
 const ANALOG_MAX_RADIUS_PX = 36;
@@ -31,12 +32,13 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
   hasNearbyNpc,
   nearbyNpcFirstName,
   nearCafeteria,
+  nearbyCafeteriaNpcFirstName,
   hasActiveProblem,
   isAtTargetSector,
-  onWalkToActiveTicket,
   onOpenHardwareWorkbench,
   onOpenVirtualOS,
   onOpenCafeteria,
+  onTalkToCafeteriaNpc,
 }) => {
   const baseRef = useRef<HTMLDivElement | null>(null);
   const knobRef = useRef<HTMLDivElement | null>(null);
@@ -118,7 +120,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
   return (
     <div
       aria-label="Controles Virtuais Analógicos para Celular e Tablet"
-      className="w-full flex items-end justify-between gap-2 pointer-events-none select-none mb-1"
+      className="w-full flex items-end justify-between gap-2 pointer-events-none select-none"
     >
       {/* Left Thumb Zone: Round 360° Analog Thumbstick */}
       <div className="pointer-events-auto pl-1 pb-0.5">
@@ -137,8 +139,8 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
           onLostPointerCapture={() => resetStick()}
           className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center touch-none cursor-grab active:cursor-grabbing shadow-2xl transition-colors ${
             isDragging
-              ? 'bg-[#090d16]/90 border-2 border-sky-400/80 shadow-sky-500/20'
-              : 'bg-[#090d16]/80 border-2 border-slate-700/90'
+              ? 'bg-[#090d16]/90 border-2 border-sky-400/85 shadow-sky-500/25'
+              : 'bg-[#090d16]/75 border-2 border-slate-700/80'
           }`}
         >
           {/* Inner 360° Guide Ring */}
@@ -176,14 +178,14 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
         </div>
       </div>
 
-      {/* Right Thumb Zone: Contextual Action Buttons */}
-      <div className="pointer-events-auto flex flex-col items-end gap-2">
+      {/* Right Thumb Zone: Sleek Contextual Action Buttons (Only shown when near an interactive target; NO auto-walk buttons!) */}
+      <div className="pointer-events-auto flex flex-col items-end gap-1.5 pr-1 pb-0.5">
         {hasActiveProblem && isAtTargetSector && (
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={onOpenHardwareWorkbench}
-              className="min-h-[44px] px-3 py-2 rounded-xl bg-amber-500 active:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl cursor-pointer"
+              className="min-h-[42px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
             >
               <Cpu className="w-4 h-4 shrink-0" />
               <span>Hardware</span>
@@ -191,7 +193,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
             <button
               type="button"
               onClick={onOpenVirtualOS}
-              className="min-h-[44px] px-3 py-2 rounded-xl bg-[#0071e3] active:bg-[#0077ed] text-white text-xs font-extrabold flex items-center gap-1.5 shadow-xl cursor-pointer"
+              className="min-h-[42px] px-3.5 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:scale-95 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
             >
               <Laptop className="w-4 h-4 shrink-0" />
               <span>OverOS</span>
@@ -199,34 +201,43 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
           </div>
         )}
 
-        {nearCafeteria ? (
-          <button
-            type="button"
-            onClick={onOpenCafeteria}
-            className="min-h-[48px] px-4 py-2.5 rounded-2xl bg-amber-500 active:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-2 shadow-2xl border border-amber-300 cursor-pointer"
-          >
-            <Coffee className="w-4 h-4 shrink-0" />
-            <span>Abrir Cafeteria</span>
-          </button>
-        ) : hasNearbyNpc ? (
+        {nearCafeteria && (
+          <div className="flex items-center gap-1.5">
+            {onTalkToCafeteriaNpc && (
+              <button
+                type="button"
+                onClick={onTalkToCafeteriaNpc}
+                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-sky-400/50 text-sky-300 text-xs font-bold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+              >
+                <MessageCircle className="w-4 h-4 shrink-0" />
+                <span>
+                  {nearbyCafeteriaNpcFirstName
+                    ? `Falar com ${nearbyCafeteriaNpcFirstName}`
+                    : 'Conversar'}
+                </span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onOpenCafeteria}
+              className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
+            >
+              <Coffee className="w-4 h-4 shrink-0" />
+              <span>Cafeteria</span>
+            </button>
+          </div>
+        )}
+
+        {!nearCafeteria && hasNearbyNpc && (
           <button
             type="button"
             onClick={() => triggerTouchInteract()}
-            className="min-h-[48px] px-4 py-2.5 rounded-2xl bg-emerald-500 active:bg-emerald-400 text-slate-950 text-xs font-extrabold flex items-center gap-2 shadow-2xl border border-emerald-300 cursor-pointer"
+            className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-emerald-300 transition cursor-pointer"
           >
             <Hand className="w-4 h-4 shrink-0" />
-            <span>Falar com {nearbyNpcFirstName || 'Colega'}</span>
+            <span>Atender {nearbyNpcFirstName || 'Colega'}</span>
           </button>
-        ) : hasActiveProblem ? (
-          <button
-            type="button"
-            onClick={onWalkToActiveTicket}
-            className="min-h-[48px] px-4 py-2.5 rounded-2xl bg-[#0071e3] active:bg-[#0077ed] text-white text-xs font-extrabold flex items-center gap-2 shadow-2xl border border-sky-400/50 cursor-pointer"
-          >
-            <Navigation className="w-4 h-4 shrink-0" />
-            <span>Ir ao Setor</span>
-          </button>
-        ) : null}
+        )}
       </div>
     </div>
   );

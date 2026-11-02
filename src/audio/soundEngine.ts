@@ -5,6 +5,14 @@
  * Separate controls for Music and Effects. Zero external audio files.
  */
 
+export const BACKGROUND_AUDIO_SRC = '/assets/aistudio/background_17bc5615.mp3';
+export const MALE_YAWN_AUDIO_SRC = '/assets/aistudio/bocejomasculino_f62e6679.mp3';
+export const FEMALE_YAWN_AUDIO_SRC = '/assets/aistudio/bocejofeminino_fae03598.mp3';
+
+export function getYawnAudioSrcForGender(genero: 'masculino' | 'feminino'): string {
+  return genero === 'feminino' ? FEMALE_YAWN_AUDIO_SRC : MALE_YAWN_AUDIO_SRC;
+}
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private musicGain: GainNode | null = null;
@@ -15,6 +23,8 @@ class SoundEngine {
   private ambientInterval: number | null = null;
   private officeChatterInterval: number | null = null;
   private chordStep = 0;
+  private bgAudio: HTMLAudioElement | null = null;
+  private yawnAudio: HTMLAudioElement | null = null;
 
   private initContext() {
     if (typeof window === 'undefined') return;
@@ -34,6 +44,14 @@ class SoundEngine {
   }
 
   private syncGains() {
+    if (this.bgAudio) {
+      this.bgAudio.muted = this.muted;
+      this.bgAudio.volume = this.muted ? 0 : Math.max(0, Math.min(1, this.musicVolume));
+    }
+    if (this.yawnAudio) {
+      this.yawnAudio.muted = this.muted;
+      this.yawnAudio.volume = this.muted ? 0 : Math.max(0, Math.min(1, this.sfxVolume));
+    }
     if (!this.ctx || !this.musicGain || !this.sfxGain) return;
     const now = this.ctx.currentTime;
     this.musicGain.gain.setTargetAtTime(this.muted ? 0 : this.musicVolume * 0.18, now, 0.05);
@@ -55,11 +73,66 @@ class SoundEngine {
     this.syncGains();
   }
 
+  /**
+   * Starts playing the background.mp3 audio track in loop after the player finishes
+   * talking with Helena and starts the shift.
+   */
+  public startBackgroundTrack() {
+    if (typeof window === 'undefined' || typeof Audio === 'undefined') return;
+    // Stop procedural chord synth so background.mp3 is the clean background music
+    if (this.ambientInterval !== null) {
+      clearInterval(this.ambientInterval);
+      this.ambientInterval = null;
+    }
+    if (!this.bgAudio) {
+      this.bgAudio = new Audio(BACKGROUND_AUDIO_SRC);
+      this.bgAudio.loop = true;
+      this.bgAudio.preload = 'auto';
+    }
+    this.bgAudio.muted = this.muted;
+    this.bgAudio.volume = this.muted ? 0 : Math.max(0, Math.min(1, this.musicVolume));
+    if (this.bgAudio.paused) {
+      this.bgAudio.play().catch(() => {});
+    }
+  }
+
+  public stopBackgroundTrack() {
+    if (this.bgAudio) {
+      this.bgAudio.pause();
+      try {
+        this.bgAudio.currentTime = 0;
+      } catch {
+        // Ignore if not seekable yet
+      }
+    }
+  }
+
+  /**
+   * Plays bocejomasculino.mp3 or bocejofeminino.mp3 when the character falls asleep (0% energy).
+   */
+  public playYawnSleepSound(genero: 'masculino' | 'feminino') {
+    if (typeof window === 'undefined' || typeof Audio === 'undefined') return;
+    const src = getYawnAudioSrcForGender(genero);
+    try {
+      if (this.yawnAudio) {
+        this.yawnAudio.pause();
+      }
+      const audio = new Audio(src);
+      audio.preload = 'auto';
+      audio.muted = this.muted;
+      audio.volume = this.muted ? 0 : Math.max(0, Math.min(1, this.sfxVolume));
+      this.yawnAudio = audio;
+      audio.play().catch(() => {});
+    } catch {
+      // Ignore audio errors in headless environments
+    }
+  }
+
   public startAmbientMusic() {
     this.initContext();
     if (this.ambientInterval !== null) return;
 
-    // Gentle warm Rhodes-style chord progression
+    // Gentle warm Rhodes-style chord progression during story intro before background.mp3 starts
     const chords = [
       [261.63, 329.63, 392.0, 493.88], // Cmaj7
       [220.0, 261.63, 329.63, 392.0],  // Am7
@@ -69,6 +142,7 @@ class SoundEngine {
 
     const playPadChord = () => {
       if (!this.ctx || !this.musicGain || this.muted || this.musicVolume <= 0.01) return;
+      if (this.bgAudio && !this.bgAudio.paused) return;
       const now = this.ctx.currentTime;
       const notes = chords[this.chordStep % chords.length];
       this.chordStep++;
@@ -95,12 +169,14 @@ class SoundEngine {
     this.ambientInterval = window.setInterval(playPadChord, 4000);
 
     // Subtle office keyboard clack ambiance
-    this.officeChatterInterval = window.setInterval(() => {
-      if (!this.ctx || !this.sfxGain || this.muted || this.sfxVolume <= 0.01) return;
-      if (Math.random() < 0.55) {
-        this.playSubtleKeyClick();
-      }
-    }, 900);
+    if (this.officeChatterInterval === null) {
+      this.officeChatterInterval = window.setInterval(() => {
+        if (!this.ctx || !this.sfxGain || this.muted || this.sfxVolume <= 0.01) return;
+        if (Math.random() < 0.55) {
+          this.playSubtleKeyClick();
+        }
+      }, 900);
+    }
   }
 
   public stopAmbientMusic() {
@@ -112,6 +188,7 @@ class SoundEngine {
       clearInterval(this.officeChatterInterval);
       this.officeChatterInterval = null;
     }
+    this.stopBackgroundTrack();
   }
 
   private playSubtleKeyClick() {

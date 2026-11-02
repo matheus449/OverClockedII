@@ -69,7 +69,7 @@ export const ALL_OUTFITS: OutfitItem[] = [
     corSecundaria: '#38bdf8',
     corCalca: '#1e293b',
     estilo: 'hoodie',
-    pontosNecessarios: 0,
+    pontosNecessarios: 80,
   },
   {
     id: 'camiseta_geek',
@@ -555,6 +555,9 @@ export function getDynamicAccessoryPrice(
   return Math.max(accessory.pontosNecessarios, Math.round(raw / 10) * 10);
 }
 
+export const DEFAULT_PURCHASED_OUTFITS: string[] = ['uniforme_ti'];
+export const DEFAULT_PURCHASED_ACCESSORIES: string[] = ['cracha', 'oculos_smart'];
+
 /**
  * Scales outfit prices dynamically according to the player's difficulty point-gain rate
  * and career point earnings.
@@ -575,6 +578,133 @@ export function getDynamicOutfitPrice(
     return outfit.pontosNecessarios;
   }
   return Math.max(outfit.pontosNecessarios, Math.round(raw / 10) * 10);
+}
+
+/**
+ * Purchases an outfit using the player's points as currency ("as roupas vao custar pontos do usuario como moeda de compra").
+ * Deducts the price from currentPoints and adds outfit.id to purchasedOutfitIds.
+ */
+export function purchaseOutfitWithPoints(params: {
+  outfit: OutfitItem;
+  currentPoints: number;
+  purchasedOutfitIds: string[];
+  difficulty?: DifficultyLevel;
+  resolvedCount?: number;
+}): {
+  success: boolean;
+  alreadyOwned: boolean;
+  costPaid: number;
+  nextPoints: number;
+  nextPurchasedOutfitIds: string[];
+  message: string;
+} {
+  const {
+    outfit,
+    currentPoints,
+    purchasedOutfitIds,
+    difficulty = 'facil',
+    resolvedCount = 0,
+  } = params;
+
+  if (outfit.pontosNecessarios <= 0 || purchasedOutfitIds.includes(outfit.id)) {
+    const nextIds = purchasedOutfitIds.includes(outfit.id)
+      ? purchasedOutfitIds
+      : [...purchasedOutfitIds, outfit.id];
+    return {
+      success: true,
+      alreadyOwned: true,
+      costPaid: 0,
+      nextPoints: currentPoints,
+      nextPurchasedOutfitIds: nextIds,
+      message: `${outfit.nome} equipada com sucesso!`,
+    };
+  }
+
+  const price = getDynamicOutfitPrice(outfit, difficulty, currentPoints, resolvedCount);
+  if (currentPoints < price) {
+    return {
+      success: false,
+      alreadyOwned: false,
+      costPaid: 0,
+      nextPoints: currentPoints,
+      nextPurchasedOutfitIds: purchasedOutfitIds,
+      message: `Pontos insuficientes para comprar ${outfit.nome} (custa ${price} pts · seu saldo: ${currentPoints} pts).`,
+    };
+  }
+
+  const nextPoints = currentPoints - price;
+  const nextPurchasedOutfitIds = [...purchasedOutfitIds, outfit.id];
+  return {
+    success: true,
+    alreadyOwned: false,
+    costPaid: price,
+    nextPoints,
+    nextPurchasedOutfitIds,
+    message: `Você comprou ${outfit.nome} por ${price} pts! Saldo restante: ${nextPoints} pts.`,
+  };
+}
+
+/**
+ * Purchases an accessory using the player's points as currency.
+ */
+export function purchaseAccessoryWithPoints(params: {
+  accessory: AccessoryItem;
+  currentPoints: number;
+  purchasedAccessoryIds: string[];
+  difficulty?: DifficultyLevel;
+  resolvedCount?: number;
+}): {
+  success: boolean;
+  alreadyOwned: boolean;
+  costPaid: number;
+  nextPoints: number;
+  nextPurchasedAccessoryIds: string[];
+  message: string;
+} {
+  const {
+    accessory,
+    currentPoints,
+    purchasedAccessoryIds,
+    difficulty = 'facil',
+    resolvedCount = 0,
+  } = params;
+
+  if (accessory.pontosNecessarios <= 0 || purchasedAccessoryIds.includes(accessory.id)) {
+    const nextIds = purchasedAccessoryIds.includes(accessory.id)
+      ? purchasedAccessoryIds
+      : [...purchasedAccessoryIds, accessory.id];
+    return {
+      success: true,
+      alreadyOwned: true,
+      costPaid: 0,
+      nextPoints: currentPoints,
+      nextPurchasedAccessoryIds: nextIds,
+      message: `${accessory.nome} equipado com sucesso!`,
+    };
+  }
+
+  const price = getDynamicAccessoryPrice(accessory, difficulty, currentPoints, resolvedCount);
+  if (currentPoints < price) {
+    return {
+      success: false,
+      alreadyOwned: false,
+      costPaid: 0,
+      nextPoints: currentPoints,
+      nextPurchasedAccessoryIds: purchasedAccessoryIds,
+      message: `Pontos insuficientes para comprar ${accessory.nome} (custa ${price} pts · seu saldo: ${currentPoints} pts).`,
+    };
+  }
+
+  const nextPoints = currentPoints - price;
+  const nextPurchasedAccessoryIds = [...purchasedAccessoryIds, accessory.id];
+  return {
+    success: true,
+    alreadyOwned: false,
+    costPaid: price,
+    nextPoints,
+    nextPurchasedAccessoryIds,
+    message: `Você comprou ${accessory.nome} por ${price} pts! Saldo restante: ${nextPoints} pts.`,
+  };
 }
 
 /**

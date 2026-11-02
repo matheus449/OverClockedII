@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ALL_NPCS,
   ALL_SECTORS,
@@ -15,11 +15,8 @@ import { TouchControlsPad } from './TouchControlsPad';
 import {
   Award,
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
   Clock,
   Coffee,
-  Compass,
   Cpu,
   FastForward,
   Flame,
@@ -28,7 +25,6 @@ import {
   MessageCircle,
   Mic,
   MicOff,
-  Navigation,
   Pause,
   Shirt,
   Volume2,
@@ -72,13 +68,11 @@ interface HudOverlayProps {
   onReplayVoice: (text: string, npc: NpcData) => void;
   onOpenCustomization: () => void;
   onOpenCafeteria: () => void;
-  onWalkToCafeteria: () => void;
   onTalkToCafeteriaNpc: (npc: CafeteriaNpc) => void;
   onCloseCafeteriaDialogue: () => void;
   onCycleCameraZoom: () => void;
   onToggleFullMap: () => void;
   onOpenPause: () => void;
-  onWalkToActiveTicket: () => void;
   onOpenNpcDialogue: (nearby: NearbyInteraction) => void;
   onCloseNpcDialogue: () => void;
   onOpenHardwareWorkbench: () => void;
@@ -103,7 +97,6 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   points,
   energy,
   unlockedMedalsCount,
-  difficulty,
   inputMode,
   muted,
   voiceEnabled,
@@ -115,21 +108,16 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   onReplayVoice,
   onOpenCustomization,
   onOpenCafeteria,
-  onWalkToCafeteria,
   onTalkToCafeteriaNpc,
   onCloseCafeteriaDialogue,
-  onCycleCameraZoom,
   onToggleFullMap,
   onOpenPause,
-  onWalkToActiveTicket,
   onOpenNpcDialogue,
   onCloseNpcDialogue,
   onOpenHardwareWorkbench,
   onOpenVirtualOS,
   onNextTicketAfterResolve,
 }) => {
-  const [dockCollapsed, setDockCollapsed] = useState(false);
-
   const targetSector = activeProblem
     ? ALL_SECTORS.find((s) => s.id === activeProblem.setor)
     : null;
@@ -144,163 +132,104 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   const isFullMap = cameraZoom >= 1.9;
 
   return (
-    <div className="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-2 sm:p-3.5">
-      {/* TOP PERIMETER CLUSTER: Ticket Notification / Queue / Wait Timer + Utility & Progression Bar */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-start justify-between gap-1.5 lg:gap-4">
-        <div className="order-2 lg:order-1 flex flex-col gap-1.5 max-w-xl min-w-0">
-          {/* Rush Hour Indicator Banner (Active on Hard Difficulty Rush Waves) */}
-          {isRushHour && (
-            <div className="pointer-events-auto self-start px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-[11px] sm:text-xs font-bold flex items-center gap-2 shadow-lg">
-              <Flame className="w-4 h-4 text-orange-400 animate-pulse shrink-0" />
-              <span>
-                HORÁRIO DE PICO ATIVO ({rushHourRemaining}s) · Chamados acumulam na fila · Bônus +75 pts!
-              </span>
-            </div>
-          )}
-
-          {/* Critical 20% Low Energy Warning Banner */}
-          {energy <= 20 && energy > 0 && (
-            <div
-              role="alert"
-              className="pointer-events-auto self-start px-3 sm:px-4 py-2 rounded-xl bg-rose-950/95 border border-rose-500 text-rose-200 text-[11px] sm:text-xs font-bold flex items-center justify-between gap-2.5 shadow-xl animate-pulse"
-            >
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>
-                  ⚠️ ENERGIA BAIXA ({energy}%)! Vá à Cafeteria OverCoffee tomar café ou você vai dormir no serviço (0%) e perder pontos!
-                </span>
-              </div>
-              {!nearCafeteria && (
-                <button
-                  type="button"
-                  onClick={onWalkToCafeteria}
-                  className="px-2.5 py-1 rounded-lg bg-rose-500 hover:bg-rose-400 text-slate-950 text-[11px] font-extrabold shrink-0 cursor-pointer transition-colors"
-                >
-                  Ir à Cafeteria
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Active Ticket Card OR Calm Patrol Countdown Card */}
+    <div className="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-2 sm:p-3">
+      {/* SINGLE-ROW COMPACT TOP PERIMETER HUD (Left: Active Ticket Pill · Right: Sleek Metrics & Quick Tools) */}
+      <div className="flex items-start justify-between gap-2 w-full">
+        {/* TOP-LEFT: Compact Active Ticket Module (Zero Auto-Walk Buttons!) */}
+        <div className="flex flex-col gap-1.5 min-w-0 max-w-[46%] sm:max-w-md">
           {activeProblem && targetSector && targetNpc ? (
-            <div className="pointer-events-auto bg-[#0f172a] border border-slate-800 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-xl flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2.5 sm:gap-4 flex-wrap sm:flex-nowrap">
-                <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
-                  <div
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 border border-slate-700"
-                    style={{ backgroundColor: `${targetSector.cor}22` }}
-                  >
-                    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
-                      <rect
-                        x="3"
-                        y="4"
-                        width="18"
-                        height="12"
-                        rx="2"
-                        stroke={targetSector.cor}
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M8 20H16M12 16V20"
-                        stroke="#f8fafc"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </div>
-
+            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800/90 rounded-2xl px-3 py-2 shadow-xl flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: targetSector.cor }}
+                  />
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-400">
-                      <span className="font-semibold text-sky-400 truncate">
-                        Setor: {targetSector.nome}
+                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-400 leading-tight">
+                      <span className="font-bold text-sky-400 truncate">
+                        {targetSector.nome}
                       </span>
                       <span>·</span>
-                      <span className="truncate">{targetNpc.nome}</span>
+                      <span className="truncate text-slate-300">{targetNpc.nome}</span>
                     </div>
-                    <p className="text-xs sm:text-sm font-semibold text-slate-100 truncate mt-0.5">
+                    <p className="text-[11px] sm:text-xs font-semibold text-slate-100 truncate mt-0.5">
                       {activeProblem.descricaoCurta}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  {!isAtTarget ? (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.currentTarget.blur();
-                        onWalkToActiveTicket();
-                      }}
-                      className="px-3 sm:px-3.5 py-2 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
-                    >
-                      <Navigation className="w-3.5 h-3.5" />
-                      Ir até o Setor
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.currentTarget.blur();
-                        if (nearby) onOpenNpcDialogue(nearby);
-                      }}
-                      className="px-3 sm:px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
-                    >
-                      Atender Agora [E]
-                    </button>
-                  )}
-                </div>
+                {isAtTarget && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.currentTarget.blur();
+                      if (nearby) onOpenNpcDialogue(nearby);
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold transition-colors whitespace-nowrap cursor-pointer shrink-0 shadow-md"
+                  >
+                    Atender [E]
+                  </button>
+                )}
               </div>
 
-              {/* Accumulated Ticket Queue Switcher (when 2+ tickets are open simultaneously) */}
-              {ticketQueue.length > 1 && (
-                <div className="pt-2 border-t border-slate-800/80 flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] font-semibold text-amber-400 flex items-center gap-1">
-                    <Flame className="w-3.5 h-3.5" />
-                    Fila Acumulada ({ticketQueue.length}):
-                  </span>
-                  {ticketQueue.map((prob, idx) => {
-                    const sec = ALL_SECTORS.find((s) => s.id === prob.setor);
-                    const isSelected = prob.id === activeProblem.id;
-                    return (
-                      <button
-                        key={prob.id}
-                        type="button"
-                        onClick={() => onSelectQueuedTicket(prob.id)}
-                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer flex items-center gap-1.5 ${
-                          isSelected
-                            ? 'bg-sky-500 text-slate-950'
-                            : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-                        }`}
-                      >
-                        <span>#{idx + 1}</span>
-                        <span>{sec?.nome || prob.setor}</span>
-                      </button>
-                    );
-                  })}
+              {/* Sub-row: Current Sector & Queue Tabs or Rush Hour / Low Energy Micro-Alerts */}
+              {(ticketQueue.length > 1 || isRushHour || (energy <= 20 && energy > 0)) && (
+                <div className="pt-1 border-t border-slate-800/80 flex items-center gap-1.5 flex-wrap text-[10px]">
+                  {isRushHour && (
+                    <span className="text-amber-300 font-bold flex items-center gap-1">
+                      <Flame className="w-3 h-3 text-orange-400 shrink-0" />
+                      Pico ({rushHourRemaining}s)
+                    </span>
+                  )}
+                  {energy <= 20 && energy > 0 && (
+                    <span
+                      role="alert"
+                      className="text-rose-300 font-bold flex items-center gap-1"
+                    >
+                      <Zap className="w-3 h-3 text-rose-400 shrink-0" />
+                      Energia baixa ({energy}%) · Vá à Cafeteria!
+                    </span>
+                  )}
+                  {ticketQueue.length > 1 &&
+                    ticketQueue.map((prob, idx) => {
+                      const sec = ALL_SECTORS.find((s) => s.id === prob.setor);
+                      const isSelected = prob.id === activeProblem.id;
+                      return (
+                        <button
+                          key={prob.id}
+                          type="button"
+                          onClick={() => onSelectQueuedTicket(prob.id)}
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors cursor-pointer ${
+                            isSelected
+                              ? 'bg-sky-500 text-slate-950'
+                              : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                          }`}
+                        >
+                          #{idx + 1} {sec?.nome.split(' ')[0] || prob.setor}
+                        </button>
+                      );
+                    })}
                 </div>
               )}
             </div>
           ) : !resolvedModalData ? (
-            /* Peaceful Interval Between Tickets */
-            <div className="pointer-events-auto bg-[#0f172a] border border-slate-800 rounded-xl px-4 py-3 shadow-xl flex items-center gap-4">
-              <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                <Clock className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="text-xs font-semibold text-emerald-400 block">
-                  Escritório Operando em Ordem
+            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800/90 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2.5">
+              <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
+              <div className="min-w-0">
+                <span className="text-[11px] font-bold text-emerald-400 block truncate">
+                  Escritório em Ordem ({currentSectorName})
                 </span>
-                <p className="text-xs text-slate-300 font-mono-tabular">
-                  Próximo chamado espontâneo em {nextTicketCountdown}s...
+                <p className="text-[10px] text-slate-300 font-mono-tabular">
+                  Próximo chamado em {nextTicketCountdown}s
                 </p>
               </div>
               <button
                 type="button"
                 onClick={onSkipTicketWait}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
               >
-                <FastForward className="w-3.5 h-3.5" />
+                <FastForward className="w-3 h-3" />
                 Receber Agora
               </button>
             </div>
@@ -309,59 +238,93 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           )}
         </div>
 
-        {/* Top-Right Compact Progression, Energy Status & Utility Controls (No remote Cafeteria button!) */}
-        <div className="order-1 lg:order-2 pointer-events-auto flex items-center justify-between lg:justify-end gap-1 sm:gap-2 bg-[#0f172a] border border-slate-800 rounded-xl p-1 sm:p-1.5 shadow-xl shrink-0">
-          {/* Energy Meter Indicator (Does NOT open Cafeteria remotely; guides player to walk there) */}
+        {/* TOP-RIGHT: Sleek Unified Status & Quick-Action Bar */}
+        <div className="pointer-events-auto flex items-center gap-1 sm:gap-1.5 bg-[#0b111e]/92 border border-slate-800/90 rounded-2xl px-2 py-1.5 shadow-xl shrink-0">
+          {/* Energy Readout */}
           <div
-            className={`px-1.5 sm:px-2.5 py-1 rounded-lg border flex items-center gap-1 sm:gap-2 transition-colors ${
-              energy <= 25
-                ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 animate-pulse'
-                : energy <= 55
-                ? 'bg-amber-500/15 border-amber-500/40 text-amber-300'
+            className={`px-2 py-1 rounded-xl border flex items-center gap-1 transition-colors ${
+              energy <= 20
+                ? 'bg-rose-500/20 border-rose-500/50 text-rose-300'
+                : energy <= 50
+                ? 'bg-amber-500/15 border-amber-500/35 text-amber-300'
                 : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
             }`}
-            title="Sua Energia Atual — Vá até a sala da Cafeteria OverCoffee no mapa para tomar café"
+            title="Sua Energia Atual — A energia só diminui ao atender chamados. Vá caminhando até a Cafeteria OverCoffee para tomar café!"
           >
-            <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <div className="text-left">
-              <div className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider opacity-80">
-                Energia
-              </div>
-              <div className="text-[11px] sm:text-xs font-extrabold font-mono-tabular leading-tight">
-                {energy}%
-              </div>
-            </div>
+            <Zap className="w-3.5 h-3.5 shrink-0" />
+            <span className="text-[11px] sm:text-xs font-extrabold font-mono-tabular">
+              {energy}%
+            </span>
           </div>
 
-          {/* Career Points (can go negative if player owes points) */}
-          <div className="px-1.5 sm:px-2.5 py-1 text-right border-r border-slate-800">
-            <div
-              className={`text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${
+          {/* Points Readout */}
+          <div
+            className="px-2 py-1 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-1"
+            title="Saldo de Pontos (Moeda para comprar cafés e roupas)"
+          >
+            <Award
+              className={`w-3.5 h-3.5 shrink-0 ${
                 points < 0 ? 'text-rose-400' : 'text-amber-400'
               }`}
-            >
-              {points < 0 ? 'Devendo' : 'Pontos'}
-            </div>
-            <div
-              className={`text-xs sm:text-sm font-bold font-mono-tabular leading-tight ${
+            />
+            <span
+              className={`text-[11px] sm:text-xs font-extrabold font-mono-tabular ${
                 points < 0 ? 'text-rose-400' : 'text-amber-300'
               }`}
             >
               {points}
-            </div>
+            </span>
           </div>
 
-          {/* Resolved Tickets */}
-          <div className="px-1.5 sm:px-2.5 py-1 text-right">
-            <div className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Chamados
-            </div>
-            <div className="text-xs sm:text-sm font-bold font-mono-tabular text-slate-100 leading-tight">
+          {/* Resolved Tickets Counter */}
+          <div
+            className="hidden sm:flex px-2 py-1 rounded-xl bg-slate-900/90 border border-slate-800 items-center gap-1 text-slate-200"
+            title="Chamados Resolvidos"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span className="text-xs font-extrabold font-mono-tabular">
               {resolvedCount}
-            </div>
+            </span>
           </div>
 
-          {/* Wardrobe & Medals Button */}
+          <div className="h-5 w-px bg-slate-800 mx-0.5" />
+
+          {/* Quick Diagnostic Tools (Hardware & OverOS) */}
+          {activeProblem && (
+            <>
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label="Inspecionar Hardware"
+                onClick={(e) => {
+                  e.currentTarget.blur();
+                  onOpenHardwareWorkbench();
+                }}
+                className="h-8 px-2 sm:px-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                title="Bancada de Hardware 3D"
+              >
+                <Cpu className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden md:inline">Hardware</span>
+              </button>
+
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-label="Abrir Computador Virtual"
+                onClick={(e) => {
+                  e.currentTarget.blur();
+                  onOpenVirtualOS();
+                }}
+                className="h-8 px-2 sm:px-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/35 text-sky-300 flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                title="Computador Virtual (OverOS)"
+              >
+                <Laptop className="w-3.5 h-3.5 shrink-0" />
+                <span className="hidden md:inline">OverOS</span>
+              </button>
+            </>
+          )}
+
+          {/* Wardrobe & Points Store Button */}
           <button
             type="button"
             tabIndex={-1}
@@ -370,14 +333,35 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onOpenCustomization();
             }}
-            className="px-2 sm:px-2.5 h-8 sm:h-9 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 flex items-center gap-1 sm:gap-1.5 text-xs font-semibold transition-colors cursor-pointer shrink-0"
-            title="Roupas, Acessórios e Medalhas [C]"
+            className="h-8 px-2 sm:px-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-amber-300 flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+            title="Loja de Roupas, Acessórios e Medalhas [C]"
           >
-            <Shirt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Roupas & Medalhas</span>
-            <span className="px-1 py-0.5 rounded bg-amber-500/20 text-[10px] font-mono-tabular">
-              {unlockedMedalsCount}
-            </span>
+            <Shirt className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden lg:inline">Roupas</span>
+            {unlockedMedalsCount > 0 && (
+              <span className="text-[10px] font-mono-tabular text-amber-200">
+                {unlockedMedalsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Toggle Full Map View [V] */}
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={isFullMap ? 'Voltar ao Analista' : 'Ver Mapa Inteiro'}
+            onClick={(e) => {
+              e.currentTarget.blur();
+              onToggleFullMap();
+            }}
+            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+              isFullMap
+                ? 'bg-sky-500 text-slate-950'
+                : 'bg-slate-800/90 hover:bg-slate-700 text-slate-200'
+            }`}
+            title="Visão do Mapa Inteiro [V]"
+          >
+            <Map className="w-3.5 h-3.5" />
           </button>
 
           {/* Voice Narration Toggle */}
@@ -389,14 +373,14 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onToggleVoiceEnabled();
             }}
-            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
               voiceEnabled
                 ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-800/80 hover:bg-slate-700 text-slate-400'
+                : 'bg-slate-800/90 hover:bg-slate-700 text-slate-400'
             }`}
             title={voiceEnabled ? 'Voz Humanizada Ativada' : 'Voz Humanizada Desativada'}
           >
-            {voiceEnabled ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+            {voiceEnabled ? <Mic className="w-3.5 h-3.5" /> : <MicOff className="w-3.5 h-3.5" />}
           </button>
 
           {/* Mute Audio */}
@@ -408,10 +392,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onToggleMute();
             }}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             title="Áudio [M]"
           >
-            {muted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />}
+            {muted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5" />}
           </button>
 
           {/* Pause & Settings */}
@@ -423,32 +407,32 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onOpenPause();
             }}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             title="Pausar [Esc / P]"
           >
-            <Pause className="w-4 h-4" />
+            <Pause className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
       {/* MIDDLE AREA: NPC Speech Card OR Didactic Resolution Feedback + Points/Medal Card */}
-      <div className="my-auto flex flex-col items-center justify-center pointer-events-none">
+      <div className="my-auto flex flex-col items-center justify-center pointer-events-none px-2">
         {resolvedModalData && (
           <div
             role="dialog"
             aria-label="Chamado Concluído"
-            className="pointer-events-auto w-full max-w-lg bg-[#0f172a] border border-emerald-500/40 rounded-2xl p-6 shadow-2xl space-y-4"
+            className="pointer-events-auto w-full max-w-lg bg-[#0f172a] border border-emerald-500/40 rounded-2xl p-5 shadow-2xl space-y-3.5"
           >
             <div className="flex items-center justify-between gap-3.5">
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
-                  <CheckCircle2 className="w-6 h-6" />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                  <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-xs font-semibold text-emerald-400">
                     Atendimento Concluído · {resolvedModalData.npc.nome}
                   </span>
-                  <p className="text-base font-bold text-slate-100 mt-0.5">
+                  <p className="text-sm sm:text-base font-bold text-slate-100 mt-0.5">
                     &ldquo;{resolvedModalData.problem.agradecimentoNpc}&rdquo;
                   </p>
                 </div>
@@ -466,11 +450,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               )}
             </div>
 
-            {/* Newly Unlocked Medals Banner */}
             {resolvedModalData.reward &&
               resolvedModalData.reward.newlyUnlockedMedals.length > 0 && (
-                <div className="p-3 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center gap-3">
-                  <Award className="w-5 h-5 text-amber-400 shrink-0" />
+                <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-center gap-2.5">
+                  <Award className="w-4 h-4 text-amber-400 shrink-0" />
                   <div className="text-xs">
                     <span className="font-bold text-amber-300 block">
                       Nova Medalha Conquistada!
@@ -484,7 +467,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                 </div>
               )}
 
-            <div className="p-4 rounded-xl bg-[#090d16] border border-slate-800 space-y-1.5">
+            <div className="p-3.5 rounded-xl bg-[#090d16] border border-slate-800 space-y-1">
               <span className="text-xs font-semibold text-sky-400 block">
                 O que você aprendeu na prática:
               </span>
@@ -497,16 +480,16 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               <button
                 type="button"
                 onClick={onOpenCustomization}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
               >
                 <Shirt className="w-4 h-4" />
-                Ver Roupas & Medalhas
+                Loja de Roupas
               </button>
 
               <button
                 type="button"
                 onClick={onNextTicketAfterResolve}
-                className="px-5 py-2.5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition-colors cursor-pointer"
               >
                 {ticketQueue.length > 1
                   ? 'Atender Próximo da Fila'
@@ -520,13 +503,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           <div
             role="region"
             aria-label={`Relato de ${activeDialogueNpc.nome}`}
-            className="pointer-events-auto w-full max-w-xl bg-[#0f172a] border border-slate-700 rounded-2xl p-5 shadow-2xl space-y-4"
+            className="pointer-events-auto w-full max-w-xl bg-[#0f172a] border border-slate-700 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3.5"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4 min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3.5 min-w-0">
                 <svg
                   viewBox="0 0 56 56"
-                  className="w-14 h-14 rounded-xl bg-[#090d16] border border-slate-800 shrink-0"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#090d16] border border-slate-800 shrink-0"
                 >
                   <rect width="56" height="56" rx="12" fill="#090d16" />
                   <path
@@ -549,13 +532,14 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                     </span>
                     <span>·</span>
                     <span>{activeDialogueNpc.cargo}</span>
-                    <span className="px-1.5 py-0.5 rounded bg-sky-500/15 border border-sky-500/30 text-[10px] font-semibold text-sky-300">
+                    <span className="text-[10px] font-semibold text-sky-400">
+                      ·{' '}
                       {isFemaleNpc(activeDialogueNpc.id, activeDialogueNpc.nome)
                         ? 'Voz Feminina'
                         : 'Voz Masculina'}
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-slate-100 mt-1.5 leading-relaxed">
+                  <p className="text-xs sm:text-sm font-medium text-slate-100 mt-1 leading-relaxed">
                     &ldquo;
                     {activeProblem && activeDialogueNpc.setor === activeProblem.setor
                       ? activeProblem.falaNpc
@@ -595,26 +579,26 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
             </div>
 
             {activeProblem && activeDialogueNpc.setor === activeProblem.setor ? (
-              <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+              <div className="pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs text-slate-400">
                   Escolha como iniciar o diagnóstico desta estação:
                 </span>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={onOpenHardwareWorkbench}
-                    className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <Wrench className="w-4 h-4" />
-                    Inspecionar Hardware (3D / Cabos)
+                    <Wrench className="w-3.5 h-3.5" />
+                    Inspecionar Hardware
                   </button>
                   <button
                     type="button"
                     onClick={onOpenVirtualOS}
-                    className="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    <Laptop className="w-4 h-4" />
-                    Abrir Computador Virtual (OverOS)
+                    <Laptop className="w-3.5 h-3.5" />
+                    Computador Virtual (OverOS)
                   </button>
                 </div>
               </div>
@@ -632,18 +616,19 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
             )}
           </div>
         )}
-        {/* In-World 3D Cafeteria NPC Conversation Card (Triggered when talking directly to NPCs inside the Cafeteria space!) */}
+
+        {/* In-World 3D Cafeteria NPC Conversation Card */}
         {!resolvedModalData && !activeDialogueNpc && activeCafeteriaDialogue && (
           <div
             role="region"
             aria-label={`Conversa na Cafeteria com ${activeCafeteriaDialogue.npc.nome}`}
-            className="pointer-events-auto w-full max-w-xl bg-[#0f172a] border border-amber-500/40 rounded-2xl p-5 shadow-2xl space-y-4"
+            className="pointer-events-auto w-full max-w-xl bg-[#0f172a] border border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3.5"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4 min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3.5 min-w-0">
                 <svg
                   viewBox="0 0 56 56"
-                  className="w-14 h-14 rounded-xl bg-[#090d16] border border-amber-500/30 shrink-0"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#090d16] border border-amber-500/30 shrink-0"
                 >
                   <rect width="56" height="56" rx="12" fill="#090d16" />
                   <path
@@ -666,16 +651,8 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                     </span>
                     <span>·</span>
                     <span>{activeCafeteriaDialogue.npc.cargo}</span>
-                    <span className="px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/30 text-[10px] font-semibold text-amber-200">
-                      {isFemaleNpc(
-                        activeCafeteriaDialogue.npc.id,
-                        activeCafeteriaDialogue.npc.nome
-                      )
-                        ? 'Voz Feminina'
-                        : 'Voz Masculina'}
-                    </span>
                   </div>
-                  <p className="text-sm font-medium text-slate-100 mt-1.5 leading-relaxed italic">
+                  <p className="text-xs sm:text-sm font-medium text-slate-100 mt-1 leading-relaxed italic">
                     &ldquo;{activeCafeteriaDialogue.message}&rdquo;
                   </p>
                 </div>
@@ -709,7 +686,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div className="pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[11px] text-slate-400 mr-1">Na Cafeteria:</span>
                 {CAFETERIA_NPCS.map((cNpc) => (
@@ -732,7 +709,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                 <button
                   type="button"
                   onClick={() => onTalkToCafeteriaNpc(activeCafeteriaDialogue.npc)}
-                  className="px-3.5 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
                   Outro Assunto
@@ -743,7 +720,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                     onCloseCafeteriaDialogue();
                     onOpenCafeteria();
                   }}
-                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Coffee className="w-3.5 h-3.5" />
                   Balcão de Cafés
@@ -754,8 +731,8 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
         )}
       </div>
 
-      {/* BOTTOM UNIFIED COLLAPSIBLE CONTROL DOCK + ANALOG TOUCH PAD (shown when inputMode === 'touch') */}
-      <div className="mx-auto w-full max-w-4xl flex flex-col items-center pointer-events-auto">
+      {/* BOTTOM ZONE: Clean Analog Touch Pad (on Touch Mode) OR Minimal Contextual Prompt (on Keyboard Mode when near an NPC/Cafeteria) */}
+      <div className="w-full flex flex-col items-center pointer-events-none">
         {inputMode === 'touch' &&
           !resolvedModalData &&
           !activeDialogueNpc &&
@@ -764,46 +741,30 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               hasNearbyNpc={Boolean(nearby)}
               nearbyNpcFirstName={nearby?.npc.nome.split(' ')[0]}
               nearCafeteria={nearCafeteria}
+              nearbyCafeteriaNpcFirstName={nearbyCafeteriaNpc?.nome.split(' ')[0]}
               hasActiveProblem={Boolean(activeProblem)}
               isAtTargetSector={isAtTarget}
-              onWalkToActiveTicket={onWalkToActiveTicket}
               onOpenHardwareWorkbench={onOpenHardwareWorkbench}
               onOpenVirtualOS={onOpenVirtualOS}
               onOpenCafeteria={onOpenCafeteria}
+              onTalkToCafeteriaNpc={() =>
+                onTalkToCafeteriaNpc(nearbyCafeteriaNpc || CAFETERIA_NPCS[1])
+              }
             />
           )}
-        <button
-          type="button"
-          onClick={() => setDockCollapsed((prev) => !prev)}
-          className="px-3 py-1 rounded-t-lg bg-[#0f172a] border border-b-0 border-slate-800 text-[11px] font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1 cursor-pointer"
-        >
-          {dockCollapsed ? (
-            <>
-              <ChevronUp className="w-3.5 h-3.5" /> Mostrar Barra de Ações
-            </>
-          ) : (
-            <>
-              <ChevronDown className="w-3.5 h-3.5" /> Ocultar Controles
-            </>
-          )}
-        </button>
 
-        {!dockCollapsed && (
-          <div className="w-full bg-[#0f172a] border border-slate-800 rounded-xl px-4 py-2.5 shadow-2xl flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs text-slate-300">
-              <Compass className="w-4 h-4 text-sky-400 shrink-0" />
-              <span className="font-semibold text-slate-100">{currentSectorName}</span>
-              <span className="text-slate-600">·</span>
-              <span className="text-slate-400 capitalize">Nível: {difficulty}</span>
-            </div>
-
-            <div className="flex items-center gap-2 flex-wrap">
-              {nearCafeteria ? (
+        {inputMode === 'keyboard_mouse' &&
+          !resolvedModalData &&
+          !activeDialogueNpc &&
+          !activeCafeteriaDialogue &&
+          (nearCafeteria || nearby) && (
+            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800 rounded-2xl px-3.5 py-2 shadow-2xl flex items-center gap-2">
+              {nearCafeteria && (
                 <>
                   <button
                     type="button"
                     onClick={onOpenCafeteria}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-md"
+                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
                   >
                     <Coffee className="w-3.5 h-3.5" />
                     Balcão de Cafés [E]
@@ -813,7 +774,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                     onClick={() =>
                       onTalkToCafeteriaNpc(nearbyCafeteriaNpc || CAFETERIA_NPCS[1])
                     }
-                    className="px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                    className="px-3.5 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     {nearbyCafeteriaNpc
@@ -821,78 +782,19 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                       : 'Conversar na Cafeteria'}
                   </button>
                 </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={onWalkToCafeteria}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-colors ${
-                    energy <= 35
-                      ? 'bg-amber-500 text-slate-950 font-bold animate-pulse'
-                      : 'bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300'
-                  }`}
-                  title="Caminhar até a sala da Cafeteria OverCoffee no mapa"
-                >
-                  <Navigation className="w-3.5 h-3.5" />
-                  Caminhar até a Cafeteria ({energy}%)
-                </button>
               )}
 
-              {nearby && (
+              {!nearCafeteria && nearby && (
                 <button
                   type="button"
                   onClick={() => onOpenNpcDialogue(nearby)}
-                  className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-medium cursor-pointer whitespace-nowrap"
+                  className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
                 >
                   Falar com {nearby.npc.nome.split(' ')[0]} [E]
                 </button>
               )}
-
-              {activeProblem && (
-                <>
-                  <button
-                    type="button"
-                    onClick={onOpenHardwareWorkbench}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    <Cpu className="w-3.5 h-3.5" />
-                    Hardware
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onOpenVirtualOS}
-                    className="px-3 py-1.5 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
-                  >
-                    <Laptop className="w-3.5 h-3.5" />
-                    Computador Virtual
-                  </button>
-                </>
-              )}
-
-              <button
-                type="button"
-                onClick={onToggleFullMap}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-colors ${
-                  isFullMap
-                    ? 'bg-sky-500 text-slate-950'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-                }`}
-                title="Alternar Visão do Mapa Inteiro [V]"
-              >
-                <Map className="w-3.5 h-3.5" />
-                {isFullMap ? 'Voltar ao Analista [V]' : 'Ver Mapa Inteiro [V]'}
-              </button>
-
-              <button
-                type="button"
-                onClick={onCycleCameraZoom}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono-tabular cursor-pointer whitespace-nowrap"
-                title="Alternar Zoom da Câmera (ou use a roda do mouse)"
-              >
-                Zoom {cameraZoom <= 0.85 ? 'Próximo' : cameraZoom >= 1.9 ? 'Total' : 'Médio'}
-              </button>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

@@ -205,7 +205,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                   resolvedCount
                 );
                 const isFull = energy >= 100;
-                const canAfford = dynamicCost === 0 || points >= dynamicCost;
+                const canAfford = points >= dynamicCost;
                 return (
                   <div
                     key={coffee.id}
@@ -226,16 +226,8 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                           <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                             +{coffee.energiaRecuperada}% Energia
                           </span>
-                          <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono-tabular ${
-                              dynamicCost === 0
-                                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                                : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                            }`}
-                          >
-                            {dynamicCost === 0
-                              ? 'Cortesia (Grátis)'
-                              : `${dynamicCost} pts`}
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono-tabular bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {dynamicCost} pts
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">

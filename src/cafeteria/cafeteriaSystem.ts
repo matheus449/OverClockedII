@@ -52,10 +52,10 @@ export const ALL_COFFEES: CoffeeItem[] = [
     id: 'cafe_coado',
     nome: 'Café Coado da Casa',
     descricao: 'Tradicional e quentinho para recuperar o fôlego entre os chamados.',
-    custoPontos: 0,
+    custoPontos: 35,
     energiaRecuperada: 25,
     corLiquido: '#451a03',
-    destaque: 'Econômico',
+    destaque: 'Mais Barato',
   },
   {
     id: 'expresso_duplo',
@@ -191,6 +191,7 @@ export function getCoffeeDynamicPrice(
   currentPoints = 0,
   resolvedCount = 0
 ): number {
+  const baseCost = Math.max(30, coffee.custoPontos);
   const diffMultiplier =
     difficulty === 'facil' ? 1.0 : difficulty === 'normal' ? 1.45 : 2.15;
 
@@ -198,20 +199,11 @@ export function getCoffeeDynamicPrice(
   const pointsTier = Math.floor(Math.max(0, currentPoints) / 250);
   const progressionMultiplier = 1 + pointsTier * 0.18 + Math.max(0, resolvedCount) * 0.08;
 
-  if (coffee.custoPontos === 0) {
-    // Basic Café Coado is free on Easy/Normal, and costs a scaled price on Hard (unless player can't afford it)
-    if (difficulty === 'dificil') {
-      const hardCoadoPrice = Math.round((45 * progressionMultiplier) / 5) * 5;
-      return currentPoints >= hardCoadoPrice ? hardCoadoPrice : 0;
-    }
-    return 0;
-  }
-
-  const rawPrice = coffee.custoPontos * diffMultiplier * progressionMultiplier;
+  const rawPrice = baseCost * diffMultiplier * progressionMultiplier;
   if (difficulty === 'facil' && pointsTier === 0 && resolvedCount === 0) {
-    return coffee.custoPontos;
+    return baseCost;
   }
-  return Math.max(coffee.custoPontos, Math.round(rawPrice / 5) * 5);
+  return Math.max(baseCost, Math.round(rawPrice / 5) * 5);
 }
 
 /**
@@ -254,7 +246,7 @@ export function isPlayerNearCafeteriaCounter(playerPos: Vec2): boolean {
 }
 
 export const LOW_ENERGY_THRESHOLD = 20;
-export const SLEEP_RECOVERY_ENERGY = 40;
+export const SLEEP_RECOVERY_ENERGY = 10;
 
 export function calculateEnergyDrainOnTicket(difficulty: DifficultyLevel): number {
   if (difficulty === 'facil') return 22;
@@ -270,7 +262,8 @@ export function applyTicketEnergyDrain(
 }
 
 export function applyErrorEnergyDrain(currentEnergy: number): number {
-  return Math.max(0, currentEnergy - 10);
+  // Energy only decreases when attending/completing tickets ("a energia dele só diminui quando ele atende aos chamados")
+  return Math.max(0, Math.min(MAX_ENERGY, currentEnergy));
 }
 
 /**
@@ -337,13 +330,13 @@ export function purchaseAndDrinkCoffee(
     resolvedCount
   );
 
-  if (dynamicCost > 0 && currentPoints < dynamicCost) {
+  if (currentPoints < dynamicCost) {
     return {
       success: false,
       nextEnergy: currentEnergy,
       nextPoints: currentPoints,
       costPaid: 0,
-      message: `Pontos insuficientes para o ${coffee.nome} (custa ${dynamicCost} pts). Experimente o Café Coado da Casa!`,
+      message: `Pontos insuficientes para o ${coffee.nome} (custa ${dynamicCost} pts · saldo: ${currentPoints} pts). Atenda chamados para ganhar mais pontos!`,
     };
   }
 

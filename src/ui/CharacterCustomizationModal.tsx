@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import {
   AccessoryCategory,
+  AccessoryItem,
   ALL_ACCESSORIES,
   ALL_MEDALS,
   ALL_OUTFITS,
+  DEFAULT_PURCHASED_ACCESSORIES,
+  DEFAULT_PURCHASED_OUTFITS,
   getDynamicAccessoryPrice,
   getDynamicOutfitPrice,
   HAIR_COLORS,
   isGameCompleted,
+  OutfitItem,
   PlayerCustomization,
   SKIN_TONES,
 } from '../progression/progressionSystem';
@@ -21,6 +25,7 @@ import {
   Laptop,
   Lock,
   Shirt,
+  ShoppingBag,
   Sparkles,
   Unlock,
   User,
@@ -36,7 +41,11 @@ interface CharacterCustomizationModalProps {
   resolvedCount: number;
   difficulty?: DifficultyLevel;
   unlockedMedals: string[];
+  purchasedOutfitIds?: string[];
+  purchasedAccessoryIds?: string[];
   onChangeCustomization: (next: PlayerCustomization) => void;
+  onPurchaseOutfit?: (outfit: OutfitItem) => { ok: boolean; message: string };
+  onPurchaseAccessory?: (accessory: AccessoryItem) => { ok: boolean; message: string };
   onClose: () => void;
 }
 
@@ -47,13 +56,28 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
   resolvedCount,
   difficulty = 'normal',
   unlockedMedals,
+  purchasedOutfitIds = DEFAULT_PURCHASED_OUTFITS,
+  purchasedAccessoryIds = DEFAULT_PURCHASED_ACCESSORIES,
   onChangeCustomization,
+  onPurchaseOutfit,
+  onPurchaseAccessory,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<'personagem' | 'roupas' | 'acessorios' | 'medalhas'>(
     'roupas'
   );
   const [accFilter, setAccFilter] = useState<'todos' | AccessoryCategory>('todos');
+  const [purchaseToast, setPurchaseToast] = useState<{
+    text: string;
+    isError: boolean;
+  } | null>(null);
+
+  const triggerToast = (text: string, isError: boolean) => {
+    setPurchaseToast({ text, isError });
+    window.setTimeout(() => {
+      setPurchaseToast((prev) => (prev?.text === text ? null : prev));
+    }, 3200);
+  };
 
   const gameBeaten = isGameCompleted(points, resolvedCount, unlockedMedals);
   const selectedOutfit =
@@ -397,7 +421,20 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
               ))}
             </div>
 
-            {/* Tab: 16 Outfits */}
+            {purchaseToast && (
+              <div
+                role="status"
+                className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center justify-between gap-2 ${
+                  purchaseToast.isError
+                    ? 'bg-rose-950/80 border-rose-500/40 text-rose-200'
+                    : 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200'
+                }`}
+              >
+                <span>{purchaseToast.text}</span>
+              </div>
+            )}
+
+            {/* Tab: 16 Outfits (Purchased with Points as Currency) */}
             {activeTab === 'roupas' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[52vh] overflow-y-auto pr-1">
                 {ALL_OUTFITS.map((outfit) => {
@@ -408,24 +445,37 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                     points,
                     resolvedCount
                   );
-                  const isUnlocked =
-                    gameBeaten || isSelected || points >= dynamicPrice;
+                  const isOwned =
+                    outfit.pontosNecessarios <= 0 ||
+                    gameBeaten ||
+                    isSelected ||
+                    purchasedOutfitIds.includes(outfit.id);
+                  const canAfford = points >= dynamicPrice;
 
                   return (
                     <button
                       key={outfit.id}
                       type="button"
-                      disabled={!isUnlocked}
+                      disabled={!isOwned && !canAfford}
                       onClick={() => {
-                        if (isUnlocked) {
+                        if (isOwned) {
+                          onChangeCustomization({ ...customization, roupaId: outfit.id });
+                          return;
+                        }
+                        if (onPurchaseOutfit) {
+                          const res = onPurchaseOutfit(outfit);
+                          triggerToast(res.message, !res.ok);
+                        } else if (canAfford) {
                           onChangeCustomization({ ...customization, roupaId: outfit.id });
                         }
                       }}
                       className={`p-3 rounded-xl border text-left flex items-start justify-between gap-2.5 transition-all ${
                         isSelected
                           ? 'bg-[#111c33] border-sky-400 shadow-md cursor-pointer'
-                          : isUnlocked
+                          : isOwned
                           ? 'bg-[#090d16] border-slate-800 hover:border-slate-700 cursor-pointer'
+                          : canAfford
+                          ? 'bg-[#090d16] border-amber-500/40 hover:border-amber-400 cursor-pointer'
                           : 'bg-[#090d16]/50 border-slate-800/60 opacity-60 cursor-not-allowed'
                       }`}
                     >
@@ -448,15 +498,28 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                             {outfit.descricao}
                           </p>
                           <span
-                            className={`inline-block mt-1 text-[10px] font-semibold font-mono-tabular ${
-                              isUnlocked ? 'text-emerald-400' : 'text-amber-400'
+                            className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold font-mono-tabular ${
+                              isSelected
+                                ? 'text-sky-400'
+                                : isOwned
+                                ? 'text-emerald-400'
+                                : canAfford
+                                ? 'text-amber-300'
+                                : 'text-slate-400'
                             }`}
                           >
-                            {dynamicPrice === 0
-                              ? 'Inicial (Grátis)'
-                              : isUnlocked
-                              ? `Liberado (${dynamicPrice} pts)`
-                              : `Bloqueado · Requer ${dynamicPrice} pts`}
+                            {isSelected ? (
+                              'Em Uso (Equipado)'
+                            ) : isOwned ? (
+                              'Adquirido · Clique para vestir'
+                            ) : canAfford ? (
+                              <>
+                                <ShoppingBag className="w-3 h-3" />
+                                Comprar por {dynamicPrice} pts
+                              </>
+                            ) : (
+                              `Custa ${dynamicPrice} pts (Faltam ${dynamicPrice - points} pts)`
+                            )}
                           </span>
                         </div>
                       </div>
@@ -466,9 +529,17 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                           <span className="w-5 h-5 rounded-full bg-sky-500 text-slate-950 flex items-center justify-center">
                             <Check className="w-3 h-3" />
                           </span>
-                        ) : !isUnlocked ? (
+                        ) : isOwned ? (
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-bold">
+                            Vestir
+                          </span>
+                        ) : canAfford ? (
+                          <span className="px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-extrabold">
+                            Comprar
+                          </span>
+                        ) : (
                           <Lock className="w-4 h-4 text-slate-500" />
-                        ) : null}
+                        )}
                       </div>
                     </button>
                   );
@@ -476,7 +547,7 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
               </div>
             )}
 
-            {/* Tab: 21 Accessories with Category Filter */}
+            {/* Tab: 21 Accessories with Category Filter (Purchased with Points as Currency) */}
             {activeTab === 'acessorios' && (
               <div className="space-y-3">
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -514,16 +585,30 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                       points,
                       resolvedCount
                     );
-                    const isUnlocked =
-                      gameBeaten || isSelected || points >= dynamicPrice;
+                    const isOwned =
+                      acc.pontosNecessarios <= 0 ||
+                      gameBeaten ||
+                      isSelected ||
+                      purchasedAccessoryIds.includes(acc.id);
+                    const canAfford = points >= dynamicPrice;
 
                     return (
                       <button
                         key={acc.id}
                         type="button"
-                        disabled={!isUnlocked}
+                        disabled={!isOwned && !canAfford}
                         onClick={() => {
-                          if (isUnlocked) {
+                          if (isOwned) {
+                            onChangeCustomization({
+                              ...customization,
+                              acessorioId: acc.id,
+                            });
+                            return;
+                          }
+                          if (onPurchaseAccessory) {
+                            const res = onPurchaseAccessory(acc);
+                            triggerToast(res.message, !res.ok);
+                          } else if (canAfford) {
                             onChangeCustomization({
                               ...customization,
                               acessorioId: acc.id,
@@ -533,8 +618,10 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                         className={`p-3 rounded-xl border text-left flex items-start justify-between gap-2.5 transition-all ${
                           isSelected
                             ? 'bg-[#111c33] border-sky-400 shadow-md cursor-pointer'
-                            : isUnlocked
+                            : isOwned
                             ? 'bg-[#090d16] border-slate-800 hover:border-slate-700 cursor-pointer'
+                            : canAfford
+                            ? 'bg-[#090d16] border-amber-500/40 hover:border-amber-400 cursor-pointer'
                             : 'bg-[#090d16]/50 border-slate-800/60 opacity-60 cursor-not-allowed'
                         }`}
                       >
@@ -553,15 +640,28 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                               {acc.descricao}
                             </p>
                             <span
-                              className={`inline-block mt-1 text-[10px] font-semibold font-mono-tabular ${
-                                isUnlocked ? 'text-emerald-400' : 'text-amber-400'
+                              className={`inline-flex items-center gap-1 mt-1 text-[10px] font-bold font-mono-tabular ${
+                                isSelected
+                                  ? 'text-sky-400'
+                                  : isOwned
+                                  ? 'text-emerald-400'
+                                  : canAfford
+                                  ? 'text-amber-300'
+                                  : 'text-slate-400'
                               }`}
                             >
-                              {dynamicPrice === 0
-                                ? 'Inicial (Grátis)'
-                                : isUnlocked
-                                ? `Liberado (${dynamicPrice} pts)`
-                                : `Bloqueado · Requer ${dynamicPrice} pts`}
+                              {isSelected ? (
+                                'Em Uso (Equipado)'
+                              ) : isOwned ? (
+                                'Adquirido · Clique para equipar'
+                              ) : canAfford ? (
+                                <>
+                                  <ShoppingBag className="w-3 h-3" />
+                                  Comprar por {dynamicPrice} pts
+                                </>
+                              ) : (
+                                `Custa ${dynamicPrice} pts (Faltam ${dynamicPrice - points} pts)`
+                              )}
                             </span>
                           </div>
                         </div>
@@ -571,9 +671,17 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                             <span className="w-5 h-5 rounded-full bg-sky-500 text-slate-950 flex items-center justify-center">
                               <Check className="w-3 h-3" />
                             </span>
-                          ) : !isUnlocked ? (
+                          ) : isOwned ? (
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-bold">
+                              Equipar
+                            </span>
+                          ) : canAfford ? (
+                            <span className="px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-extrabold">
+                              Comprar
+                            </span>
+                          ) : (
                             <Lock className="w-4 h-4 text-slate-500" />
-                          ) : null}
+                          )}
                         </div>
                       </button>
                     );

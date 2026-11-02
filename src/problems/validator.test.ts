@@ -218,6 +218,7 @@ import {
   ALL_COFFEES,
   CAFETERIA_NPCS,
   CAFETERIA_SPACE,
+  applyErrorEnergyDrain,
   applyTicketEnergyDrain,
   findNearestCafeteriaNpc,
   getCoffeeDynamicPrice,
@@ -225,26 +226,42 @@ import {
   purchaseAndDrinkCoffee,
 } from '../cafeteria/cafeteriaSystem';
 import {
+  DEFAULT_PURCHASED_OUTFITS,
   getDynamicAccessoryPrice,
   getDynamicOutfitPrice,
+  purchaseOutfitWithPoints,
 } from '../progression/progressionSystem';
+import {
+  BACKGROUND_AUDIO_SRC,
+  FEMALE_YAWN_AUDIO_SRC,
+  MALE_YAWN_AUDIO_SRC,
+  getYawnAudioSrcForGender,
+} from '../audio/soundEngine';
 import { isPlayerNearCafeteria } from '../player/collision';
 
-test('Cafeteria OverCoffee space is physically walkable, drains/restores energy with coffee types, scales prices with points & difficulty, and detects in-room NPCs', () => {
+test('Cafeteria OverCoffee space is physically walkable, drains/restores energy with paid coffee types, scales prices with points & difficulty, and detects in-room NPCs', () => {
   assert.equal(ALL_COFFEES.length, 5, 'Expected 5 coffee options');
   assert.equal(CAFETERIA_NPCS.length, 4, 'Expected 4 Cafeteria NPCs');
   assert.ok(CAFETERIA_SPACE.bounds.w >= 11.0, 'Cafeteria room should be enlarged (>= 11m wide)');
 
-  // Verify energy drain on ticket completion
+  // Verify energy drain ONLY on ticket completion (and not on diagnostic error)
   const nextEnergyAfterTicket = applyTicketEnergyDrain(100, 'normal');
   assert.equal(nextEnergyAfterTicket, 72);
+  assert.equal(applyErrorEnergyDrain(80), 80, 'Energy should not drain on diagnostic error');
 
-  // Verify free coffee works even at 0 points and restores +25% energy
-  const freeCoffee = ALL_COFFEES[0];
-  const freeRes = purchaseAndDrinkCoffee(50, 0, freeCoffee);
-  assert.equal(freeRes.success, true);
-  assert.equal(freeRes.nextEnergy, 75);
-  assert.equal(freeRes.nextPoints, 0);
+  // Verify no coffees are free and buying with 0 points fails
+  assert.ok(
+    ALL_COFFEES.every((c) => c.custoPontos > 0 && getCoffeeDynamicPrice(c, 'normal', 0, 0) > 0),
+    'All coffees must cost points (no free coffees)'
+  );
+  const firstCoffee = ALL_COFFEES[0];
+  const zeroPointsRes = purchaseAndDrinkCoffee(50, 0, firstCoffee);
+  assert.equal(zeroPointsRes.success, false, 'Should not be able to get coffee with 0 points');
+
+  const paidFirstRes = purchaseAndDrinkCoffee(50, 100, firstCoffee);
+  assert.equal(paidFirstRes.success, true);
+  assert.equal(paidFirstRes.nextEnergy, 75);
+  assert.equal(paidFirstRes.nextPoints, 100 - firstCoffee.custoPontos);
 
   // Verify paid coffee deducts points and restores energy
   const cappuccino = ALL_COFFEES[2];
@@ -276,6 +293,25 @@ test('Cafeteria OverCoffee space is physically walkable, drains/restores energy 
   const outfitBase = getDynamicOutfitPrice(sampleOutfit, 'facil', 0, 0);
   const outfitScaled = getDynamicOutfitPrice(sampleOutfit, 'dificil', 700, 4);
   assert.ok(outfitScaled > outfitBase, 'Outfit prices must scale with earnings');
+
+  // Verify outfits cost user points as currency when purchased
+  const hoodie = ALL_OUTFITS[1];
+  assert.ok(hoodie.pontosNecessarios > 0, 'Casual hoodie should cost points');
+  const buyOutfitRes = purchaseOutfitWithPoints({
+    outfit: hoodie,
+    currentPoints: 200,
+    purchasedOutfitIds: DEFAULT_PURCHASED_OUTFITS,
+    difficulty: 'facil',
+    resolvedCount: 0,
+  });
+  assert.equal(buyOutfitRes.success, true);
+  assert.equal(buyOutfitRes.nextPoints, 200 - hoodie.pontosNecessarios);
+  assert.ok(buyOutfitRes.nextPurchasedOutfitIds.includes(hoodie.id));
+
+  // Verify gender yawn audio and background audio paths
+  assert.equal(BACKGROUND_AUDIO_SRC, '/assets/aistudio/background_17bc5615.mp3');
+  assert.equal(getYawnAudioSrcForGender('masculino'), MALE_YAWN_AUDIO_SRC);
+  assert.equal(getYawnAudioSrcForGender('feminino'), FEMALE_YAWN_AUDIO_SRC);
 
   // Verify in-world 3D Cafeteria NPC proximity detection and random small-talk lines
   for (const npc of CAFETERIA_NPCS) {
@@ -346,7 +382,7 @@ test('buildVoicePreloadManifest and splitVoiceManifestForFastStart split 1 immed
   assert.ok(backgroundItems.length >= shiftManifest.length, 'Remaining clauses and items must be queued for background download');
 });
 
-test('20% low energy warning and 0% sleep-on-the-job penalty work properly across difficulties', () => {
+test('20% low energy warning and 0% sleep-on-the-job penalty recover 10% energy properly across difficulties', () => {
   assert.equal(isLowEnergyWarning(25), false);
   assert.equal(isLowEnergyWarning(20), true);
   assert.equal(isLowEnergyWarning(10), true);
@@ -360,14 +396,15 @@ test('20% low energy warning and 0% sleep-on-the-job penalty work properly acros
   const easySleep = applySleepOnJobPenalty(200, 'facil');
   assert.equal(easySleep.penalty, 120);
   assert.equal(easySleep.nextPoints, 80);
-  assert.equal(easySleep.recoveredEnergy, 40);
+  assert.equal(easySleep.recoveredEnergy, 10);
 
   const normalSleep = applySleepOnJobPenalty(100, 'normal');
   assert.equal(normalSleep.penalty, 180);
   assert.equal(normalSleep.nextPoints, -80, 'Player can go into negative points when sleeping on the job');
-  assert.equal(normalSleep.recoveredEnergy, 40);
+  assert.equal(normalSleep.recoveredEnergy, 10);
 
   const hardSleep = applySleepOnJobPenalty(0, 'dificil');
   assert.equal(hardSleep.penalty, 250);
   assert.equal(hardSleep.nextPoints, -250);
+  assert.equal(hardSleep.recoveredEnergy, 10);
 });
