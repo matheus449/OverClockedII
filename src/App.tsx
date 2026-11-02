@@ -760,6 +760,19 @@ export default function App() {
         playerCustomization={playerCustomization}
         autoWalkTarget={autoWalkTarget}
         onClearAutoWalk={() => setAutoWalkTarget(null)}
+        onTapFloorWalk={(target) => {
+          if (
+            activeToolModal !== 'none' ||
+            showCustomizationModal ||
+            showCreditsModal ||
+            resolvedModalData ||
+            lowEnergyAlertOpen ||
+            sleepPenaltyNotice
+          ) {
+            return;
+          }
+          setAutoWalkTarget(target);
+        }}
         onNearbyChange={handleNearbyChange}
         onInteractRequest={handleInteractRequest}
         onOpenCafeteriaRequest={() => {
@@ -774,6 +787,7 @@ export default function App() {
             Math.max(0.75, Math.min(2.2, Number((z + delta).toFixed(2))))
           )
         }
+        onSetZoom={(nextZoom) => setCameraZoom(nextZoom)}
       />
 
       {/* Clean Title Screen Overlay */}

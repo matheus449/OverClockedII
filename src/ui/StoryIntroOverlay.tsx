@@ -46,9 +46,9 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
     <div
       role="dialog"
       aria-label="Boas-vindas da Gerente Helena Vasconcelos"
-      className="fixed inset-0 z-20 flex items-center justify-start p-6 md:p-12 bg-[linear-gradient(90deg,rgba(9,13,22,0.95)_0%,rgba(9,13,22,0.86)_52%,rgba(9,13,22,0.12)_85%,rgba(9,13,22,0.0)_100%)] pointer-events-auto"
+      className="fixed inset-0 z-20 flex items-center justify-start p-3.5 sm:p-6 md:p-12 overflow-y-auto bg-[linear-gradient(90deg,rgba(9,13,22,0.95)_0%,rgba(9,13,22,0.86)_52%,rgba(9,13,22,0.12)_85%,rgba(9,13,22,0.0)_100%)] pointer-events-auto"
     >
-      <div className="w-full max-w-xl bg-[#0f172a] border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
+      <div className="my-auto w-full max-w-xl bg-[#0f172a] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5">
         {/* Manager Header: Helena Vasconcelos */}
         <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div className="flex items-center gap-4">

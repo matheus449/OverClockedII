@@ -42,12 +42,12 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-20 flex flex-col justify-between p-6 md:p-10 bg-[linear-gradient(90deg,rgba(9,13,22,0.96)_0%,rgba(9,13,22,0.88)_46%,rgba(9,13,22,0.14)_74%,rgba(9,13,22,0.0)_100%)] pointer-events-auto">
-      {/* Left Content Column leaving >50% live 3D office vista unobstructed */}
-      <div className="my-auto max-w-md space-y-5">
+    <div className="fixed inset-0 z-20 flex flex-col justify-between p-4 sm:p-6 md:p-10 overflow-y-auto bg-[linear-gradient(90deg,rgba(9,13,22,0.96)_0%,rgba(9,13,22,0.88)_46%,rgba(9,13,22,0.14)_74%,rgba(9,13,22,0.0)_100%)] pointer-events-auto">
+      {/* Left Content Column leaving >50% live 3D office vista unobstructed on Desktop */}
+      <div className="my-auto max-w-md space-y-3.5 sm:space-y-5">
         {/* Official OVERCLOCKED Logo Banner + Power Emblem */}
-        <div className="p-3.5 rounded-2xl bg-white border-2 border-purple-500/40 shadow-2xl flex items-center gap-3">
-          <div className="w-14 h-14 rounded-xl bg-slate-50 border border-slate-200 p-1.5 flex items-center justify-center shrink-0">
+        <div className="p-3 sm:p-3.5 rounded-2xl bg-white border-2 border-purple-500/40 shadow-2xl flex items-center gap-3">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-slate-50 border border-slate-200 p-1.5 flex items-center justify-center shrink-0">
             <img
               src={OVERCLOCKED_ICON_URL}
               alt="Símbolo Power OVERCLOCKED"
@@ -58,16 +58,16 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
             <img
               src={OVERCLOCKED_LOGO_URL}
               alt="Logotipo Oficial OVERCLOCKED"
-              className="w-full h-11 object-contain object-left"
+              className="w-full h-9 sm:h-11 object-contain object-left"
             />
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-800 block mt-0.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-purple-800 block mt-0.5 truncate">
               Simulador de Suporte e Rotina em TI
             </span>
           </div>
         </div>
 
         {/* Clean Player Identification & Preferences Card */}
-        <div className="p-5 rounded-2xl bg-[#0f172a] border border-slate-800 shadow-2xl space-y-4">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#0f172a] border border-slate-800 shadow-2xl space-y-3.5 sm:space-y-4">
           {/* Name Input */}
           <div>
             <label
@@ -164,7 +164,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
                     type="button"
                     onClick={() => onSelectDifficulty(item.id)}
                     aria-pressed={selected}
-                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-2 sm:p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                       selected
                         ? 'bg-[#111c33] border-[#38bdf8] shadow-md'
                         : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
@@ -184,7 +184,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
         </div>
 
         {/* Primary Start Action + Wardrobe & Credits Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
           <button
             type="button"
             data-start="true"
@@ -192,7 +192,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
               e.currentTarget.blur();
               onStartGame();
             }}
-            className="flex-1 py-3.5 px-5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95 cursor-pointer"
+            className="w-full sm:flex-1 py-3 sm:py-3.5 px-5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current" />
             Iniciar
@@ -201,7 +201,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
           <button
             type="button"
             onClick={onOpenCustomization}
-            className="py-3.5 px-3.5 rounded-xl bg-[#0f172a] hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+            className="flex-1 sm:flex-initial py-3 sm:py-3.5 px-3 sm:px-3.5 rounded-xl bg-[#0f172a] hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
             title="Personalizar Roupas, Acessórios e Medalhas"
           >
             <Shirt className="w-4 h-4 text-sky-400" />
@@ -211,7 +211,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
           <button
             type="button"
             onClick={onOpenCredits}
-            className="py-3.5 px-3.5 rounded-xl bg-[#0f172a] hover:bg-purple-950/60 border border-purple-500/40 text-purple-200 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+            className="flex-1 sm:flex-initial py-3 sm:py-3.5 px-3 sm:px-3.5 rounded-xl bg-[#0f172a] hover:bg-purple-950/60 border border-purple-500/40 text-purple-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             title="Abrir Tela de Créditos e Sobre o Jogo"
           >
             <Info className="w-4 h-4 text-purple-400" />
@@ -221,8 +221,8 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
       </div>
 
       {/* Single flat borderless inline control hint line in the bottom safe margin */}
-      <div className="text-xs text-slate-300 font-mono-tabular">
-        WASD / Setas Mover · E Interagir · C Guarda-Roupa · V Mapa Inteiro · Esc Pausar
+      <div className="pt-2 text-[11px] sm:text-xs text-slate-300 font-mono-tabular">
+        PC: WASD/Setas + E · Celular: Toque no Chão ou Controle Virtual · V Mapa · Esc Pausar
       </div>
     </div>
   );

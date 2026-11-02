@@ -38,6 +38,14 @@ import {
   CafeteriaNpc,
   findNearestCafeteriaNpc,
 } from '../cafeteria/cafeteriaSystem';
+import {
+  clampTapTargetToOfficeBounds,
+  clearAllTouchDirections,
+  computeMovementVector,
+  computePinchZoom,
+  getActiveTouchDirections,
+  registerTouchInteractHandler,
+} from '../player/touchControls';
 
 export interface OfficeSceneProps {
   gameState: 'title' | 'loading' | 'story' | 'playing' | 'paused' | 'gameover';
@@ -46,6 +54,7 @@ export interface OfficeSceneProps {
   playerCustomization?: PlayerCustomization;
   autoWalkTarget: Vec2 | null;
   onClearAutoWalk: () => void;
+  onTapFloorWalk?: (target: Vec2) => void;
   onNearbyChange: (
     nearby: NearbyInteraction | null,
     currentSectorName: string,
@@ -58,6 +67,7 @@ export interface OfficeSceneProps {
   npcEmotionOverride: { npcId: string; emotion: 'neutral' | 'waiting' | 'satisfied' | 'annoyed' } | null;
   cameraZoom: number;
   onWheelZoom?: (deltaZoom: number) => void;
+  onSetZoom?: (nextZoom: number) => void;
 }
 
 const MAX_TRAIL_NODES = 80;
@@ -69,6 +79,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
   playerCustomization = DEFAULT_CUSTOMIZATION,
   autoWalkTarget,
   onClearAutoWalk,
+  onTapFloorWalk,
   onNearbyChange,
   onInteractRequest,
   onOpenCafeteriaRequest,
@@ -76,6 +87,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
   npcEmotionOverride,
   cameraZoom,
   onWheelZoom,
+  onSetZoom,
 }) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const emotionFloatingRef = useRef<HTMLDivElement | null>(null);
@@ -87,6 +99,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     playerCustomization,
     autoWalkTarget,
     onClearAutoWalk,
+    onTapFloorWalk,
     onNearbyChange,
     onInteractRequest,
     onOpenCafeteriaRequest,
@@ -94,6 +107,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     npcEmotionOverride,
     cameraZoom,
     onWheelZoom,
+    onSetZoom,
   });
   useEffect(() => {
     propsRef.current = {
@@ -103,6 +117,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       playerCustomization,
       autoWalkTarget,
       onClearAutoWalk,
+      onTapFloorWalk,
       onNearbyChange,
       onInteractRequest,
       onOpenCafeteriaRequest,
@@ -110,6 +125,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       npcEmotionOverride,
       cameraZoom,
       onWheelZoom,
+      onSetZoom,
     };
   }, [
     gameState,
@@ -118,6 +134,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     playerCustomization,
     autoWalkTarget,
     onClearAutoWalk,
+    onTapFloorWalk,
     onNearbyChange,
     onInteractRequest,
     onOpenCafeteriaRequest,
@@ -125,6 +142,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     npcEmotionOverride,
     cameraZoom,
     onWheelZoom,
+    onSetZoom,
   ]);
 
   useEffect(() => {
@@ -459,9 +477,38 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     }
     renderer.render(scene, camera);
 
-    // 8. Input Listeners (WASD/Arrows + E/Space + Mouse Wheel Zoom)
+    // 8. Input Listeners (WASD/Arrows + Mobile Touch D-Pad + Tap-to-Walk + Pinch/Wheel Zoom)
     const keysHeld = new Set<string>();
     let stepDistanceAccum = 0;
+
+    const executeContextualInteract = () => {
+      if (propsRef.current.gameState !== 'playing') return;
+      if (isPlayerNearCafeteria(playerPos)) {
+        const nearCafeNpc = findNearestCafeteriaNpc(playerPos);
+        if (nearCafeNpc && nearCafeNpc.npc.id !== 'npc_barista_leo') {
+          propsRef.current.onTalkToCafeteriaNpcRequest?.(nearCafeNpc.npc);
+        } else {
+          propsRef.current.onOpenCafeteriaRequest?.();
+        }
+        return;
+      }
+      const livePositions: Record<string, Vec2> = {};
+      for (const k of Object.keys(npcStates)) {
+        livePositions[k] = npcStates[k].pos;
+      }
+      const nearby = findNearestInteractable(
+        playerPos,
+        ALL_SECTORS,
+        ALL_NPCS,
+        propsRef.current.activeProblem,
+        livePositions
+      );
+      if (nearby) {
+        propsRef.current.onInteractRequest(nearby);
+      }
+    };
+
+    registerTouchInteractHandler(executeContextualInteract);
 
     const onKeyDown = (e: KeyboardEvent) => {
       const code = e.code;
@@ -487,31 +534,8 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       }
 
       if ((code === 'KeyE' || code === 'Space') && !e.repeat) {
-        if (isPlayerNearCafeteria(playerPos)) {
-          e.preventDefault();
-          const nearCafeNpc = findNearestCafeteriaNpc(playerPos);
-          if (nearCafeNpc && nearCafeNpc.npc.id !== 'npc_barista_leo') {
-            propsRef.current.onTalkToCafeteriaNpcRequest?.(nearCafeNpc.npc);
-          } else {
-            propsRef.current.onOpenCafeteriaRequest?.();
-          }
-          return;
-        }
-        const livePositions: Record<string, Vec2> = {};
-        for (const k of Object.keys(npcStates)) {
-          livePositions[k] = npcStates[k].pos;
-        }
-        const nearby = findNearestInteractable(
-          playerPos,
-          ALL_SECTORS,
-          ALL_NPCS,
-          propsRef.current.activeProblem,
-          livePositions
-        );
-        if (nearby) {
-          e.preventDefault();
-          propsRef.current.onInteractRequest(nearby);
-        }
+        e.preventDefault();
+        executeContextualInteract();
       }
     };
 
@@ -521,6 +545,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
 
     const onBlur = () => {
       keysHeld.clear();
+      clearAllTouchDirections();
     };
 
     const onWheel = (e: WheelEvent) => {
@@ -530,10 +555,81 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       }
     };
 
+    // Tap-to-Walk on the 3D Office Floor (works on both Mobile touch and PC click)
+    const floorRaycaster = new THREE.Raycaster();
+    const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const floorHitVec = new THREE.Vector3();
+    const ndcPointer = new THREE.Vector2();
+    let pointerDownPos: { x: number; y: number; time: number } | null = null;
+    let activePinchDist = 0;
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (propsRef.current.gameState !== 'playing') return;
+      if (e.button !== undefined && e.button !== 0) return;
+      pointerDownPos = { x: e.clientX, y: e.clientY, time: performance.now() };
+    };
+
+    const onPointerUp = (e: PointerEvent) => {
+      if (propsRef.current.gameState !== 'playing' || !pointerDownPos) return;
+      const moveDist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+      const elapsed = performance.now() - pointerDownPos.time;
+      pointerDownPos = null;
+
+      // Ignore long drags or multi-touch pinch gestures
+      if (moveDist > 14 || elapsed > 550 || activePinchDist > 0) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      ndcPointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndcPointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      floorRaycaster.setFromCamera(ndcPointer, camera);
+      const hit = floorRaycaster.ray.intersectPlane(floorPlane, floorHitVec);
+      if (hit) {
+        const target = clampTapTargetToOfficeBounds({ x: hit.x, z: hit.z });
+        propsRef.current.onTapFloorWalk?.(target);
+      }
+    };
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        activePinchDist = Math.hypot(dx, dy);
+        pointerDownPos = null;
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (propsRef.current.gameState !== 'playing') return;
+      if (e.touches.length === 2 && activePinchDist > 0) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const nextDist = Math.hypot(dx, dy);
+        const nextZoom = computePinchZoom(
+          propsRef.current.cameraZoom,
+          activePinchDist,
+          nextDist
+        );
+        activePinchDist = nextDist;
+        propsRef.current.onSetZoom?.(nextZoom);
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        activePinchDist = 0;
+      }
+    };
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', onBlur);
     renderer.domElement.addEventListener('wheel', onWheel, { passive: true });
+    renderer.domElement.addEventListener('pointerdown', onPointerDown, { passive: true });
+    renderer.domElement.addEventListener('pointerup', onPointerUp, { passive: true });
+    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: true });
+    renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: true });
+    renderer.domElement.addEventListener('touchend', onTouchEnd, { passive: true });
 
     const onResize = () => {
       if (!container) return;
@@ -647,13 +743,12 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         managerRig.headGroup.rotation.y = Math.sin(elapsedTime * 2.2) * 0.12;
         updateNpcsFrame(npcStates, npcRigs, playerPos, null, dt, elapsedTime);
       } else if (currentState === 'playing') {
-        // B. Player Movement (WASD / Arrows or Auto-Walk along Trail)
-        let moveX = 0;
-        let moveZ = 0;
-        if (keysHeld.has('KeyW') || keysHeld.has('ArrowUp')) moveZ -= 1;
-        if (keysHeld.has('KeyS') || keysHeld.has('ArrowDown')) moveZ += 1;
-        if (keysHeld.has('KeyA') || keysHeld.has('ArrowLeft')) moveX -= 1;
-        if (keysHeld.has('KeyD') || keysHeld.has('ArrowRight')) moveX += 1;
+        // B. Player Movement (WASD / Arrows / Mobile Touch D-Pad or Auto-Walk along Trail)
+        const touchHeld = getActiveTouchDirections();
+        const { moveX, moveZ } = computeMovementVector(keysHeld, touchHeld);
+        if ((moveX !== 0 || moveZ !== 0) && curAutoTarget) {
+          propsRef.current.onClearAutoWalk();
+        }
 
         const speed = 6.2;
         if (moveX !== 0 || moveZ !== 0) {
@@ -936,21 +1031,28 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     return () => {
       cancelAnimationFrame(frameId);
       clearTimeout(frameId);
+      registerTouchInteractHandler(null);
+      clearAllTouchDirections();
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
       window.removeEventListener('resize', onResize);
       renderer.domElement.removeEventListener('wheel', onWheel);
+      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+      renderer.domElement.removeEventListener('pointerup', onPointerUp);
+      renderer.domElement.removeEventListener('touchstart', onTouchStart);
+      renderer.domElement.removeEventListener('touchmove', onTouchMove);
+      renderer.domElement.removeEventListener('touchend', onTouchEnd);
       renderer.dispose();
     };
   }, []);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#0d1117]">
+    <div className="relative w-screen h-screen overflow-hidden bg-[#0d1117] touch-none">
       <div
         ref={mountRef}
         data-testid="office-3d-canvas"
-        className="w-full h-full"
+        className="w-full h-full touch-none"
       />
       <div
         ref={emotionFloatingRef}

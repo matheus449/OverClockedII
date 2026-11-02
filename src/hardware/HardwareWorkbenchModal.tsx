@@ -46,33 +46,33 @@ export const HardwareWorkbenchModal: React.FC<HardwareWorkbenchProps> = ({
     <div
       role="dialog"
       aria-label="Bancada de Inspeção Física de Hardware"
-      className="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/75 pointer-events-auto"
+      className="fixed inset-0 z-30 flex items-center justify-center p-2.5 sm:p-4 bg-black/75 pointer-events-auto"
     >
-      <div className="w-full max-w-5xl bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Top Apple-style Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-[#0f172a] border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+      <div className="w-full max-w-5xl bg-[#111827] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92dvh] sm:max-h-[90vh]">
+        {/* Top Header */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 sm:px-6 py-3 sm:py-4 bg-[#0f172a] border-b border-slate-800">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
               <Cpu className="w-5 h-5" />
             </div>
-            <div>
-              <h2 className="text-base font-semibold text-slate-100">
+            <div className="min-w-0">
+              <h2 className="text-sm sm:text-base font-semibold text-slate-100 truncate">
                 Inspeção Física do Equipamento — {problem.setor.toUpperCase()}
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 truncate">
                 Relato: &ldquo;{problem.falaNpc}&rdquo;
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={onSwitchToVirtualOS}
-              className="px-3.5 py-2 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              className="px-3 sm:px-3.5 py-2 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Laptop className="w-4 h-4" />
-              Abrir Computador Virtual (OverOS)
+              <span>OverOS Virtual</span>
             </button>
             <button
               type="button"

@@ -10,6 +10,7 @@ import { NearbyInteraction } from '../player/collision';
 import { TicketScoreBreakdown } from '../progression/progressionSystem';
 import { CAFETERIA_NPCS, CafeteriaNpc } from '../cafeteria/cafeteriaSystem';
 import { isFemaleNpc, voiceNarrator } from '../audio/voiceNarrator';
+import { TouchControlsPad } from './TouchControlsPad';
 import {
   Award,
   CheckCircle2,
@@ -140,14 +141,14 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   const isFullMap = cameraZoom >= 1.9;
 
   return (
-    <div className="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-4">
+    <div className="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-2.5 sm:p-4">
       {/* TOP PERIMETER CLUSTER: Ticket Notification / Queue / Wait Timer + Utility & Progression Bar */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-2 max-w-2xl">
+      <div className="flex flex-col md:flex-row items-stretch md:items-start justify-between gap-2 md:gap-4">
+        <div className="order-2 md:order-1 flex flex-col gap-2 max-w-2xl">
           {/* Rush Hour Indicator Banner (Active on Hard Difficulty Rush Waves) */}
           {isRushHour && (
-            <div className="pointer-events-auto self-start px-3.5 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-xs font-bold flex items-center gap-2 shadow-lg">
-              <Flame className="w-4 h-4 text-orange-400 animate-pulse" />
+            <div className="pointer-events-auto self-start px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-[11px] sm:text-xs font-bold flex items-center gap-2 shadow-lg">
+              <Flame className="w-4 h-4 text-orange-400 animate-pulse shrink-0" />
               <span>
                 HORÁRIO DE PICO ATIVO ({rushHourRemaining}s) · Chamados acumulam na fila · Bônus +75 pts!
               </span>
@@ -158,7 +159,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           {energy <= 20 && energy > 0 && (
             <div
               role="alert"
-              className="pointer-events-auto self-start px-4 py-2 rounded-xl bg-rose-950/95 border border-rose-500 text-rose-200 text-xs font-bold flex items-center justify-between gap-3 shadow-xl animate-pulse"
+              className="pointer-events-auto self-start px-3 sm:px-4 py-2 rounded-xl bg-rose-950/95 border border-rose-500 text-rose-200 text-[11px] sm:text-xs font-bold flex items-center justify-between gap-2.5 shadow-xl animate-pulse"
             >
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-rose-400 shrink-0" />
@@ -180,42 +181,44 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
           {/* Active Ticket Card OR Calm Patrol Countdown Card */}
           {activeProblem && targetSector && targetNpc ? (
-            <div className="pointer-events-auto bg-[#0f172a] border border-slate-800 rounded-xl px-4 py-3 shadow-xl flex flex-col gap-2.5">
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-slate-700"
-                  style={{ backgroundColor: `${targetSector.cor}22` }}
-                >
-                  <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
-                    <rect
-                      x="3"
-                      y="4"
-                      width="18"
-                      height="12"
-                      rx="2"
-                      stroke={targetSector.cor}
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="M8 20H16M12 16V20"
-                      stroke="#f8fafc"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
-                    <span className="font-semibold text-sky-400">
-                      Chamado no Setor: {targetSector.nome}
-                    </span>
-                    <span>·</span>
-                    <span className="truncate">{targetNpc.nome}</span>
+            <div className="pointer-events-auto bg-[#0f172a] border border-slate-800 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 shadow-xl flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2.5 sm:gap-4 flex-wrap sm:flex-nowrap">
+                <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 flex-1">
+                  <div
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 border border-slate-700"
+                    style={{ backgroundColor: `${targetSector.cor}22` }}
+                  >
+                    <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none">
+                      <rect
+                        x="3"
+                        y="4"
+                        width="18"
+                        height="12"
+                        rx="2"
+                        stroke={targetSector.cor}
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M8 20H16M12 16V20"
+                        stroke="#f8fafc"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
                   </div>
-                  <p className="text-sm font-semibold text-slate-100 truncate mt-0.5">
-                    {activeProblem.descricaoCurta}
-                  </p>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-slate-400">
+                      <span className="font-semibold text-sky-400 truncate">
+                        Setor: {targetSector.nome}
+                      </span>
+                      <span>·</span>
+                      <span className="truncate">{targetNpc.nome}</span>
+                    </div>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-100 truncate mt-0.5">
+                      {activeProblem.descricaoCurta}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
@@ -226,7 +229,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                         e.currentTarget.blur();
                         onWalkToActiveTicket();
                       }}
-                      className="px-3.5 py-2 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-3 sm:px-3.5 py-2 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
                     >
                       <Navigation className="w-3.5 h-3.5" />
                       Ir até o Setor
@@ -238,7 +241,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                         e.currentTarget.blur();
                         if (nearby) onOpenNpcDialogue(nearby);
                       }}
-                      className="px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+                      className="px-3 sm:px-3.5 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
                     >
                       Atender Agora [E]
                     </button>
@@ -304,10 +307,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
         </div>
 
         {/* Top-Right Compact Progression, Energy Status & Utility Controls (No remote Cafeteria button!) */}
-        <div className="pointer-events-auto flex items-center gap-2 bg-[#0f172a] border border-slate-800 rounded-xl p-1.5 shadow-xl">
+        <div className="order-1 md:order-2 pointer-events-auto flex items-center justify-between md:justify-end gap-1 sm:gap-2 bg-[#0f172a] border border-slate-800 rounded-xl p-1 sm:p-1.5 shadow-xl">
           {/* Energy Meter Indicator (Does NOT open Cafeteria remotely; guides player to walk there) */}
           <div
-            className={`px-2.5 py-1 rounded-lg border flex items-center gap-2 transition-colors ${
+            className={`px-1.5 sm:px-2.5 py-1 rounded-lg border flex items-center gap-1 sm:gap-2 transition-colors ${
               energy <= 25
                 ? 'bg-rose-500/20 border-rose-500/50 text-rose-300 animate-pulse'
                 : energy <= 55
@@ -316,28 +319,28 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
             }`}
             title="Sua Energia Atual — Vá até a sala da Cafeteria OverCoffee no mapa para tomar café"
           >
-            <Zap className="w-4 h-4 shrink-0" />
+            <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             <div className="text-left">
-              <div className="text-[9px] font-bold uppercase tracking-wider opacity-80">
+              <div className="text-[8px] sm:text-[9px] font-bold uppercase tracking-wider opacity-80">
                 Energia
               </div>
-              <div className="text-xs font-extrabold font-mono-tabular leading-tight">
+              <div className="text-[11px] sm:text-xs font-extrabold font-mono-tabular leading-tight">
                 {energy}%
               </div>
             </div>
           </div>
 
           {/* Career Points (can go negative if player owes points) */}
-          <div className="px-2.5 py-1 text-right border-r border-slate-800">
+          <div className="px-1.5 sm:px-2.5 py-1 text-right border-r border-slate-800">
             <div
-              className={`text-[10px] font-semibold uppercase tracking-wider ${
+              className={`text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${
                 points < 0 ? 'text-rose-400' : 'text-amber-400'
               }`}
             >
               {points < 0 ? 'Devendo' : 'Pontos'}
             </div>
             <div
-              className={`text-sm font-bold font-mono-tabular leading-tight ${
+              className={`text-xs sm:text-sm font-bold font-mono-tabular leading-tight ${
                 points < 0 ? 'text-rose-400' : 'text-amber-300'
               }`}
             >
@@ -346,11 +349,11 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           </div>
 
           {/* Resolved Tickets */}
-          <div className="px-2.5 py-1 text-right">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          <div className="px-1.5 sm:px-2.5 py-1 text-right">
+            <div className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               Chamados
             </div>
-            <div className="text-sm font-bold font-mono-tabular text-slate-100 leading-tight">
+            <div className="text-xs sm:text-sm font-bold font-mono-tabular text-slate-100 leading-tight">
               {resolvedCount}
             </div>
           </div>
@@ -364,12 +367,12 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onOpenCustomization();
             }}
-            className="px-2.5 h-9 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 flex items-center gap-1.5 text-xs font-semibold transition-colors cursor-pointer"
+            className="px-2 sm:px-2.5 h-8 sm:h-9 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 flex items-center gap-1 sm:gap-1.5 text-xs font-semibold transition-colors cursor-pointer shrink-0"
             title="Roupas, Acessórios e Medalhas [C]"
           >
-            <Shirt className="w-4 h-4" />
+            <Shirt className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Roupas & Medalhas</span>
-            <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-[10px] font-mono-tabular">
+            <span className="px-1 py-0.5 rounded bg-amber-500/20 text-[10px] font-mono-tabular">
               {unlockedMedalsCount}
             </span>
           </button>
@@ -383,7 +386,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onToggleVoiceEnabled();
             }}
-            className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
               voiceEnabled
                 ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
                 : 'bg-slate-800/80 hover:bg-slate-700 text-slate-400'
@@ -402,7 +405,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onToggleMute();
             }}
-            className="w-9 h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             title="Áudio [M]"
           >
             {muted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />}
@@ -417,7 +420,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onOpenPause();
             }}
-            className="w-9 h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             title="Pausar [Esc / P]"
           >
             <Pause className="w-4 h-4" />
@@ -748,8 +751,21 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
         )}
       </div>
 
-      {/* BOTTOM UNIFIED COLLAPSIBLE CONTROL DOCK */}
+      {/* BOTTOM UNIFIED COLLAPSIBLE CONTROL DOCK + MOBILE TOUCH D-PAD */}
       <div className="mx-auto w-full max-w-4xl flex flex-col items-center pointer-events-auto">
+        {!resolvedModalData && !activeDialogueNpc && !activeCafeteriaDialogue && (
+          <TouchControlsPad
+            hasNearbyNpc={Boolean(nearby)}
+            nearbyNpcFirstName={nearby?.npc.nome.split(' ')[0]}
+            nearCafeteria={nearCafeteria}
+            hasActiveProblem={Boolean(activeProblem)}
+            isAtTargetSector={isAtTarget}
+            onWalkToActiveTicket={onWalkToActiveTicket}
+            onOpenHardwareWorkbench={onOpenHardwareWorkbench}
+            onOpenVirtualOS={onOpenVirtualOS}
+            onOpenCafeteria={onOpenCafeteria}
+          />
+        )}
         <button
           type="button"
           onClick={() => setDockCollapsed((prev) => !prev)}

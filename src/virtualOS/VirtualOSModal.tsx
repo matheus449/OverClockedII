@@ -191,18 +191,18 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
     >
       {/* Monitor Frame */}
       <div
-        className={`w-full max-w-6xl h-[86vh] bg-[#0b1324] border-4 border-[#1e293b] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative ${
+        className={`w-full max-w-6xl h-[90dvh] md:h-[86vh] bg-[#0b1324] border-2 md:border-4 border-[#1e293b] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative ${
           !state.resolucaoNativa ? 'scale-y-95 tracking-widest' : ''
         }`}
       >
         {/* Top Bezel Bar: NPC Quote + Switch to Physical Hardware + Close */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-[#090d16] border-b border-slate-800 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#090d16] border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <span className="text-xs font-bold text-sky-400 whitespace-nowrap">
-              OverOS Pro · Estação {problem.setor.toUpperCase()}
+              OverOS Pro · {problem.setor.toUpperCase()}
             </span>
-            <span className="text-slate-600">·</span>
-            <span className="text-xs text-slate-300 truncate">
+            <span className="text-slate-600 hidden sm:inline">·</span>
+            <span className="text-xs text-slate-300 truncate hidden sm:inline">
               &ldquo;{problem.falaNpc}&rdquo;
             </span>
           </div>
@@ -211,10 +211,10 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
             <button
               type="button"
               onClick={onSwitchToHardware}
-              className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition-colors whitespace-nowrap cursor-pointer"
             >
               <Wrench className="w-3.5 h-3.5" />
-              Inspecionar Cabos / Hardware
+              <span>Hardware</span>
             </button>
             <button
               type="button"
@@ -230,7 +230,7 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
         {/* Action Feedback Strip */}
         {lastMessage && (
           <div
-            className={`px-5 py-2 text-xs font-medium flex items-center justify-between border-b shrink-0 ${
+            className={`px-3 sm:px-5 py-2 text-xs font-medium flex flex-wrap items-center justify-between gap-2 border-b shrink-0 ${
               lastMessage.isError
                 ? 'bg-rose-950 border-rose-800 text-rose-200'
                 : 'bg-emerald-950 border-emerald-800 text-emerald-200'
@@ -250,11 +250,11 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
           </div>
         )}
 
-        {/* Main Virtual Desktop Workspace */}
-        <div className="flex-1 flex overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#13203c] to-[#0b1324] relative">
-          {/* Left Desktop Icons Column */}
-          <div className="w-60 p-3 flex flex-col gap-1.5 border-r border-slate-800/70 bg-[#090d16]/50 shrink-0 overflow-y-auto">
-            <span className="text-[11px] font-semibold text-slate-400 px-2 py-1">
+        {/* Main Virtual Desktop Workspace (Responsive: horizontal dock on mobile, left sidebar on desktop) */}
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#13203c] to-[#0b1324] relative">
+          {/* App Icons Dock (Horizontal scroll on Mobile, Left Sidebar on Desktop) */}
+          <div className="w-full md:w-60 p-2 md:p-3 flex flex-row md:flex-col gap-1.5 border-b md:border-b-0 md:border-r border-slate-800/70 bg-[#090d16]/60 shrink-0 overflow-x-auto md:overflow-y-auto">
+            <span className="hidden md:block text-[11px] font-semibold text-slate-400 px-2 py-1">
               Ferramentas do Sistema
             </span>
             {apps.map((app) => (
@@ -265,13 +265,13 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
                   setActiveApp(app.id);
                   setStartMenuOpen(false);
                 }}
-                className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                className={`shrink-0 md:w-full px-3 py-2 md:py-2.5 rounded-xl text-left flex items-center justify-between gap-2 transition-colors cursor-pointer ${
                   activeApp === app.id
                     ? 'bg-[#0071e3] text-white shadow-sm'
-                    : 'text-slate-300 hover:bg-slate-800/70'
+                    : 'text-slate-300 hover:bg-slate-800/70 bg-slate-900/60 md:bg-transparent'
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2 min-w-0">
                   {app.icon}
                   <span className="text-xs font-medium whitespace-nowrap">{app.label}</span>
                 </div>
@@ -284,7 +284,7 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
             ))}
 
             {showHints && (
-              <div className="mt-auto p-3 rounded-xl bg-[#090d16]/90 border border-slate-800">
+              <div className="hidden md:block mt-auto p-3 rounded-xl bg-[#090d16]/90 border border-slate-800">
                 <p className="text-[11px] font-semibold text-sky-400 mb-1">
                   Guia Passo a Passo:
                 </p>
@@ -298,11 +298,11 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
           </div>
 
           {/* Right Active OS Window Area */}
-          <div className="flex-1 p-5 overflow-y-auto">
+          <div className="flex-1 p-3 sm:p-5 overflow-y-auto space-y-3">
             <div className="bg-[#0f172a] border border-slate-800 rounded-xl shadow-xl overflow-hidden">
               {/* Window Title Bar */}
-              <div className="px-5 py-3 bg-[#1e293b]/70 border-b border-slate-800 flex items-center justify-between">
-                <span className="text-sm font-semibold text-slate-100">
+              <div className="px-4 sm:px-5 py-2.5 sm:py-3 bg-[#1e293b]/70 border-b border-slate-800 flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-semibold text-slate-100">
                   {apps.find((a) => a.id === activeApp)?.label}
                 </span>
                 <span className="text-xs text-slate-400 font-mono-tabular">
@@ -311,10 +311,10 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
               </div>
 
               {/* Window Content Body */}
-              <div className="p-6">
+              <div className="p-3.5 sm:p-6">
                 {activeApp === 'tarefas' && (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="p-4 rounded-xl bg-[#090d16] border border-slate-800">
                         <span className="text-xs text-slate-400">Uso de Processador (CPU)</span>
                         <div className="text-2xl font-bold font-mono-tabular mt-1 text-slate-100">
@@ -927,6 +927,19 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
                 )}
               </div>
             </div>
+
+            {showHints && (
+              <div className="md:hidden p-3 rounded-xl bg-[#090d16]/90 border border-slate-800">
+                <p className="text-[11px] font-semibold text-sky-400 mb-1">
+                  Guia Passo a Passo:
+                </p>
+                <ul className="text-[11px] text-slate-300 space-y-1 list-disc list-inside leading-snug">
+                  {problem.etapas.map((et, i) => (
+                    <li key={i}>{et}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
 
           {/* Optional Start Menu Popover */}
