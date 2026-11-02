@@ -42,7 +42,15 @@ import { PauseSettingsModal } from './ui/PauseSettingsModal';
 import { CharacterCustomizationModal } from './ui/CharacterCustomizationModal';
 import { CafeteriaModal } from './ui/CafeteriaModal';
 import { CreditsModal } from './ui/CreditsModal';
+import {
+  InputModeSelectModal,
+  MandatoryLandscapeOverlay,
+} from './ui/InputModeSelectModal';
 import { NearbyInteraction } from './player/collision';
+import {
+  detectMobileOrTabletClient,
+  InputControlMode,
+} from './player/touchControls';
 import { Vec2 } from './pathfinding/trail';
 import {
   applyErrorEnergyDrain,
@@ -71,6 +79,18 @@ export default function App() {
 
   const [playerName, setPlayerName] = useState<string>(initialSave.playerName);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(initialSave.difficulty);
+  const [inputMode, setInputMode] = useState<InputControlMode>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paramInput = params.get('input');
+    if (paramInput === 'touch' || paramInput === 'keyboard_mouse') {
+      return paramInput;
+    }
+    if (initialSave.inputMode) {
+      return initialSave.inputMode;
+    }
+    return detectMobileOrTabletClient() ? 'touch' : 'keyboard_mouse';
+  });
+  const [showInputModeModal, setShowInputModeModal] = useState<boolean>(false);
   const [musicVolume, setMusicVolume] = useState<number>(initialSave.musicVolume);
   const [sfxVolume, setSfxVolume] = useState<number>(initialSave.sfxVolume);
   const [muted, setMuted] = useState<boolean>(initialSave.muted);
@@ -413,8 +433,17 @@ export default function App() {
     [activeProblem?.id, recentIds]
   );
 
-  // Clicking "Iniciar" on Title Screen randomly draws a first ticket and opens the Story screen immediately
+  // Clicking "Iniciar" on Title Screen opens the Input Mode Prompt (Teclado e Mouse vs Tela Touch)
+  const handlePromptInputModeBeforeStart = useCallback(() => {
+    soundEngine.playInteract();
+    setShowCustomizationModal(false);
+    setShowCreditsModal(false);
+    setShowInputModeModal(true);
+  }, []);
+
+  // Confirmed Input Mode -> draws a first ticket and opens the Story screen immediately
   const handleOpenStoryIntro = useCallback(() => {
+    setShowInputModeModal(false);
     setShowCustomizationModal(false);
     resetWithRandomTicket(difficulty);
     setGameState('story');
@@ -441,11 +470,12 @@ export default function App() {
         gameState === 'title' &&
         !showCustomizationModal &&
         !showCreditsModal &&
+        !showInputModeModal &&
         !isTyping &&
         (e.code === 'Enter' || e.code === 'Space')
       ) {
         e.preventDefault();
-        handleOpenStoryIntro();
+        handlePromptInputModeBeforeStart();
         return;
       }
 
@@ -462,6 +492,10 @@ export default function App() {
 
       if (e.code === 'Escape') {
         e.preventDefault();
+        if (showInputModeModal) {
+          setShowInputModeModal(false);
+          return;
+        }
         if (showCreditsModal) {
           setShowCreditsModal(false);
           return;
@@ -513,7 +547,8 @@ export default function App() {
     activeDialogueNpc,
     showCustomizationModal,
     showCreditsModal,
-    handleOpenStoryIntro,
+    showInputModeModal,
+    handlePromptInputModeBeforeStart,
     handleBeginShiftFromStory,
   ]);
 
@@ -791,33 +826,49 @@ export default function App() {
       />
 
       {/* Clean Title Screen Overlay */}
-      {gameState === 'title' && !showCustomizationModal && !showCreditsModal && (
-        <TitleScreenOverlay
-          playerName={playerName}
-          difficulty={difficulty}
-          voiceEnabled={voiceEnabled}
-          playerCustomization={playerCustomization}
-          onChangePlayerName={(name) => {
-            setPlayerName(name);
-            saveGameData({ playerName: name });
+      {gameState === 'title' &&
+        !showCustomizationModal &&
+        !showCreditsModal &&
+        !showInputModeModal && (
+          <TitleScreenOverlay
+            playerName={playerName}
+            difficulty={difficulty}
+            voiceEnabled={voiceEnabled}
+            playerCustomization={playerCustomization}
+            onChangePlayerName={(name) => {
+              setPlayerName(name);
+              saveGameData({ playerName: name });
+            }}
+            onSelectDifficulty={handleSelectDifficulty}
+            onToggleVoiceEnabled={() => {
+              const next = !voiceEnabled;
+              setVoiceEnabled(next);
+              saveGameData({ voiceEnabled: next });
+            }}
+            onChangeGender={(genero) => {
+              const next = { ...playerCustomization, genero };
+              setPlayerCustomization(next);
+              saveGameData({ playerCustomization: next });
+            }}
+            onOpenCustomization={() => setShowCustomizationModal(true)}
+            onOpenCredits={() => {
+              soundEngine.playInteract();
+              setShowCreditsModal(true);
+            }}
+            onStartGame={handlePromptInputModeBeforeStart}
+          />
+        )}
+
+      {/* Input Mode Selection Prompt (Asks "Teclado e Mouse" vs "Tela Touch" when starting the game) */}
+      {showInputModeModal && (
+        <InputModeSelectModal
+          initialMode={inputMode}
+          onConfirmModeAndStart={(chosenMode) => {
+            setInputMode(chosenMode);
+            saveGameData({ inputMode: chosenMode });
+            handleOpenStoryIntro();
           }}
-          onSelectDifficulty={handleSelectDifficulty}
-          onToggleVoiceEnabled={() => {
-            const next = !voiceEnabled;
-            setVoiceEnabled(next);
-            saveGameData({ voiceEnabled: next });
-          }}
-          onChangeGender={(genero) => {
-            const next = { ...playerCustomization, genero };
-            setPlayerCustomization(next);
-            saveGameData({ playerCustomization: next });
-          }}
-          onOpenCustomization={() => setShowCustomizationModal(true)}
-          onOpenCredits={() => {
-            soundEngine.playInteract();
-            setShowCreditsModal(true);
-          }}
-          onStartGame={handleOpenStoryIntro}
+          onClose={() => setShowInputModeModal(false)}
         />
       )}
 
@@ -882,6 +933,7 @@ export default function App() {
           energy={energy}
           unlockedMedalsCount={unlockedMedals.length}
           difficulty={difficulty}
+          inputMode={inputMode}
           muted={muted}
           voiceEnabled={voiceEnabled}
           cameraZoom={cameraZoom}
@@ -1025,6 +1077,7 @@ export default function App() {
           <PauseSettingsModal
             mode={gameState}
             difficulty={difficulty}
+            inputMode={inputMode}
             musicVolume={musicVolume}
             sfxVolume={sfxVolume}
             voiceEnabled={voiceEnabled}
@@ -1032,6 +1085,11 @@ export default function App() {
             points={points}
             unlockedMedalsCount={unlockedMedals.length}
             onChangeDifficulty={handleSelectDifficulty}
+            onChangeInputMode={(nextMode) => {
+              soundEngine.playInteract();
+              setInputMode(nextMode);
+              saveGameData({ inputMode: nextMode });
+            }}
             onChangeMusicVolume={(v) => {
               setMusicVolume(v);
               saveGameData({ musicVolume: v });
@@ -1212,6 +1270,9 @@ export default function App() {
           className="fixed inset-0 z-[200] bg-black pointer-events-auto"
         />
       )}
+
+      {/* Mandatory Landscape Mode Enforcer for Smartphones and Tablets (Independent of Keyboard/Mouse or Touch selection) */}
+      <MandatoryLandscapeOverlay inputMode={inputMode} />
     </main>
   );
 }

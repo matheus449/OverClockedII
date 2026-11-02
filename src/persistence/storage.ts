@@ -3,12 +3,14 @@ import {
   DEFAULT_CUSTOMIZATION,
   PlayerCustomization,
 } from '../progression/progressionSystem';
+import { InputControlMode } from '../player/touchControls';
 
 const STORAGE_KEY = 'overclocked_save_v1';
 
 export interface OverclockedSaveData {
   playerName: string;
   difficulty: DifficultyLevel;
+  inputMode?: InputControlMode;
   musicVolume: number;
   sfxVolume: number;
   muted: boolean;
@@ -55,6 +57,11 @@ export function loadSaveData(): OverclockedSaveData {
       tomPele: typeof cust.tomPele === 'string' ? cust.tomPele : DEFAULT_CUSTOMIZATION.tomPele,
     };
 
+    const inputMode: InputControlMode | undefined =
+      parsed.inputMode === 'keyboard_mouse' || parsed.inputMode === 'touch'
+        ? parsed.inputMode
+        : undefined;
+
     return {
       playerName: typeof parsed.playerName === 'string' ? parsed.playerName : DEFAULT_SAVE.playerName,
       difficulty:
@@ -63,6 +70,7 @@ export function loadSaveData(): OverclockedSaveData {
         parsed.difficulty === 'dificil'
           ? parsed.difficulty
           : DEFAULT_SAVE.difficulty,
+      inputMode,
       musicVolume:
         typeof parsed.musicVolume === 'number' ? parsed.musicVolume : DEFAULT_SAVE.musicVolume,
       sfxVolume:

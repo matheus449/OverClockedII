@@ -1,6 +1,7 @@
 import { Vec2 } from '../pathfinding/trail';
 
 export type TouchDirection = 'up' | 'down' | 'left' | 'right';
+export type InputControlMode = 'keyboard_mouse' | 'touch';
 
 export interface AnalogStickResult {
   /** Clamped visual knob offset in pixels from center */
@@ -14,6 +15,71 @@ export interface AnalogStickResult {
   /** Angle in degrees (-180..180) for optional UI feedback */
   angleDeg: number;
 }
+
+/**
+ * Pure helper that determines whether the mandatory Landscape Lock overlay
+ * must be displayed. On any mobile phone or tablet (independent of whether
+ * the player selected Keyboard/Mouse or Touch), portrait orientation
+ * (height > width) is blocked until the device is rotated to landscape.
+ */
+export function shouldEnforceLandscapeLock(
+  viewportWidth: number,
+  viewportHeight: number,
+  isMobileOrTabletDevice: boolean
+): boolean {
+  if (viewportWidth <= 0 || viewportHeight <= 0) return false;
+  const isPortrait = viewportHeight > viewportWidth;
+  if (!isPortrait) return false;
+  const isMobileOrTabletViewport = viewportWidth <= 1024;
+  return isMobileOrTabletDevice || isMobileOrTabletViewport;
+}
+
+/**
+ * Detects whether the current client device is a smartphone or tablet.
+ */
+export function detectMobileOrTabletClient(): boolean {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+    return false;
+  }
+  const ua = navigator.userAgent || '';
+  const uaMobileOrTablet = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(
+    ua
+  );
+  const isIPadOS =
+    navigator.platform === 'MacIntel' && typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 1;
+  const coarsePointer =
+    typeof window.matchMedia === 'function' && window.matchMedia('(pointer: coarse)').matches;
+  const shortestSide = Math.min(window.innerWidth || 9999, window.innerHeight || 9999);
+  return uaMobileOrTablet || isIPadOS || (coarsePointer && shortestSide <= 1024);
+}
+
+/**
+ * Attempts to enter Fullscreen and lock screen orientation to landscape on
+ * supported mobile/tablet browsers. Fails silently on browsers/iframes that
+ * restrict programmatic orientation lock.
+ */
+export async function requestLandscapeOrientationLock(): Promise<void> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  try {
+    if (detectMobileOrTabletClient() && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+      await document.documentElement.requestFullscreen().catch(() => {});
+    }
+  } catch {
+    // Ignore fullscreen errors
+  }
+
+  try {
+    const orientationApi = (window.screen as Screen & {
+      orientation?: { lock?: (orientation: string) => Promise<void> };
+    })?.orientation;
+    if (orientationApi && typeof orientationApi.lock === 'function') {
+      await orientationApi.lock('landscape').catch(() => {});
+    }
+  } catch {
+    // Ignore orientation lock restriction errors
+  }
+}
+
 
 /**
  * Shared zero-latency state for mobile touch controls (360° analog joystick + directions).

@@ -10,6 +10,7 @@ import { NearbyInteraction } from '../player/collision';
 import { TicketScoreBreakdown } from '../progression/progressionSystem';
 import { CAFETERIA_NPCS, CafeteriaNpc } from '../cafeteria/cafeteriaSystem';
 import { isFemaleNpc, voiceNarrator } from '../audio/voiceNarrator';
+import { InputControlMode } from '../player/touchControls';
 import { TouchControlsPad } from './TouchControlsPad';
 import {
   Award,
@@ -59,6 +60,7 @@ interface HudOverlayProps {
   energy: number;
   unlockedMedalsCount: number;
   difficulty: DifficultyLevel;
+  inputMode: InputControlMode;
   muted: boolean;
   voiceEnabled: boolean;
   cameraZoom: number;
@@ -102,6 +104,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   energy,
   unlockedMedalsCount,
   difficulty,
+  inputMode,
   muted,
   voiceEnabled,
   cameraZoom,
@@ -141,10 +144,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   const isFullMap = cameraZoom >= 1.9;
 
   return (
-    <div className="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-2.5 sm:p-4">
+    <div className="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-2 sm:p-3.5">
       {/* TOP PERIMETER CLUSTER: Ticket Notification / Queue / Wait Timer + Utility & Progression Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-start justify-between gap-2 md:gap-4">
-        <div className="order-2 md:order-1 flex flex-col gap-2 max-w-2xl">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-start justify-between gap-1.5 lg:gap-4">
+        <div className="order-2 lg:order-1 flex flex-col gap-1.5 max-w-xl min-w-0">
           {/* Rush Hour Indicator Banner (Active on Hard Difficulty Rush Waves) */}
           {isRushHour && (
             <div className="pointer-events-auto self-start px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 text-[11px] sm:text-xs font-bold flex items-center gap-2 shadow-lg">
@@ -307,7 +310,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
         </div>
 
         {/* Top-Right Compact Progression, Energy Status & Utility Controls (No remote Cafeteria button!) */}
-        <div className="order-1 md:order-2 pointer-events-auto flex items-center justify-between md:justify-end gap-1 sm:gap-2 bg-[#0f172a] border border-slate-800 rounded-xl p-1 sm:p-1.5 shadow-xl">
+        <div className="order-1 lg:order-2 pointer-events-auto flex items-center justify-between lg:justify-end gap-1 sm:gap-2 bg-[#0f172a] border border-slate-800 rounded-xl p-1 sm:p-1.5 shadow-xl shrink-0">
           {/* Energy Meter Indicator (Does NOT open Cafeteria remotely; guides player to walk there) */}
           <div
             className={`px-1.5 sm:px-2.5 py-1 rounded-lg border flex items-center gap-1 sm:gap-2 transition-colors ${
@@ -751,21 +754,24 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
         )}
       </div>
 
-      {/* BOTTOM UNIFIED COLLAPSIBLE CONTROL DOCK + MOBILE TOUCH D-PAD */}
+      {/* BOTTOM UNIFIED COLLAPSIBLE CONTROL DOCK + ANALOG TOUCH PAD (shown when inputMode === 'touch') */}
       <div className="mx-auto w-full max-w-4xl flex flex-col items-center pointer-events-auto">
-        {!resolvedModalData && !activeDialogueNpc && !activeCafeteriaDialogue && (
-          <TouchControlsPad
-            hasNearbyNpc={Boolean(nearby)}
-            nearbyNpcFirstName={nearby?.npc.nome.split(' ')[0]}
-            nearCafeteria={nearCafeteria}
-            hasActiveProblem={Boolean(activeProblem)}
-            isAtTargetSector={isAtTarget}
-            onWalkToActiveTicket={onWalkToActiveTicket}
-            onOpenHardwareWorkbench={onOpenHardwareWorkbench}
-            onOpenVirtualOS={onOpenVirtualOS}
-            onOpenCafeteria={onOpenCafeteria}
-          />
-        )}
+        {inputMode === 'touch' &&
+          !resolvedModalData &&
+          !activeDialogueNpc &&
+          !activeCafeteriaDialogue && (
+            <TouchControlsPad
+              hasNearbyNpc={Boolean(nearby)}
+              nearbyNpcFirstName={nearby?.npc.nome.split(' ')[0]}
+              nearCafeteria={nearCafeteria}
+              hasActiveProblem={Boolean(activeProblem)}
+              isAtTargetSector={isAtTarget}
+              onWalkToActiveTicket={onWalkToActiveTicket}
+              onOpenHardwareWorkbench={onOpenHardwareWorkbench}
+              onOpenVirtualOS={onOpenVirtualOS}
+              onOpenCafeteria={onOpenCafeteria}
+            />
+          )}
         <button
           type="button"
           onClick={() => setDockCollapsed((prev) => !prev)}

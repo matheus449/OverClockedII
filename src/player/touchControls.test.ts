@@ -5,6 +5,7 @@ import {
   computeAnalogStickState,
   computeMovementVector,
   computePinchZoom,
+  shouldEnforceLandscapeLock,
   TouchDirection,
 } from './touchControls';
 
@@ -45,3 +46,16 @@ test('computePinchZoom clamps zoom between 0.75 and 2.2', () => {
   const zoomedOutMax = computePinchZoom(2.1, 200, 50);
   assert.equal(zoomedOutMax, 2.2);
 });
+
+test('shouldEnforceLandscapeLock requires landscape on mobile and tablet portrait viewports', () => {
+  // Mobile portrait (390x844) -> must lock
+  assert.equal(shouldEnforceLandscapeLock(390, 844, true), true);
+  assert.equal(shouldEnforceLandscapeLock(390, 844, false), true);
+  // Tablet portrait (768x1024) -> must lock
+  assert.equal(shouldEnforceLandscapeLock(768, 1024, true), true);
+  // Mobile landscape (844x390) -> unlocked!
+  assert.equal(shouldEnforceLandscapeLock(844, 390, true), false);
+  // Desktop landscape (1280x720) -> unlocked!
+  assert.equal(shouldEnforceLandscapeLock(1280, 720, false), false);
+});
+

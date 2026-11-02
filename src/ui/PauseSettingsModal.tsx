@@ -1,9 +1,12 @@
 import React from 'react';
 import { DifficultyLevel } from '../problems/validator';
+import { InputControlMode } from '../player/touchControls';
 import {
   Award,
+  Gamepad2,
   Home,
   Info,
+  Keyboard,
   Mic,
   MicOff,
   Play,
@@ -17,6 +20,7 @@ import { OVERCLOCKED_ICON_URL } from './CreditsModal';
 interface PauseSettingsModalProps {
   mode: 'paused' | 'gameover';
   difficulty: DifficultyLevel;
+  inputMode: InputControlMode;
   musicVolume: number;
   sfxVolume: number;
   voiceEnabled: boolean;
@@ -24,6 +28,7 @@ interface PauseSettingsModalProps {
   points: number;
   unlockedMedalsCount: number;
   onChangeDifficulty: (d: DifficultyLevel) => void;
+  onChangeInputMode: (mode: InputControlMode) => void;
   onChangeMusicVolume: (v: number) => void;
   onChangeSfxVolume: (v: number) => void;
   onToggleVoiceEnabled: () => void;
@@ -37,6 +42,7 @@ interface PauseSettingsModalProps {
 export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
   mode,
   difficulty,
+  inputMode,
   musicVolume,
   sfxVolume,
   voiceEnabled,
@@ -44,6 +50,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
   points,
   unlockedMedalsCount,
   onChangeDifficulty,
+  onChangeInputMode,
   onChangeMusicVolume,
   onChangeSfxVolume,
   onToggleVoiceEnabled,
@@ -57,10 +64,10 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
     <div
       role="dialog"
       aria-label={mode === 'paused' ? 'Jogo Pausado e Configurações' : 'Resumo do Turno'}
-      className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/75 pointer-events-auto"
+      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-4 bg-black/75 pointer-events-auto overflow-y-auto"
     >
-      <div className="w-full max-w-md bg-[#0f172a] border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-5">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-[#0f172a] border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white p-1.5 border border-purple-400/50 flex items-center justify-center shrink-0">
               <img
@@ -74,7 +81,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
                 {mode === 'paused' ? 'Pausa e Configurações' : 'Turno de Suporte Concluído'}
               </h2>
               <p className="text-xs text-slate-400">
-                OVERCLOCKED · Áudio, Voz Humanizada e Dificuldade
+                OVERCLOCKED · Controles, Áudio e Dificuldade
               </p>
             </div>
           </div>
@@ -83,30 +90,63 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
 
         {/* Stat Tiles (Tabular Nums) */}
         <div className="grid grid-cols-3 gap-2.5">
-          <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800">
+          <div className="p-2.5 rounded-xl bg-[#090d16] border border-slate-800">
             <span className="text-[10px] text-slate-400 block">Chamados</span>
-            <span className="text-xl font-bold font-mono-tabular text-slate-100">
+            <span className="text-lg font-bold font-mono-tabular text-slate-100">
               {resolvedCount}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800">
+          <div className="p-2.5 rounded-xl bg-[#090d16] border border-slate-800">
             <span className="text-[10px] text-amber-400 block">Pontos</span>
-            <span className="text-xl font-bold font-mono-tabular text-amber-300">
+            <span className="text-lg font-bold font-mono-tabular text-amber-300">
               {points}
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800">
+          <div className="p-2.5 rounded-xl bg-[#090d16] border border-slate-800">
             <span className="text-[10px] text-sky-400 block">Medalhas</span>
-            <span className="text-xl font-bold font-mono-tabular text-sky-400">
+            <span className="text-lg font-bold font-mono-tabular text-sky-400">
               {unlockedMedalsCount}/8
             </span>
           </div>
         </div>
 
+        {/* Input Mode Selector (Teclado e Mouse vs Tela Touch) */}
+        <div>
+          <span className="text-xs font-medium text-slate-300 block mb-1.5">
+            Modo de Controle (Teclado/Mouse ou Tela Touch)
+          </span>
+          <div className="grid grid-cols-2 gap-2 p-1 bg-[#090d16] rounded-xl border border-slate-800">
+            <button
+              type="button"
+              onClick={() => onChangeInputMode('keyboard_mouse')}
+              className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                inputMode === 'keyboard_mouse'
+                  ? 'bg-[#0071e3] text-white'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Keyboard className="w-3.5 h-3.5" />
+              <span>Teclado e Mouse</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onChangeInputMode('touch')}
+              className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                inputMode === 'touch'
+                  ? 'bg-emerald-500 text-slate-950 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              <Gamepad2 className="w-3.5 h-3.5" />
+              <span>Tela Touch (360°)</span>
+            </button>
+          </div>
+        </div>
+
         {/* Separate WebAudio Sliders for Music and Office/SFX + Voice Narration Toggle */}
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           <div>
-            <div className="flex items-center justify-between text-xs mb-1.5">
+            <div className="flex items-center justify-between text-xs mb-1">
               <span className="font-medium text-slate-200 flex items-center gap-1.5">
                 <Volume2 className="w-3.5 h-3.5 text-sky-400" />
                 Volume da Música Ambiente
@@ -127,7 +167,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
           </div>
 
           <div>
-            <div className="flex items-center justify-between text-xs mb-1.5">
+            <div className="flex items-center justify-between text-xs mb-1">
               <span className="font-medium text-slate-200 flex items-center gap-1.5">
                 <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
                 Volume dos Efeitos e Escritório
@@ -147,7 +187,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
             />
           </div>
 
-          <div className="pt-1 flex items-center justify-between">
+          <div className="pt-0.5 flex items-center justify-between">
             <span className="text-xs font-medium text-slate-200 flex items-center gap-1.5">
               {voiceEnabled ? (
                 <Mic className="w-3.5 h-3.5 text-emerald-400" />
@@ -172,7 +212,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
 
         {/* Difficulty Selector */}
         <div>
-          <span className="text-xs font-medium text-slate-300 block mb-2">
+          <span className="text-xs font-medium text-slate-300 block mb-1.5">
             Dificuldade e Ritmo dos Chamados
           </span>
           <div className="grid grid-cols-3 gap-2 p-1 bg-[#090d16] rounded-xl border border-slate-800">
@@ -181,7 +221,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
                 key={d}
                 type="button"
                 onClick={() => onChangeDifficulty(d)}
-                className={`py-2 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer ${
+                className={`py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer ${
                   difficulty === d
                     ? 'bg-[#0071e3] text-white'
                     : 'text-slate-400 hover:text-slate-200'

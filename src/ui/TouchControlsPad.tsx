@@ -117,8 +117,8 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
 
   return (
     <div
-      aria-label="Controles Virtuais Analógicos para Celular"
-      className="w-full flex items-end justify-between gap-2 pointer-events-none select-none md:hidden mb-1"
+      aria-label="Controles Virtuais Analógicos para Celular e Tablet"
+      className="w-full flex items-end justify-between gap-2 pointer-events-none select-none mb-1"
     >
       {/* Left Thumb Zone: Round 360° Analog Thumbstick */}
       <div className="pointer-events-auto pl-1 pb-0.5">
@@ -135,7 +135,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
           onPointerUp={handlePointerUpOrCancel}
           onPointerCancel={handlePointerUpOrCancel}
           onLostPointerCapture={() => resetStick()}
-          className={`relative w-28 h-28 rounded-full flex items-center justify-center touch-none cursor-grab active:cursor-grabbing shadow-2xl transition-colors ${
+          className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center touch-none cursor-grab active:cursor-grabbing shadow-2xl transition-colors ${
             isDragging
               ? 'bg-[#090d16]/90 border-2 border-sky-400/80 shadow-sky-500/20'
               : 'bg-[#090d16]/80 border-2 border-slate-700/90'
@@ -143,7 +143,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
         >
           {/* Inner 360° Guide Ring */}
           <div
-            className={`w-20 h-20 rounded-full border border-dashed pointer-events-none transition-colors ${
+            className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-dashed pointer-events-none transition-colors ${
               isDragging ? 'border-sky-400/45' : 'border-slate-700/60'
             }`}
           />
@@ -158,7 +158,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
           <div
             ref={knobRef}
             data-testid="analog-joystick-knob"
-            className={`pointer-events-none absolute w-12 h-12 rounded-full flex items-center justify-center shadow-xl border-2 ${
+            className={`pointer-events-none absolute w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-xl border-2 ${
               isDragging
                 ? 'bg-sky-500 border-sky-200 shadow-sky-500/40'
                 : 'bg-slate-800/95 border-slate-500/90'
@@ -166,7 +166,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
           >
             {/* Tactile Center Grip Ring */}
             <div
-              className={`w-6 h-6 rounded-full border ${
+              className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border ${
                 isDragging
                   ? 'border-slate-950/40 bg-sky-300/40'
                   : 'border-slate-600 bg-slate-900/70'
