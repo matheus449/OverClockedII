@@ -1,0 +1,173 @@
+[
+  {
+    "id": "marketing",
+    "nome": "Marketing",
+    "cor": "#a855f7",
+    "icone": "megaphone",
+    "bounds": { "x": -26, "z": -17.5, "w": 9.5, "d": 10 },
+    "door": { "x": -21.25, "z": -7.5, "orientation": "south" },
+    "pcPos": { "x": -21.25, "z": -14.2, "rotY": 0 },
+    "hasPrinter": true,
+    "printerPos": { "x": -18.0, "z": -15.5 },
+    "propType": "creative"
+  },
+  {
+    "id": "desenvolvimento",
+    "nome": "Desenvolvimento",
+    "cor": "#6366f1",
+    "icone": "cpu",
+    "bounds": { "x": -15.5, "z": -17.5, "w": 9.5, "d": 10 },
+    "door": { "x": -10.75, "z": -7.5, "orientation": "south" },
+    "pcPos": { "x": -10.75, "z": -14.2, "rotY": 0 },
+    "hasPrinter": false,
+    "propType": "dual_desk"
+  },
+  {
+    "id": "suporte",
+    "nome": "Suporte",
+    "cor": "#06b6d4",
+    "icone": "headset",
+    "bounds": { "x": -5, "z": -17.5, "w": 10, "d": 10 },
+    "door": { "x": 0, "z": -7.5, "orientation": "south" },
+    "pcPos": { "x": 0, "z": -14.2, "rotY": 0 },
+    "hasPrinter": false,
+    "propType": "support_hub"
+  },
+  {
+    "id": "manutencao",
+    "nome": "Manutenção/Hardware",
+    "cor": "#f97316",
+    "icone": "wrench",
+    "bounds": { "x": 6, "z": -17.5, "w": 9.5, "d": 10 },
+    "door": { "x": 10.75, "z": -7.5, "orientation": "south" },
+    "pcPos": { "x": 10.75, "z": -14.2, "rotY": 0 },
+    "hasPrinter": false,
+    "propType": "workbench"
+  },
+  {
+    "id": "redes",
+    "nome": "Redes/Infra",
+    "cor": "#14b8a6",
+    "icone": "network",
+    "bounds": { "x": 16.5, "z": -17.5, "w": 9.5, "d": 10 },
+    "door": { "x": 21.25, "z": -7.5, "orientation": "south" },
+    "pcPos": { "x": 21.25, "z": -14.2, "rotY": 0 },
+    "hasPrinter": false,
+    "propType": "network_lab"
+  },
+  {
+    "id": "laboratorio",
+    "nome": "Laboratório",
+    "cor": "#8b5cf6",
+    "icone": "flask",
+    "bounds": { "x": -26, "z": -3.5, "w": 7.5, "d": 7 },
+    "door": { "x": -22.25, "z": -3.5, "orientation": "north" },
+    "pcPos": { "x": -22.25, "z": 1.2, "rotY": 3.14159 },
+    "hasPrinter": false,
+    "propType": "lab"
+  },
+  {
+    "id": "reunioes",
+    "nome": "Sala de Reuniões",
+    "cor": "#64748b",
+    "icone": "presentation",
+    "bounds": { "x": -15.5, "z": -3.5, "w": 6.0, "d": 7 },
+    "door": { "x": -12.5, "z": -3.5, "orientation": "north" },
+    "pcPos": { "x": -12.5, "z": 1.2, "rotY": 3.14159 },
+    "hasPrinter": false,
+    "propType": "meeting"
+  },
+  {
+    "id": "convivencia",
+    "nome": "Convivência",
+    "cor": "#22c55e",
+    "icone": "coffee",
+    "bounds": { "x": -9.0, "z": -3.5, "w": 5.8, "d": 7 },
+    "door": { "x": -6.1, "z": 3.5, "orientation": "south" },
+    "pcPos": { "x": -6.1, "z": -1.2, "rotY": 0 },
+    "hasPrinter": false,
+    "propType": "lounge"
+  },
+  {
+    "id": "estoque",
+    "nome": "Estoque",
+    "cor": "#eab308",
+    "icone": "package",
+    "bounds": { "x": 13.5, "z": -3.5, "w": 5.2, "d": 7 },
+    "door": { "x": 16.1, "z": -3.5, "orientation": "north" },
+    "pcPos": { "x": 16.1, "z": 1.2, "rotY": 3.14159 },
+    "hasPrinter": true,
+    "printerPos": { "x": 17.6, "z": 1.8 },
+    "propType": "storage"
+  },
+  {
+    "id": "servidores",
+    "nome": "Sala de Servidores",
+    "cor": "#38bdf8",
+    "icone": "server",
+    "bounds": { "x": 20.5, "z": -3.5, "w": 5.5, "d": 7 },
+    "door": { "x": 23.25, "z": -3.5, "orientation": "north" },
+    "pcPos": { "x": 23.25, "z": 1.2, "rotY": 3.14159 },
+    "hasPrinter": false,
+    "propType": "servers"
+  },
+  {
+    "id": "recepcao",
+    "nome": "Recepção",
+    "cor": "#3b82f6",
+    "icone": "building",
+    "bounds": { "x": -26, "z": 7.5, "w": 9.5, "d": 10 },
+    "door": { "x": -21.25, "z": 7.5, "orientation": "north" },
+    "pcPos": { "x": -21.25, "z": 14.2, "rotY": 3.14159 },
+    "hasPrinter": true,
+    "printerPos": { "x": -18.0, "z": 15.5 },
+    "propType": "reception"
+  },
+  {
+    "id": "administrativo",
+    "nome": "Administrativo",
+    "cor": "#0ea5e9",
+    "icone": "briefcase",
+    "bounds": { "x": -15.5, "z": 7.5, "w": 9.5, "d": 10 },
+    "door": { "x": -10.75, "z": 7.5, "orientation": "north" },
+    "pcPos": { "x": -10.75, "z": 14.2, "rotY": 3.14159 },
+    "hasPrinter": true,
+    "printerPos": { "x": -7.5, "z": 15.5 },
+    "propType": "office"
+  },
+  {
+    "id": "financeiro",
+    "nome": "Financeiro",
+    "cor": "#10b981",
+    "icone": "landmark",
+    "bounds": { "x": -5, "z": 7.5, "w": 10, "d": 10 },
+    "door": { "x": 0, "z": 7.5, "orientation": "north" },
+    "pcPos": { "x": 0, "z": 14.2, "rotY": 3.14159 },
+    "hasPrinter": true,
+    "printerPos": { "x": 3.2, "z": 15.5 },
+    "propType": "office"
+  },
+  {
+    "id": "rh",
+    "nome": "RH",
+    "cor": "#ec4899",
+    "icone": "users",
+    "bounds": { "x": 6, "z": 7.5, "w": 9.5, "d": 10 },
+    "door": { "x": 10.75, "z": 7.5, "orientation": "north" },
+    "pcPos": { "x": 10.75, "z": 14.2, "rotY": 3.14159 },
+    "hasPrinter": false,
+    "propType": "office"
+  },
+  {
+    "id": "comercial",
+    "nome": "Comercial",
+    "cor": "#f59e0b",
+    "icone": "trending-up",
+    "bounds": { "x": 16.5, "z": 7.5, "w": 9.5, "d": 10 },
+    "door": { "x": 21.25, "z": 7.5, "orientation": "north" },
+    "pcPos": { "x": 21.25, "z": 14.2, "rotY": 3.14159 },
+    "hasPrinter": true,
+    "printerPos": { "x": 24.2, "z": 15.5 },
+    "propType": "office"
+  }
+]

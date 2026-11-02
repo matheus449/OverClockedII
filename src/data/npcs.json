@@ -1,0 +1,269 @@
+[
+  {
+    "id": "npc_recepcao",
+    "nome": "Clara Mendes",
+    "cargo": "Recepcionista Executiva",
+    "setor": "recepcao",
+    "altura": 0.96,
+    "corCamisa": "#2563eb",
+    "corCalca": "#1e293b",
+    "corCabelo": "#3f2314",
+    "tomPele": "#f1c27d",
+    "estiloCabelo": "coque",
+    "oculos": false,
+    "waypoints": [
+      { "x": -21.25, "z": 13.0, "acao": "pc" },
+      { "x": -23.5, "z": 10.5, "acao": "cafe" },
+      { "x": -19.0, "z": 10.5, "acao": "celular" }
+    ]
+  },
+  {
+    "id": "npc_administrativo",
+    "nome": "Roberto Prado",
+    "cargo": "Analista Administrativo",
+    "setor": "administrativo",
+    "altura": 1.03,
+    "corCamisa": "#0284c7",
+    "corCalca": "#334155",
+    "corCabelo": "#1c1917",
+    "tomPele": "#e0ac69",
+    "estiloCabelo": "curto",
+    "oculos": true,
+    "waypoints": [
+      { "x": -10.75, "z": 13.0, "acao": "pc" },
+      { "x": -13.0, "z": 10.5, "acao": "alongar" },
+      { "x": -8.5, "z": 10.5, "acao": "cafe" }
+    ]
+  },
+  {
+    "id": "npc_financeiro",
+    "nome": "Helena Vasconcelos",
+    "cargo": "Coordenadora Financeira",
+    "setor": "financeiro",
+    "altura": 0.98,
+    "corCamisa": "#059669",
+    "corCalca": "#0f172a",
+    "corCabelo": "#7c2d12",
+    "tomPele": "#ffdbac",
+    "estiloCabelo": "longo",
+    "oculos": true,
+    "waypoints": [
+      { "x": 0, "z": 13.0, "acao": "pc" },
+      { "x": -2.5, "z": 10.5, "acao": "celular" },
+      { "x": 2.5, "z": 10.5, "acao": "cafe" }
+    ]
+  },
+  {
+    "id": "npc_rh",
+    "nome": "Marina Costa",
+    "cargo": "Especialista de Pessoas",
+    "setor": "rh",
+    "altura": 0.95,
+    "corCamisa": "#db2777",
+    "corCalca": "#1e293b",
+    "corCabelo": "#27272a",
+    "tomPele": "#8d5524",
+    "estiloCabelo": "cacheado",
+    "oculos": false,
+    "waypoints": [
+      { "x": 10.75, "z": 13.0, "acao": "pc" },
+      { "x": 8.5, "z": 10.5, "acao": "cafe" },
+      { "x": 13.0, "z": 10.5, "acao": "alongar" }
+    ]
+  },
+  {
+    "id": "npc_comercial",
+    "nome": "Lucas Nogueira",
+    "cargo": "Executivo de Contas",
+    "setor": "comercial",
+    "altura": 1.05,
+    "corCamisa": "#d97706",
+    "corCalca": "#1e293b",
+    "corCabelo": "#78350f",
+    "tomPele": "#f1c27d",
+    "estiloCabelo": "topete",
+    "oculos": false,
+    "waypoints": [
+      { "x": 21.25, "z": 13.0, "acao": "pc" },
+      { "x": 19.0, "z": 10.5, "acao": "celular" },
+      { "x": 23.5, "z": 10.5, "acao": "alongar" }
+    ]
+  },
+  {
+    "id": "npc_marketing",
+    "nome": "Beatriz Alencar",
+    "cargo": "Diretora de Arte",
+    "setor": "marketing",
+    "altura": 0.97,
+    "corCamisa": "#9333ea",
+    "corCalca": "#18181b",
+    "corCabelo": "#b45309",
+    "tomPele": "#ffdbac",
+    "estiloCabelo": "longo",
+    "oculos": true,
+    "waypoints": [
+      { "x": -21.25, "z": -13.0, "acao": "pc" },
+      { "x": -23.5, "z": -10.5, "acao": "cafe" },
+      { "x": -19.0, "z": -10.5, "acao": "celular" }
+    ]
+  },
+  {
+    "id": "npc_desenvolvimento",
+    "nome": "Rafael Akira",
+    "cargo": "Arquiteto de Produto",
+    "setor": "desenvolvimento",
+    "altura": 1.01,
+    "corCamisa": "#4f46e5",
+    "corCalca": "#1e293b",
+    "corCabelo": "#09090b",
+    "tomPele": "#f5d0a9",
+    "estiloCabelo": "curto",
+    "oculos": true,
+    "waypoints": [
+      { "x": -10.75, "z": -13.0, "acao": "pc" },
+      { "x": -13.0, "z": -10.5, "acao": "cafe" },
+      { "x": -8.5, "z": -10.5, "acao": "alongar" }
+    ]
+  },
+  {
+    "id": "npc_suporte",
+    "nome": "Tiago Ribeiro",
+    "cargo": "Operador de Atendimento",
+    "setor": "suporte",
+    "altura": 1.0,
+    "corCamisa": "#0891b2",
+    "corCalca": "#334155",
+    "corCabelo": "#451a03",
+    "tomPele": "#c68642",
+    "estiloCabelo": "curto",
+    "oculos": false,
+    "waypoints": [
+      { "x": 0, "z": -13.0, "acao": "pc" },
+      { "x": -2.5, "z": -10.5, "acao": "alongar" },
+      { "x": 2.5, "z": -10.5, "acao": "cafe" }
+    ]
+  },
+  {
+    "id": "npc_manutencao",
+    "nome": "Sérgio Barros",
+    "cargo": "Técnico de Bancada",
+    "setor": "manutencao",
+    "altura": 1.04,
+    "corCamisa": "#ea580c",
+    "corCalca": "#1f2937",
+    "corCabelo": "#52525b",
+    "tomPele": "#e0ac69",
+    "estiloCabelo": "curto",
+    "oculos": true,
+    "waypoints": [
+      { "x": 10.75, "z": -13.0, "acao": "pc" },
+      { "x": 8.5, "z": -10.5, "acao": "cafe" },
+      { "x": 13.0, "z": -10.5, "acao": "alongar" }
+    ]
+  },
+  {
+    "id": "npc_redes",
+    "nome": "Camila Rocha",
+    "cargo": "Especialista de Conectividade",
+    "setor": "redes",
+    "altura": 0.99,
+    "corCamisa": "#0d9488",
+    "corCalca": "#0f172a",
+    "corCabelo": "#18181b",
+    "tomPele": "#8d5524",
+    "estiloCabelo": "coque",
+    "oculos": true,
+    "waypoints": [
+      { "x": 21.25, "z": -13.0, "acao": "pc" },
+      { "x": 19.0, "z": -10.5, "acao": "celular" },
+      { "x": 23.5, "z": -10.5, "acao": "cafe" }
+    ]
+  },
+  {
+    "id": "npc_laboratorio",
+    "nome": "Dr. Henrique Silveira",
+    "cargo": "Pesquisador de Qualidade",
+    "setor": "laboratorio",
+    "altura": 1.02,
+    "corCamisa": "#7c3aed",
+    "corCalca": "#1e293b",
+    "corCabelo": "#a1a1aa",
+    "tomPele": "#ffdbac",
+    "estiloCabelo": "curto",
+    "oculos": true,
+    "waypoints": [
+      { "x": -22.25, "z": 0.0, "acao": "pc" },
+      { "x": -24.2, "z": -1.5, "acao": "cafe" },
+      { "x": -20.2, "z": -1.5, "acao": "alongar" }
+    ]
+  },
+  {
+    "id": "npc_servidores",
+    "nome": "André Freitas",
+    "cargo": "Operador de Data Center",
+    "setor": "servidores",
+    "altura": 1.05,
+    "corCamisa": "#0369a1",
+    "corCalca": "#0f172a",
+    "corCabelo": "#27272a",
+    "tomPele": "#e0ac69",
+    "estiloCabelo": "topete",
+    "oculos": false,
+    "waypoints": [
+      { "x": 23.25, "z": 0.0, "acao": "pc" },
+      { "x": 21.8, "z": -1.5, "acao": "alongar" },
+      { "x": 24.7, "z": -1.5, "acao": "celular" }
+    ]
+  },
+  {
+    "id": "npc_reunioes",
+    "nome": "Patrícia Duarte",
+    "cargo": "Gerente de Projetos",
+    "setor": "reunioes",
+    "altura": 0.97,
+    "corCamisa": "#475569",
+    "corCalca": "#0f172a",
+    "corCabelo": "#451a03",
+    "tomPele": "#f1c27d",
+    "estiloCabelo": "longo",
+    "oculos": false,
+    "waypoints": [
+      { "x": -12.5, "z": 0.0, "acao": "pc" },
+      { "x": -14.0, "z": -1.5, "acao": "celular" }
+    ]
+  },
+  {
+    "id": "npc_estoque",
+    "nome": "Marcos Vinícius",
+    "cargo": "Supervisor de Logística",
+    "setor": "estoque",
+    "altura": 1.03,
+    "corCamisa": "#ca8a04",
+    "corCalca": "#1e293b",
+    "corCabelo": "#1c1917",
+    "tomPele": "#8d5524",
+    "estiloCabelo": "curto",
+    "oculos": false,
+    "waypoints": [
+      { "x": 16.1, "z": 0.0, "acao": "pc" },
+      { "x": 14.8, "z": -1.5, "acao": "cafe" }
+    ]
+  },
+  {
+    "id": "npc_convivencia",
+    "nome": "Juliana Moreira",
+    "cargo": "Comunicação Interna",
+    "setor": "convivencia",
+    "altura": 0.96,
+    "corCamisa": "#16a34a",
+    "corCalca": "#1e293b",
+    "corCabelo": "#7c2d12",
+    "tomPele": "#f1c27d",
+    "estiloCabelo": "cacheado",
+    "oculos": false,
+    "waypoints": [
+      { "x": -6.1, "z": 0.0, "acao": "pc" },
+      { "x": -7.5, "z": 1.5, "acao": "cafe" }
+    ]
+  }
+]

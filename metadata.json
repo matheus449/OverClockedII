@@ -1,0 +1,6 @@
+{
+  "name": "OVERCLOCKED — Simulador de Suporte e Rotina em TI",
+  "description": "Simulador educacional isométrico 3D de rotina profissional em TI. Explore 15 setores de um escritório realista, atenda chamados de hardware, software e redes, e aprenda informática na prática.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
