@@ -61,8 +61,8 @@ import { Vec2 } from './pathfinding/trail';
 import {
   applyErrorEnergyDrain,
   applySleepOnJobPenalty,
-  applyTicketEnergyDrain,
   CafeteriaNpc,
+  calculateActionStepEnergyDrain,
   CoffeeItem,
   isCompanyBankrupt,
   isLowEnergyWarning,
@@ -136,6 +136,14 @@ export default function App() {
     nextPoints: number;
     recoveredEnergy: number;
     message: string;
+  } | null>(null);
+  const [bankruptcySnapshot, setBankruptcySnapshot] = useState<{
+    playerName: string;
+    gender: 'masculino' | 'feminino';
+    finalPoints: number;
+    resolvedCount: number;
+    unlockedMedalsCount: number;
+    purchasedOutfitsCount: number;
   } | null>(null);
   const [bgVoiceStatus, setBgVoiceStatus] = useState<BackgroundVoiceDownloadStatus>(() =>
     voiceNarrator.getBackgroundDownloadStatus()
@@ -335,14 +343,28 @@ export default function App() {
           isCompanyBankrupt(0, sleepRes.nextPoints, difficulty, resolvedCount);
 
         if (bankrupt) {
-          const finalDebtPoints = basePoints < 0 ? basePoints : sleepRes.nextPoints;
-          setPoints(finalDebtPoints);
-          setEnergy(0);
-          setSleepPenaltyNotice(null);
-          saveGameData({
-            points: finalDebtPoints,
-            energy: 0,
+          const finalDebtPoints = sleepRes.nextPoints;
+          setBankruptcySnapshot({
+            playerName,
+            gender: playerCustomization.genero,
+            finalPoints: finalDebtPoints,
+            resolvedCount,
+            unlockedMedalsCount: unlockedMedals.length,
+            purchasedOutfitsCount: purchasedOutfitIds.length,
           });
+          // Immediately reset the entire game and save data from 0 when Game Over happens
+          resetSaveData();
+          const cleanCareer = buildResetCareerState();
+          setPlayerName('');
+          setPoints(cleanCareer.points);
+          setEnergy(cleanCareer.energy);
+          setResolvedCount(cleanCareer.resolvedCount);
+          setUnlockedMedals(cleanCareer.unlockedMedals);
+          setPurchasedOutfitIds(cleanCareer.purchasedOutfitIds);
+          setPurchasedAccessoryIds(cleanCareer.purchasedAccessoryIds);
+          setPlayerCustomization(cleanCareer.playerCustomization);
+          setRecentIds([]);
+          setSleepPenaltyNotice(null);
           soundEngine.stopAmbientMusic();
           soundEngine.playError();
           setGameState('gameover');
@@ -368,7 +390,14 @@ export default function App() {
         }, 450);
       }, 1900);
     },
-    [difficulty, playerCustomization.genero, resolvedCount]
+    [
+      difficulty,
+      playerCustomization.genero,
+      playerName,
+      purchasedOutfitIds.length,
+      resolvedCount,
+      unlockedMedals.length,
+    ]
   );
 
   // Centralized helper whenever energy changes from attending tickets
@@ -478,10 +507,12 @@ export default function App() {
     [activeProblem?.id, recentIds]
   );
 
-  // Full General Reset after Company Bankruptcy ("botão de reset geral do jogo" -> resets points, energy to 100%, resolved count, medals, and all purchased clothes/accessories, starting directly in the first shift)
+  // Full General Reset after Company Bankruptcy ("quando der gameover todo o jogo seja reiniciado e apareça algo para tentar novamente, desde o 0 com a apresentação e tudo")
   const handleFullBankruptcyReset = useCallback(() => {
     resetSaveData();
-    const cleanCareer = buildResetCareerState(playerCustomization);
+    const cleanCareer = buildResetCareerState();
+    setPlayerName('');
+    setDifficulty('normal');
     setPoints(cleanCareer.points);
     setEnergy(cleanCareer.energy);
     setResolvedCount(cleanCareer.resolvedCount);
@@ -492,19 +523,22 @@ export default function App() {
     setRecentIds([]);
     setLowEnergyAlertOpen(false);
     setSleepPenaltyNotice(null);
+    setBankruptcySnapshot(null);
     setIsSleepingBlackout(false);
     setSleepFadeOpacity(0);
     setShowCustomizationModal(false);
     setShowCreditsModal(false);
+    setShowInputModeModal(false);
     setActiveToolModal('none');
     setActiveDialogueNpc(null);
     setActiveCafeteriaDialogue(null);
     setAutoWalkTarget(null);
-    resetWithRandomTicket(difficulty);
-    setGameState('playing');
-    soundEngine.startBackgroundTrack();
-    soundEngine.playSuccess();
-  }, [difficulty, playerCustomization, resetWithRandomTicket]);
+    resetWithRandomTicket('normal');
+    soundEngine.stopAmbientMusic();
+    voiceNarrator.stop();
+    soundEngine.playInteract();
+    setGameState('title');
+  }, [resetWithRandomTicket]);
 
   // Clicking "Iniciar" on Title Screen opens the Input Mode Prompt (Teclado e Mouse vs Tela Touch)
   const handlePromptInputModeBeforeStart = useCallback(() => {
@@ -748,70 +782,94 @@ export default function App() {
     });
     soundEngine.playHardwareAction();
 
-    if (result.isResolved) {
-      soundEngine.playSuccess();
-      const targetNpc =
-        ALL_NPCS.find((n) => n.id === activeProblem.npc) || ALL_NPCS[0];
-      const nextCount = resolvedCount + 1;
-      const nextRecent = [...recentIds.slice(-14), activeProblem.id];
+    // Drain energy for this diagnostic step while attending the ticket
+    const stepDrain = calculateActionStepEnergyDrain(
+      difficulty,
+      activeProblem.acoesRequeridas.length,
+      result.isResolved,
+      activeWorkstationState.completedActions.length
+    );
+    const rawNextEnergy = Math.max(0, energy - stepDrain);
 
-      const reward = calculateTicketReward({
-        difficulty,
-        categoria: activeProblem.categoria,
-        errorCount: result.nextState.errorCount,
-        isRushHour,
-        currentPoints: points,
-        resolvedCountAfter: nextCount,
-        unlockedMedals,
-      });
-
-      const nextPoints = points + reward.totalEarned;
-      const rawNextEnergy = applyTicketEnergyDrain(energy, difficulty);
-      const nextMedals = [
-        ...unlockedMedals,
-        ...reward.newlyUnlockedMedals.map((m) => m.id),
-      ];
-
-      setResolvedCount(nextCount);
-      setPoints(nextPoints);
-      setUnlockedMedals(nextMedals);
-      setRecentIds(nextRecent);
-      saveGameData({
-        resolvedCount: nextCount,
-        points: nextPoints,
-        energy: rawNextEnergy,
-        unlockedMedals: nextMedals,
-        recentProblemIds: nextRecent,
-      });
-
-      const remainingQueue = ticketQueue.filter((p) => p.id !== activeProblem.id);
-      setTicketQueue(remainingQueue);
-      setSelectedProblemId(remainingQueue[0]?.id || null);
-
-      if (remainingQueue.length === 0) {
-        setNextTicketCountdown(computeNextTicketDelaySeconds(difficulty, isRushHour));
-      }
-
-      setNpcEmotionOverride({ npcId: activeProblem.npc, emotion: 'satisfied' });
+    // If energy reaches 0% while attending the ticket, the player collapses from exhaustion!
+    // Points MUST decrease by the sleep penalty (DO NOT add ticket reward points!).
+    if (rawNextEnergy <= 0) {
+      setWorkstationMap((prev) => ({
+        ...prev,
+        [activeProblem.id]: createInitialWorkstationState(activeProblem),
+      }));
       setActiveToolModal('none');
       setActiveDialogueNpc(null);
       setAutoWalkTarget(null);
+      applyEnergyChange(energy, 0, points);
+      return;
+    }
 
-      // Apply energy drain (triggers 20% warning or 0% 2s blackout if energy hits 0%)
-      const finalEnergy = applyEnergyChange(energy, rawNextEnergy, nextPoints);
+    if (!result.isResolved) {
+      applyEnergyChange(energy, rawNextEnergy, points);
+      return;
+    }
 
-      if (finalEnergy > 0) {
-        setResolvedModalData({
-          problem: activeProblem,
-          npc: targetNpc,
-          reward,
-        });
+    soundEngine.playSuccess();
+    const targetNpc =
+      ALL_NPCS.find((n) => n.id === activeProblem.npc) || ALL_NPCS[0];
+    const nextCount = resolvedCount + 1;
+    const nextRecent = [...recentIds.slice(-14), activeProblem.id];
 
-        voiceNarrator.speakProblem(activeProblem.agradecimentoNpc, {
-          npcId: targetNpc.id,
-          npcName: targetNpc.nome,
-        });
-      }
+    const reward = calculateTicketReward({
+      difficulty,
+      categoria: activeProblem.categoria,
+      errorCount: result.nextState.errorCount,
+      isRushHour,
+      currentPoints: points,
+      resolvedCountAfter: nextCount,
+      unlockedMedals,
+    });
+
+    const nextPoints = points + reward.totalEarned;
+    const nextMedals = [
+      ...unlockedMedals,
+      ...reward.newlyUnlockedMedals.map((m) => m.id),
+    ];
+
+    setResolvedCount(nextCount);
+    setPoints(nextPoints);
+    setUnlockedMedals(nextMedals);
+    setRecentIds(nextRecent);
+    saveGameData({
+      resolvedCount: nextCount,
+      points: nextPoints,
+      energy: rawNextEnergy,
+      unlockedMedals: nextMedals,
+      recentProblemIds: nextRecent,
+    });
+
+    const remainingQueue = ticketQueue.filter((p) => p.id !== activeProblem.id);
+    setTicketQueue(remainingQueue);
+    setSelectedProblemId(remainingQueue[0]?.id || null);
+
+    if (remainingQueue.length === 0) {
+      setNextTicketCountdown(computeNextTicketDelaySeconds(difficulty, isRushHour));
+    }
+
+    setNpcEmotionOverride({ npcId: activeProblem.npc, emotion: 'satisfied' });
+    setActiveToolModal('none');
+    setActiveDialogueNpc(null);
+    setAutoWalkTarget(null);
+
+    const finalEnergy = applyEnergyChange(energy, rawNextEnergy, nextPoints);
+
+    if (finalEnergy > 0) {
+      setResolvedModalData({
+        problem: activeProblem,
+        npc: targetNpc,
+        reward,
+      });
+
+      voiceNarrator.speakProblem(activeProblem.agradecimentoNpc, {
+        npcId: targetNpc.id,
+        npcName: targetNpc.nome,
+      });
     }
   };
 
@@ -1212,12 +1270,16 @@ export default function App() {
       {/* Company Bankruptcy Game Over & General Reset Modal */}
       {gameState === 'gameover' && (
         <GameOverBankruptcyModal
-          playerName={playerName}
-          gender={playerCustomization.genero}
-          finalPoints={points}
-          resolvedCount={resolvedCount}
-          unlockedMedalsCount={unlockedMedals.length}
-          purchasedOutfitsCount={purchasedOutfitIds.length}
+          playerName={bankruptcySnapshot?.playerName ?? playerName}
+          gender={bankruptcySnapshot?.gender ?? playerCustomization.genero}
+          finalPoints={bankruptcySnapshot?.finalPoints ?? points}
+          resolvedCount={bankruptcySnapshot?.resolvedCount ?? resolvedCount}
+          unlockedMedalsCount={
+            bankruptcySnapshot?.unlockedMedalsCount ?? unlockedMedals.length
+          }
+          purchasedOutfitsCount={
+            bankruptcySnapshot?.purchasedOutfitsCount ?? purchasedOutfitIds.length
+          }
           onConfirmFullReset={handleFullBankruptcyReset}
         />
       )}

@@ -1,4 +1,4 @@
-import { AlertOctagon, Award, Briefcase, Coffee, RotateCcw, Shirt, TrendingDown } from 'lucide-react';
+import { AlertOctagon, Award, Briefcase, RotateCcw, Shirt, Sparkles, TrendingDown } from 'lucide-react';
 import { PlayerGender } from '../progression/progressionSystem';
 
 interface GameOverBankruptcyModalProps {
@@ -20,8 +20,8 @@ export function GameOverBankruptcyModal({
   purchasedOutfitsCount,
   onConfirmFullReset,
 }: GameOverBankruptcyModalProps) {
-  const displayName = playerName.trim() || (gender === 'feminino' ? 'Analista' : 'Analista');
-  const pronounDesejo =
+  const displayName = playerName.trim() || 'Analista';
+  const pronounText =
     gender === 'feminino'
       ? 'desejamos muita sorte no seu próximo emprego, Analista!'
       : 'desejamos muita sorte no seu próximo emprego, Analista!';
@@ -34,9 +34,9 @@ export function GameOverBankruptcyModal({
       aria-modal="true"
       aria-label="Game Over — A Empresa Faliu"
       data-testid="bankruptcy-gameover-modal"
-      className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-5 bg-slate-950/90 backdrop-blur-md pointer-events-auto overflow-y-auto"
+      className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-5 bg-slate-950/92 backdrop-blur-md pointer-events-auto overflow-y-auto"
     >
-      <div className="w-full max-w-xl rounded-2xl bg-[#0b1120] border-2 border-rose-500/80 shadow-[0_0_60px_rgba(244,63,94,0.25)] overflow-hidden my-auto">
+      <div className="w-full max-w-xl rounded-2xl bg-[#0b1120] border-2 border-rose-500/80 shadow-[0_0_60px_rgba(244,63,94,0.28)] overflow-hidden my-auto">
         {/* Top Corporate Liquidation Banner */}
         <div className="bg-gradient-to-r from-rose-950/90 via-slate-900 to-rose-950/90 border-b border-rose-500/30 px-5 py-4 flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/50 flex items-center justify-center text-rose-400 shrink-0 shadow-inner">
@@ -48,11 +48,11 @@ export function GameOverBankruptcyModal({
                 Game Over · Falência Decretada
               </span>
               <span className="text-[11px] font-semibold text-slate-400">
-                Comunicado Oficial da Diretoria
+                Jogo Reiniciado do Zero
               </span>
             </div>
             <h2 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">
-              A Empresa Faliu! Fim de Expediente.
+              A Empresa Faliu! Fim de Carreira.
             </h2>
           </div>
         </div>
@@ -62,15 +62,15 @@ export function GameOverBankruptcyModal({
           {/* Official Dismissal & Bankruptcy Letter */}
           <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-4 space-y-2.5">
             <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
-              Olá, <strong className="text-white">{displayName}</strong>. Seus créditos ficaram no vermelho (
-              <strong className="text-rose-400 font-mono-tabular">{finalPoints} pts</strong>), sua energia se esgotou completamente (
-              <strong className="text-rose-400">0%</strong>) e não restou saldo nem para um cafezinho na{' '}
+              Olá, <strong className="text-white">{displayName}</strong>. Você ficou devendo créditos (
+              <strong className="text-rose-400 font-mono-tabular">{finalPoints} pts</strong>), sua energia acabou (
+              <strong className="text-rose-400">0%</strong>) e não restaram pontos nem para comprar café na{' '}
               <span className="text-amber-300 font-semibold">OverCoffee</span>.
             </p>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Com os servidores parados e as contas acumuladas, a{' '}
-              <strong className="text-white">Overclocked Solutions decretou falência</strong> e precisou fechar as portas. A diretoria e a Dona Helena agradecem pelos serviços prestados e{' '}
-              <strong className="text-emerald-300">{pronounDesejo}</strong>
+              Sem energia para trabalhar e com as contas no vermelho, a{' '}
+              <strong className="text-white">Overclocked Solutions faliu</strong> e fechou as portas. Agradecemos pelos seus serviços e{' '}
+              <strong className="text-emerald-300">{pronounText}</strong>
             </p>
           </div>
 
@@ -79,7 +79,7 @@ export function GameOverBankruptcyModal({
             <div className="p-3 rounded-xl bg-[#090d16] border border-rose-500/30 flex flex-col justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
-                Saldo Final
+                Dívida Final
               </span>
               <span className="text-base font-black font-mono-tabular text-rose-400 mt-1">
                 {finalPoints} pts
@@ -117,16 +117,15 @@ export function GameOverBankruptcyModal({
             </div>
           </div>
 
-          {/* Notice about full reset including clothes */}
+          {/* Notice about full reset from 0 including presentation and clothes */}
           <div className="px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2.5 text-[11px] text-amber-200">
-            <Coffee className="w-4 h-4 text-amber-400 shrink-0" />
+            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              <strong>Reset Geral:</strong> Todas as compras de roupas, acessórios, medalhas e dívidas foram zeradas. Você iniciará seu novo emprego com{' '}
-              <strong>100% de energia</strong>, <strong>0 pontos</strong> e o uniforme padrão de TI.
+              <strong>Reset Geral Concluído:</strong> Todos os pontos, medalhas e compras de roupas/acessórios foram resetados. Clique abaixo para tentar novamente desde o zero, com a tela inicial e a apresentação da Dona Helena!
             </span>
           </div>
 
-          {/* Primary Reset Action Button */}
+          {/* Primary Retry from Scratch Action Button */}
           <div className="pt-1 flex items-center justify-end">
             <button
               type="button"
@@ -135,7 +134,7 @@ export function GameOverBankruptcyModal({
               className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
             >
               <RotateCcw className="w-4 h-4 stroke-[2.5]" />
-              Reset Geral · Iniciar no Próximo Emprego (100% Energia e 0 Pts)
+              Tentar Novamente · Recomeçar Jogo do Zero (Desde a Apresentação)
             </button>
           </div>
         </div>

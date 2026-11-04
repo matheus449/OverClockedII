@@ -254,6 +254,26 @@ export function calculateEnergyDrainOnTicket(difficulty: DifficultyLevel): numbe
   return 34;
 }
 
+/**
+ * Computes the energy drained on each required diagnostic action step while attending a ticket,
+ * so the total energy across all required steps of a ticket equals calculateEnergyDrainOnTicket(difficulty).
+ */
+export function calculateActionStepEnergyDrain(
+  difficulty: DifficultyLevel,
+  totalRequiredSteps: number,
+  isFinalStep: boolean,
+  stepsCompletedBeforeThis: number
+): number {
+  const totalTicketDrain = calculateEnergyDrainOnTicket(difficulty);
+  const safeTotalSteps = Math.max(1, totalRequiredSteps);
+  const perStep = Math.floor(totalTicketDrain / safeTotalSteps);
+  if (isFinalStep) {
+    const alreadyDrained = perStep * Math.max(0, stepsCompletedBeforeThis);
+    return Math.max(1, totalTicketDrain - alreadyDrained);
+  }
+  return Math.max(1, perStep);
+}
+
 export function applyTicketEnergyDrain(
   currentEnergy: number,
   difficulty: DifficultyLevel

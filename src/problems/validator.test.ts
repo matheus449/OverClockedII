@@ -359,6 +359,7 @@ import {
 } from '../ui/LoadingVoiceOverlay';
 import {
   applySleepOnJobPenalty,
+  calculateActionStepEnergyDrain,
   getCheapestCoffeePrice,
   isCompanyBankrupt,
   isLowEnergyWarning,
@@ -415,9 +416,16 @@ test('20% low energy warning and 0% sleep-on-the-job penalty recover 10% energy 
   assert.equal(hardSleep.recoveredEnergy, 10);
 });
 
-test('Company Bankruptcy (Game Over) detection and Full Reset (buildResetCareerState) wipe all clothes purchases, medals, and restore 100% energy and 0 points', () => {
+test('Company Bankruptcy (Game Over) detection, step energy drain, and Full Reset (buildResetCareerState) wipe all clothes purchases, medals, and restore 100% energy and 0 points', () => {
   const minEasyCoffee = getCheapestCoffeePrice('facil', 0, 0);
   assert.equal(minEasyCoffee, 35);
+
+  // Verify step energy drain across a 2-step Normal ticket sums to 28%
+  const step1 = calculateActionStepEnergyDrain('normal', 2, false, 0);
+  const step2 = calculateActionStepEnergyDrain('normal', 2, true, 1);
+  assert.equal(step1, 14);
+  assert.equal(step2, 14);
+  assert.equal(step1 + step2, 28);
 
   // Bankrupt when energy is 0% and points are negative or below cheapest coffee price
   assert.equal(isCompanyBankrupt(0, -120, 'normal', 2), true);
@@ -451,4 +459,5 @@ test('Company Bankruptcy (Game Over) detection and Full Reset (buildResetCareerS
   assert.equal(resetState.playerCustomization.genero, 'feminino');
   assert.equal(resetState.playerCustomization.roupaId, 'uniforme_ti');
 });
+
 
