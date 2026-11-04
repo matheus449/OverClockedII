@@ -16,7 +16,7 @@ import {
   ProblemData,
   WorkstationState,
 } from './problems/validator';
-import { loadSaveData, saveGameData } from './persistence/storage';
+import { loadSaveData, resetSaveData, saveGameData } from './persistence/storage';
 import { soundEngine } from './audio/soundEngine';
 import {
   BackgroundVoiceDownloadStatus,
@@ -26,6 +26,7 @@ import {
 import {
   AccessoryItem,
   applyErrorPenalty,
+  buildResetCareerState,
   calculateTicketReward,
   computeNextTicketDelaySeconds,
   getMaxSimultaneousTickets,
@@ -43,6 +44,7 @@ import { HudOverlay } from './ui/HudOverlay';
 import { HardwareWorkbenchModal } from './hardware/HardwareWorkbenchModal';
 import { VirtualOSModal } from './virtualOS/VirtualOSModal';
 import { PauseSettingsModal } from './ui/PauseSettingsModal';
+import { GameOverBankruptcyModal } from './ui/GameOverBankruptcyModal';
 import { CharacterCustomizationModal } from './ui/CharacterCustomizationModal';
 import { CafeteriaModal } from './ui/CafeteriaModal';
 import { CreditsModal } from './ui/CreditsModal';
@@ -62,6 +64,7 @@ import {
   applyTicketEnergyDrain,
   CafeteriaNpc,
   CoffeeItem,
+  isCompanyBankrupt,
   isLowEnergyWarning,
   pickRandomCafeteriaChat,
   purchaseAndDrinkCoffee,
@@ -101,7 +104,14 @@ export default function App() {
   const [voiceEnabled, setVoiceEnabled] = useState<boolean>(initialSave.voiceEnabled);
 
   const [resolvedCount, setResolvedCount] = useState<number>(initialSave.resolvedCount);
-  const [points, setPoints] = useState<number>(initialSave.points);
+  const [points, setPoints] = useState<number>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paramPoints = params.get('points');
+    if (paramPoints !== null && !Number.isNaN(Number(paramPoints))) {
+      return Math.round(Number(paramPoints));
+    }
+    return initialSave.points;
+  });
   const [energy, setEnergy] = useState<number>(() => {
     const params = new URLSearchParams(window.location.search);
     const paramEnergy = params.get('energy');
@@ -302,7 +312,7 @@ export default function App() {
   );
 
   // Triggers the gradual-yet-fast fade-to-black screen ("dormiu no serviço") when energy hits 0%,
-  // playing bocejomasculino.mp3 or bocejofeminino.mp3 and restoring 10% energy.
+  // playing bocejomasculino.mp3 or bocejofeminino.mp3 and restoring 10% energy (or triggering Company Bankruptcy Game Over if in debt/out of points).
   const triggerSleepOnJobBlackout = useCallback(
     (basePoints: number) => {
       setIsSleepingBlackout(true);
@@ -320,6 +330,29 @@ export default function App() {
 
       window.setTimeout(() => {
         const sleepRes = applySleepOnJobPenalty(basePoints, difficulty);
+        const bankrupt =
+          isCompanyBankrupt(0, basePoints, difficulty, resolvedCount) ||
+          isCompanyBankrupt(0, sleepRes.nextPoints, difficulty, resolvedCount);
+
+        if (bankrupt) {
+          const finalDebtPoints = basePoints < 0 ? basePoints : sleepRes.nextPoints;
+          setPoints(finalDebtPoints);
+          setEnergy(0);
+          setSleepPenaltyNotice(null);
+          saveGameData({
+            points: finalDebtPoints,
+            energy: 0,
+          });
+          soundEngine.stopAmbientMusic();
+          soundEngine.playError();
+          setGameState('gameover');
+          setSleepFadeOpacity(0);
+          window.setTimeout(() => {
+            setIsSleepingBlackout(false);
+          }, 450);
+          return;
+        }
+
         setPoints(sleepRes.nextPoints);
         setEnergy(sleepRes.recoveredEnergy);
         setSleepPenaltyNotice(sleepRes);
@@ -335,14 +368,14 @@ export default function App() {
         }, 450);
       }, 1900);
     },
-    [difficulty, playerCustomization.genero]
+    [difficulty, playerCustomization.genero, resolvedCount]
   );
 
   // Centralized helper whenever energy changes from attending tickets
   const applyEnergyChange = useCallback(
     (prevEnergy: number, rawNextEnergy: number, basePoints: number) => {
       const clamped = Math.max(0, Math.min(100, rawNextEnergy));
-      if (clamped <= 0) {
+      if (clamped <= 0 || isCompanyBankrupt(clamped, basePoints, difficulty, resolvedCount)) {
         setEnergy(0);
         triggerSleepOnJobBlackout(basePoints);
         return 0;
@@ -355,15 +388,26 @@ export default function App() {
       }
       return clamped;
     },
-    [triggerSleepOnJobBlackout]
+    [difficulty, resolvedCount, triggerSleepOnJobBlackout]
   );
 
-  // If started directly at 0% energy (e.g. via URL param or saved 0% state), trigger the sleep fade-out
+  // If started directly at 0% energy or already in a bankrupt state (e.g. via URL param or saved state), trigger the sleep/bankruptcy fade-out
   useEffect(() => {
-    if (gameState === 'playing' && energy <= 0 && !isSleepingBlackout && !sleepPenaltyNotice) {
-      triggerSleepOnJobBlackout(points);
+    if (gameState === 'playing' && !isSleepingBlackout && !sleepPenaltyNotice) {
+      if (energy <= 0 || isCompanyBankrupt(energy, points, difficulty, resolvedCount)) {
+        triggerSleepOnJobBlackout(points);
+      }
     }
-  }, [gameState, energy, isSleepingBlackout, sleepPenaltyNotice, points, triggerSleepOnJobBlackout]);
+  }, [
+    gameState,
+    energy,
+    isSleepingBlackout,
+    sleepPenaltyNotice,
+    points,
+    difficulty,
+    resolvedCount,
+    triggerSleepOnJobBlackout,
+  ]);
 
   // Varied Ticket Pacing & Rush Hour Timer (ticks every 1s during playing; NO passive energy drain!)
   useEffect(() => {
@@ -433,6 +477,34 @@ export default function App() {
     },
     [activeProblem?.id, recentIds]
   );
+
+  // Full General Reset after Company Bankruptcy ("botão de reset geral do jogo" -> resets points, energy to 100%, resolved count, medals, and all purchased clothes/accessories, starting directly in the first shift)
+  const handleFullBankruptcyReset = useCallback(() => {
+    resetSaveData();
+    const cleanCareer = buildResetCareerState(playerCustomization);
+    setPoints(cleanCareer.points);
+    setEnergy(cleanCareer.energy);
+    setResolvedCount(cleanCareer.resolvedCount);
+    setUnlockedMedals(cleanCareer.unlockedMedals);
+    setPurchasedOutfitIds(cleanCareer.purchasedOutfitIds);
+    setPurchasedAccessoryIds(cleanCareer.purchasedAccessoryIds);
+    setPlayerCustomization(cleanCareer.playerCustomization);
+    setRecentIds([]);
+    setLowEnergyAlertOpen(false);
+    setSleepPenaltyNotice(null);
+    setIsSleepingBlackout(false);
+    setSleepFadeOpacity(0);
+    setShowCustomizationModal(false);
+    setShowCreditsModal(false);
+    setActiveToolModal('none');
+    setActiveDialogueNpc(null);
+    setActiveCafeteriaDialogue(null);
+    setAutoWalkTarget(null);
+    resetWithRandomTicket(difficulty);
+    setGameState('playing');
+    soundEngine.startBackgroundTrack();
+    soundEngine.playSuccess();
+  }, [difficulty, playerCustomization, resetWithRandomTicket]);
 
   // Clicking "Iniciar" on Title Screen opens the Input Mode Prompt (Teclado e Mouse vs Tela Touch)
   const handlePromptInputModeBeforeStart = useCallback(() => {
@@ -1087,7 +1159,7 @@ export default function App() {
       )}
 
       {/* Pause & Settings Modal */}
-      {(gameState === 'paused' || gameState === 'gameover') &&
+      {gameState === 'paused' &&
         !showCustomizationModal &&
         !showCreditsModal && (
           <PauseSettingsModal
@@ -1136,6 +1208,19 @@ export default function App() {
             }}
           />
         )}
+
+      {/* Company Bankruptcy Game Over & General Reset Modal */}
+      {gameState === 'gameover' && (
+        <GameOverBankruptcyModal
+          playerName={playerName}
+          gender={playerCustomization.genero}
+          finalPoints={points}
+          resolvedCount={resolvedCount}
+          unlockedMedalsCount={unlockedMedals.length}
+          purchasedOutfitsCount={purchasedOutfitIds.length}
+          onConfirmFullReset={handleFullBankruptcyReset}
+        />
+      )}
 
       {/* Official Credits & Brand Showcase Modal */}
       {showCreditsModal && (

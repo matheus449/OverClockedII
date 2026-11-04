@@ -181,14 +181,14 @@ export function buildVoicePreloadManifest(
     const npc = ALL_NPCS.find((n) => n.id === prob.npc) || ALL_NPCS[0];
     pushUnique({
       id: `${prob.id}_fala`,
-      label: `${npc.nome} · Chamado "${prob.titulo}"`,
+      label: `${npc.nome} · Chamado "${prob.descricaoCurta}"`,
       text: prob.falaNpc,
       npcId: npc.id,
       npcName: npc.nome,
     });
     pushUnique({
       id: `${prob.id}_agradecimento`,
-      label: `${npc.nome} · Conclusão "${prob.titulo}"`,
+      label: `${npc.nome} · Conclusão "${prob.descricaoCurta}"`,
       text: prob.agradecimentoNpc,
       npcId: npc.id,
       npcName: npc.nome,
@@ -281,8 +281,7 @@ export const LoadingVoiceOverlay: React.FC<LoadingVoiceOverlayProps> = ({
           if (!cancelToken.cancelled) {
             setProgress(info);
           }
-        },
-        cancelToken
+        }
       );
 
       if (!cancelToken.cancelled) {

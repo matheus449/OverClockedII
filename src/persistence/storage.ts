@@ -136,3 +136,41 @@ export function saveGameData(partial: Partial<OverclockedSaveData>): Overclocked
   }
   return updated;
 }
+
+/**
+ * Resets all career progress, points, energy, medals, and purchased clothes/accessories
+ * back to the initial factory state after Company Bankruptcy (Game Over).
+ */
+export function resetSaveData(): OverclockedSaveData {
+  const current = loadSaveData();
+  const resetState: OverclockedSaveData = {
+    ...DEFAULT_SAVE,
+    playerName: current.playerName,
+    difficulty: current.difficulty,
+    inputMode: current.inputMode,
+    musicVolume: current.musicVolume,
+    sfxVolume: current.sfxVolume,
+    muted: current.muted,
+    voiceEnabled: current.voiceEnabled,
+    resolvedCount: 0,
+    points: 0,
+    energy: 100,
+    unlockedMedals: [],
+    purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
+    purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+    playerCustomization: {
+      ...DEFAULT_CUSTOMIZATION,
+      genero: current.playerCustomization.genero,
+      corCabelo: current.playerCustomization.corCabelo,
+      tomPele: current.playerCustomization.tomPele,
+    },
+    recentProblemIds: [],
+  };
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(resetState));
+  } catch {
+    // Ignore storage quota errors in restricted frames
+  }
+  return resetState;
+}
+

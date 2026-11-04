@@ -975,7 +975,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
             : 'Corredor Principal';
 
           const nextSignature = `${nearby?.npc.id || ''}|${nearby?.sector.id || ''}|${
-            nearby?.isTargetSector ? '1' : '0'
+            nearby?.isTicketTarget ? '1' : '0'
           }|${resolvedSectorName}|${nearCafeteriaNow ? '1' : '0'}|${
             nearCafeNpc?.npc.id || ''
           }`;
@@ -997,8 +997,8 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
               _projVec.set(st.pos.x, 2.25, st.pos.z);
               _projVec.project(camera);
               if (_projVec.z >= -1 && _projVec.z <= 1) {
-                const w = container.clientWidth || window.innerWidth;
-                const h = container.clientHeight || window.innerHeight;
+                const w = container?.clientWidth || window.innerWidth;
+                const h = container?.clientHeight || window.innerHeight;
                 const sx = (_projVec.x * 0.5 + 0.5) * w;
                 const sy = (-_projVec.y * 0.5 + 0.5) * h;
                 emotionFloatingRef.current.style.transform = `translate3d(${Math.round(sx)}px, ${Math.round(sy)}px, 0)`;

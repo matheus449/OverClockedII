@@ -359,9 +359,15 @@ import {
 } from '../ui/LoadingVoiceOverlay';
 import {
   applySleepOnJobPenalty,
+  getCheapestCoffeePrice,
+  isCompanyBankrupt,
   isLowEnergyWarning,
   shouldTriggerLowEnergyAlert,
 } from '../cafeteria/cafeteriaSystem';
+import {
+  buildResetCareerState,
+  DEFAULT_PURCHASED_ACCESSORIES,
+} from '../progression/progressionSystem';
 
 test('buildVoicePreloadManifest and splitVoiceManifestForFastStart split 1 immediate startup clause from background items', () => {
   const firstProb = ALL_PROBLEMS[0];
@@ -408,3 +414,41 @@ test('20% low energy warning and 0% sleep-on-the-job penalty recover 10% energy 
   assert.equal(hardSleep.nextPoints, -250);
   assert.equal(hardSleep.recoveredEnergy, 10);
 });
+
+test('Company Bankruptcy (Game Over) detection and Full Reset (buildResetCareerState) wipe all clothes purchases, medals, and restore 100% energy and 0 points', () => {
+  const minEasyCoffee = getCheapestCoffeePrice('facil', 0, 0);
+  assert.equal(minEasyCoffee, 35);
+
+  // Bankrupt when energy is 0% and points are negative or below cheapest coffee price
+  assert.equal(isCompanyBankrupt(0, -120, 'normal', 2), true);
+  assert.equal(isCompanyBankrupt(0, 0, 'facil', 0), true);
+  assert.equal(isCompanyBankrupt(0, 20, 'facil', 0), true);
+
+  // Bankrupt when in debt (< 0 pts) at exhaustion recovery energy (<= 10%)
+  assert.equal(isCompanyBankrupt(10, -40, 'normal', 1), true);
+
+  // Not bankrupt when energy is 0% but player still has enough points to buy coffee after penalty
+  assert.equal(isCompanyBankrupt(0, 120, 'normal', 0), false);
+
+  // Not bankrupt when player is in debt (< 0 pts) but still has sufficient energy (> 10%) to work and recover
+  assert.equal(isCompanyBankrupt(65, -40, 'normal', 1), false);
+
+  // Verify full reset wipes all purchased outfits, accessories, points, and medals while preserving gender
+  const resetState = buildResetCareerState({
+    genero: 'feminino',
+    roupaId: 'jaqueta_cyber',
+    acessorioId: 'fone_neon',
+    corCabelo: '#78350f',
+    tomPele: '#f1c27d',
+  });
+
+  assert.equal(resetState.points, 0);
+  assert.equal(resetState.energy, 100);
+  assert.equal(resetState.resolvedCount, 0);
+  assert.deepEqual(resetState.unlockedMedals, []);
+  assert.deepEqual(resetState.purchasedOutfitIds, DEFAULT_PURCHASED_OUTFITS);
+  assert.deepEqual(resetState.purchasedAccessoryIds, DEFAULT_PURCHASED_ACCESSORIES);
+  assert.equal(resetState.playerCustomization.genero, 'feminino');
+  assert.equal(resetState.playerCustomization.roupaId, 'uniforme_ti');
+});
+

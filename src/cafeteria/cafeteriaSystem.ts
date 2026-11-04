@@ -309,6 +309,48 @@ export function applySleepOnJobPenalty(
   };
 }
 
+/**
+ * Returns the dynamic price of the cheapest coffee available in Cafeteria OverCoffee.
+ */
+export function getCheapestCoffeePrice(
+  difficulty: DifficultyLevel = 'facil',
+  currentPoints = 0,
+  resolvedCount = 0
+): number {
+  return getCoffeeDynamicPrice(
+    ALL_COFFEES[0],
+    difficulty,
+    currentPoints,
+    resolvedCount
+  );
+}
+
+/**
+ * Determines whether the company goes bankrupt (Game Over) because the player has
+ * depleted their energy (0%) while owing credits or lacking points to buy the cheapest coffee,
+ * or is in debt (< 0 pts) with only exhaustion recovery energy (<= 10%).
+ */
+export function isCompanyBankrupt(
+  currentEnergy: number,
+  currentPoints: number,
+  difficulty: DifficultyLevel = 'facil',
+  resolvedCount = 0
+): boolean {
+  const minCoffeePrice = getCheapestCoffeePrice(
+    difficulty,
+    currentPoints,
+    resolvedCount
+  );
+  if (currentEnergy <= 0 && currentPoints < minCoffeePrice) {
+    return true;
+  }
+  if (currentPoints < 0 && currentEnergy <= SLEEP_RECOVERY_ENERGY) {
+    return true;
+  }
+  return false;
+}
+
+
 
 export function purchaseAndDrinkCoffee(
   currentEnergy: number,

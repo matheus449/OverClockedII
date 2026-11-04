@@ -559,6 +559,38 @@ export const DEFAULT_PURCHASED_OUTFITS: string[] = ['uniforme_ti'];
 export const DEFAULT_PURCHASED_ACCESSORIES: string[] = ['cracha', 'oculos_smart'];
 
 /**
+ * Pure helper that resets all career progression and wardrobe purchases back to initial defaults
+ * when the company goes bankrupt (Game Over Reset Geral), while preserving character gender/skin/hair.
+ */
+export function buildResetCareerState(currentCustomization?: PlayerCustomization): {
+  points: number;
+  energy: number;
+  resolvedCount: number;
+  unlockedMedals: string[];
+  purchasedOutfitIds: string[];
+  purchasedAccessoryIds: string[];
+  playerCustomization: PlayerCustomization;
+} {
+  return {
+    points: 0,
+    energy: 100,
+    resolvedCount: 0,
+    unlockedMedals: [],
+    purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
+    purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+    playerCustomization: {
+      ...DEFAULT_CUSTOMIZATION,
+      genero: currentCustomization?.genero ?? DEFAULT_CUSTOMIZATION.genero,
+      corCabelo: currentCustomization?.corCabelo ?? DEFAULT_CUSTOMIZATION.corCabelo,
+      tomPele: currentCustomization?.tomPele ?? DEFAULT_CUSTOMIZATION.tomPele,
+      roupaId: DEFAULT_CUSTOMIZATION.roupaId,
+      acessorioId: DEFAULT_CUSTOMIZATION.acessorioId,
+    },
+  };
+}
+
+
+/**
  * Scales outfit prices dynamically according to the player's difficulty point-gain rate
  * and career point earnings.
  */

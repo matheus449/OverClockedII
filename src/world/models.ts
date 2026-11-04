@@ -1016,7 +1016,7 @@ export function createCafeteriaInteriorGroup(mats: OfficeMaterialLibrary): THREE
     ped.position.set(tp.x, 0.38, tp.z);
     group.add(ped);
 
-    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 0.05, 24), mats.deskWood);
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.58, 0.58, 0.05, 24), walnutMat);
     top.position.set(tp.x, 0.75, tp.z);
     top.castShadow = true;
     top.receiveShadow = true;
