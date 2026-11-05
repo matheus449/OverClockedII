@@ -9,6 +9,7 @@ import {
   Check,
   AlertCircle,
   TrendingUp,
+  Moon,
 } from 'lucide-react';
 import {
   ALL_COFFEES,
@@ -25,6 +26,7 @@ interface CafeteriaModalProps {
   energy: number;
   points: number;
   difficulty: DifficultyLevel;
+  nightShift?: boolean;
   resolvedCount: number;
   voiceEnabled: boolean;
   onDrinkCoffee: (coffee: CoffeeItem) => { ok: boolean; reason?: string };
@@ -36,6 +38,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
   energy,
   points,
   difficulty,
+  nightShift = false,
   resolvedCount,
   voiceEnabled,
   onDrinkCoffee,
@@ -98,9 +101,15 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                 <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md">
                   Nível: {difficulty === 'dificil' ? 'Difícil (Preços Alta Demanda)' : difficulty === 'normal' ? 'Normal' : 'Fácil'}
                 </span>
+                {nightShift && (
+                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-500/25 text-indigo-200 border border-indigo-400/40 rounded-md flex items-center gap-1">
+                    <Moon className="w-3 h-3 text-indigo-300" />
+                    Plantão Noturno (+50%)
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-300">
-                Repor energia no balcão com o Barista Léo · Os preços acompanham seu ganho de pontos e dificuldade.
+                Repor energia no balcão com o Barista Léo · Os preços acompanham seu ganho de pontos, dificuldade e turno.
               </p>
             </div>
           </div>
@@ -202,7 +211,8 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                   coffee,
                   difficulty,
                   points,
-                  resolvedCount
+                  resolvedCount,
+                  nightShift
                 );
                 const isFull = energy >= 100;
                 const canAfford = points >= dynamicCost;

@@ -86,6 +86,11 @@ export default function App() {
 
   const [playerName, setPlayerName] = useState<string>(initialSave.playerName);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(initialSave.difficulty);
+  const [nightShift, setNightShift] = useState<boolean>(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('night') === '1') return true;
+    return Boolean(initialSave.nightShift);
+  });
   const [inputMode, setInputMode] = useState<InputControlMode>(() => {
     const params = new URLSearchParams(window.location.search);
     const paramInput = params.get('input');
@@ -203,6 +208,11 @@ export default function App() {
   const [activeToolModal, setActiveToolModal] = useState<
     'none' | 'hardware' | 'virtualos' | 'cafeteria'
   >('none');
+
+  // Strict check: player MUST be physically at the active ticket's sector to attend it!
+  const isAtActiveTicketSector = Boolean(
+    nearby && activeProblem && nearby.sector.id === activeProblem.setor
+  );
   const [lastDiagnosticMessage, setLastDiagnosticMessage] = useState<{
     text: string;
     isError: boolean;
@@ -370,8 +380,8 @@ export default function App() {
       window.setTimeout(() => {
         const sleepRes = applySleepOnJobPenalty(basePoints, difficulty);
         const bankrupt =
-          isCompanyBankrupt(0, basePoints, difficulty, resolvedCount) ||
-          isCompanyBankrupt(0, sleepRes.nextPoints, difficulty, resolvedCount);
+          isCompanyBankrupt(0, basePoints, difficulty, resolvedCount, nightShift) ||
+          isCompanyBankrupt(0, sleepRes.nextPoints, difficulty, resolvedCount, nightShift);
 
         if (bankrupt) {
           const finalDebtPoints = sleepRes.nextPoints;
@@ -423,6 +433,7 @@ export default function App() {
     },
     [
       difficulty,
+      nightShift,
       playerCustomization.genero,
       playerName,
       purchasedOutfitIds.length,
@@ -435,7 +446,10 @@ export default function App() {
   const applyEnergyChange = useCallback(
     (prevEnergy: number, rawNextEnergy: number, basePoints: number) => {
       const clamped = Math.max(0, Math.min(100, rawNextEnergy));
-      if (clamped <= 0 || isCompanyBankrupt(clamped, basePoints, difficulty, resolvedCount)) {
+      if (
+        clamped <= 0 ||
+        isCompanyBankrupt(clamped, basePoints, difficulty, resolvedCount, nightShift)
+      ) {
         setEnergy(0);
         triggerSleepOnJobBlackout(basePoints);
         return 0;
@@ -448,13 +462,16 @@ export default function App() {
       }
       return clamped;
     },
-    [difficulty, resolvedCount, triggerSleepOnJobBlackout]
+    [difficulty, nightShift, resolvedCount, triggerSleepOnJobBlackout]
   );
 
   // If started directly at 0% energy or already in a bankrupt state (e.g. via URL param or saved state), trigger the sleep/bankruptcy fade-out
   useEffect(() => {
     if (gameState === 'playing' && !isSleepingBlackout && !sleepPenaltyNotice) {
-      if (energy <= 0 || isCompanyBankrupt(energy, points, difficulty, resolvedCount)) {
+      if (
+        energy <= 0 ||
+        isCompanyBankrupt(energy, points, difficulty, resolvedCount, nightShift)
+      ) {
         triggerSleepOnJobBlackout(points);
       }
     }
@@ -465,6 +482,7 @@ export default function App() {
     sleepPenaltyNotice,
     points,
     difficulty,
+    nightShift,
     resolvedCount,
     triggerSleepOnJobBlackout,
   ]);
@@ -544,6 +562,7 @@ export default function App() {
     const cleanCareer = buildResetCareerState();
     setPlayerName('');
     setDifficulty('normal');
+    setNightShift(false);
     setPoints(cleanCareer.points);
     setEnergy(cleanCareer.energy);
     setResolvedCount(cleanCareer.resolvedCount);
@@ -697,6 +716,15 @@ export default function App() {
     resetWithRandomTicket(d);
   };
 
+  const handleToggleNightShift = useCallback(() => {
+    soundEngine.playInteract();
+    setNightShift((prev) => {
+      const next = !prev;
+      saveGameData({ nightShift: next });
+      return next;
+    });
+  }, []);
+
   const handleNearbyChange = useCallback(
     (
       nextNearby: NearbyInteraction | null,
@@ -722,6 +750,12 @@ export default function App() {
         }
         return prevNpc;
       });
+      // If the player walks away from the sector, close any open Hardware/OverOS diagnostic modal!
+      if (!nextNearby || !nextNearby.isTicketTarget) {
+        setActiveToolModal((prev) =>
+          prev === 'hardware' || prev === 'virtualos' ? 'none' : prev
+        );
+      }
     },
     []
   );
@@ -779,7 +813,7 @@ export default function App() {
   );
 
   const handleExecuteDiagnosticAction = (action: DiagnosticAction) => {
-    if (!activeProblem || !activeWorkstationState) return;
+    if (!activeProblem || !activeWorkstationState || !isAtActiveTicketSector) return;
     const result = applyDiagnosticAction(activeWorkstationState, activeProblem, action);
     setWorkstationMap((prev) => ({
       ...prev,
@@ -813,12 +847,13 @@ export default function App() {
     });
     soundEngine.playHardwareAction();
 
-    // Drain energy for this diagnostic step while attending the ticket
+    // Drain energy for this diagnostic step while attending the ticket (higher drain during Plantão Noturno!)
     const stepDrain = calculateActionStepEnergyDrain(
       difficulty,
       activeProblem.acoesRequeridas.length,
       result.isResolved,
-      activeWorkstationState.completedActions.length
+      activeWorkstationState.completedActions.length,
+      nightShift
     );
     const rawNextEnergy = Math.max(0, energy - stepDrain);
 
@@ -852,6 +887,7 @@ export default function App() {
       categoria: activeProblem.categoria,
       errorCount: result.nextState.errorCount,
       isRushHour,
+      isNightShift: nightShift,
       currentPoints: points,
       resolvedCountAfter: nextCount,
       unlockedMedals,
@@ -910,7 +946,8 @@ export default function App() {
       points,
       coffee,
       difficulty,
-      resolvedCount
+      resolvedCount,
+      nightShift
     );
     if (res.success) {
       setPoints(res.nextPoints);
@@ -981,6 +1018,7 @@ export default function App() {
         activeProblem={resolvedModalData ? null : activeProblem}
         queuedSectorIds={ticketQueue.map((p) => p.setor)}
         playerCustomization={playerCustomization}
+        nightShift={nightShift}
         autoWalkTarget={autoWalkTarget}
         onClearAutoWalk={() => setAutoWalkTarget(null)}
         onTapFloorWalk={() => {
@@ -1011,6 +1049,7 @@ export default function App() {
           <TitleScreenOverlay
             playerName={playerName}
             difficulty={difficulty}
+            nightShift={nightShift}
             voiceEnabled={voiceEnabled}
             playerCustomization={playerCustomization}
             onChangePlayerName={(name) => {
@@ -1018,6 +1057,7 @@ export default function App() {
               saveGameData({ playerName: name });
             }}
             onSelectDifficulty={handleSelectDifficulty}
+            onToggleNightShift={handleToggleNightShift}
             onToggleVoiceEnabled={() => {
               const next = !voiceEnabled;
               setVoiceEnabled(next);
@@ -1099,6 +1139,7 @@ export default function App() {
           nextTicketCountdown={nextTicketCountdown}
           isRushHour={isRushHour}
           rushHourRemaining={rushHourRemaining}
+          nightShift={nightShift}
           currentSectorName={currentSectorName}
           nearby={nearby}
           nearCafeteria={nearCafeteria}
@@ -1123,6 +1164,7 @@ export default function App() {
             enqueueNewTicket(difficulty, isRushHour);
             setNextTicketCountdown(computeNextTicketDelaySeconds(difficulty, isRushHour));
           }}
+          onToggleNightShift={handleToggleNightShift}
           onToggleMute={() => {
             const next = !muted;
             setMuted(next);
@@ -1162,10 +1204,12 @@ export default function App() {
             setActiveDialogueNpc(null);
           }}
           onOpenHardwareWorkbench={() => {
+            if (!isAtActiveTicketSector) return;
             soundEngine.playInteract();
             setActiveToolModal('hardware');
           }}
           onOpenVirtualOS={() => {
+            if (!isAtActiveTicketSector) return;
             soundEngine.playInteract();
             setActiveToolModal('virtualos');
           }}
@@ -1176,9 +1220,10 @@ export default function App() {
         />
       )}
 
-      {/* Interactive 3D/Tactile Hardware Workbench Modal */}
+      {/* Interactive 3D/Tactile Hardware Workbench Modal (Strictly requires being physically at the target sector!) */}
       {gameState === 'playing' &&
         activeToolModal === 'hardware' &&
+        isAtActiveTicketSector &&
         activeProblem &&
         activeWorkstationState && (
           <HardwareWorkbenchModal
@@ -1192,9 +1237,10 @@ export default function App() {
           />
         )}
 
-      {/* Interactive Virtual OS (OverOS) Modal */}
+      {/* Interactive Virtual OS (OverOS) Modal (Strictly requires being physically at the target sector!) */}
       {gameState === 'playing' &&
         activeToolModal === 'virtualos' &&
+        isAtActiveTicketSector &&
         activeProblem &&
         activeWorkstationState && (
           <VirtualOSModal
@@ -1214,6 +1260,7 @@ export default function App() {
           energy={energy}
           points={points}
           difficulty={difficulty}
+          nightShift={nightShift}
           resolvedCount={resolvedCount}
           voiceEnabled={voiceEnabled}
           onDrinkCoffee={handleDrinkCoffee}

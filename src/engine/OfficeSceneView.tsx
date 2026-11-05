@@ -52,6 +52,7 @@ export interface OfficeSceneProps {
   activeProblem: ProblemData | null;
   queuedSectorIds?: string[];
   playerCustomization?: PlayerCustomization;
+  nightShift?: boolean;
   autoWalkTarget: Vec2 | null;
   onClearAutoWalk: () => void;
   onTapFloorWalk?: (target: Vec2) => void;
@@ -77,6 +78,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
   activeProblem,
   queuedSectorIds = [],
   playerCustomization = DEFAULT_CUSTOMIZATION,
+  nightShift = false,
   autoWalkTarget,
   onClearAutoWalk,
   onTapFloorWalk,
@@ -97,6 +99,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     activeProblem,
     queuedSectorIds,
     playerCustomization,
+    nightShift,
     autoWalkTarget,
     onClearAutoWalk,
     onTapFloorWalk,
@@ -115,6 +118,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       activeProblem,
       queuedSectorIds,
       playerCustomization,
+      nightShift,
       autoWalkTarget,
       onClearAutoWalk,
       onTapFloorWalk,
@@ -132,6 +136,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     activeProblem,
     queuedSectorIds,
     playerCustomization,
+    nightShift,
     autoWalkTarget,
     onClearAutoWalk,
     onTapFloorWalk,
@@ -696,10 +701,28 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         activeProblem: curProb,
         queuedSectorIds: curQueuedSectors,
         playerCustomization: curCust,
+        nightShift: curNightShift,
         autoWalkTarget: curAutoTarget,
         npcEmotionOverride: curEmotion,
         cameraZoom: curZoom,
       } = propsRef.current;
+
+      // Dynamically transition 3D Office Atmosphere between Daytime and Plantão Noturno (Night Shift)
+      const isNight = Boolean(curNightShift);
+      const bgTargetHex = isNight ? 0x050816 : 0xdbeafe;
+      if ((scene.background as THREE.Color).getHex() !== bgTargetHex) {
+        (scene.background as THREE.Color).setHex(bgTargetHex);
+        if (scene.fog instanceof THREE.FogExp2) {
+          scene.fog.color.setHex(bgTargetHex);
+          scene.fog.density = isNight ? 0.0068 : 0.0045;
+        }
+        hemiLight.color.setHex(isNight ? 0x38bdf8 : 0xe0f2fe);
+        hemiLight.groundColor.setHex(isNight ? 0x0f172a : 0x92400e);
+        hemiLight.intensity = isNight ? 0.65 : 1.32;
+        dirLight.color.setHex(isNight ? 0x818cf8 : 0xfff4e0);
+        dirLight.intensity = isNight ? 0.88 : 1.88;
+        renderer.toneMappingExposure = isNight ? 0.82 : 1.08;
+      }
 
       // Hot-swap 3D Player Character Rig if customization changed
       const nextCustKey = getCustKey(curCust);
@@ -1056,6 +1079,12 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         data-testid="office-3d-canvas"
         className="w-full h-full touch-none"
       />
+      {nightShift && (
+        <div
+          data-testid="night-shift-atmosphere-overlay"
+          className="pointer-events-none fixed inset-0 z-[1] bg-[radial-gradient(circle_at_50%_45%,rgba(15,23,42,0.12)_0%,rgba(2,6,23,0.52)_100%)]"
+        />
+      )}
       <div
         ref={emotionFloatingRef}
         style={{ opacity: 0, transform: 'translate3d(-999px, -999px, 0)' }}

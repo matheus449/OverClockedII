@@ -25,8 +25,10 @@ import {
   MessageCircle,
   Mic,
   MicOff,
+  Moon,
   Pause,
   Shirt,
+  Sun,
   Volume2,
   VolumeX,
   Wrench,
@@ -40,6 +42,7 @@ interface HudOverlayProps {
   nextTicketCountdown: number;
   isRushHour: boolean;
   rushHourRemaining: number;
+  nightShift: boolean;
   currentSectorName: string;
   nearby: NearbyInteraction | null;
   nearCafeteria: boolean;
@@ -63,6 +66,7 @@ interface HudOverlayProps {
   onSelectQueuedTicket: (problemId: string) => void;
   onSkipTicketWait: () => void;
   onToggleRushHourManual?: () => void;
+  onToggleNightShift: () => void;
   onToggleMute: () => void;
   onToggleVoiceEnabled: () => void;
   onReplayVoice: (text: string, npc: NpcData) => void;
@@ -86,6 +90,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   nextTicketCountdown,
   isRushHour,
   rushHourRemaining,
+  nightShift,
   currentSectorName,
   nearby,
   nearCafeteria,
@@ -103,6 +108,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   cameraZoom,
   onSelectQueuedTicket,
   onSkipTicketWait,
+  onToggleNightShift,
   onToggleMute,
   onToggleVoiceEnabled,
   onReplayVoice,
@@ -159,7 +165,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   </div>
                 </div>
 
-                {isAtTarget && (
+                {isAtTarget ? (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -170,6 +176,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   >
                     Atender [E]
                   </button>
+                ) : (
+                  <span
+                    className="hidden sm:inline-flex px-2 py-1 rounded-lg bg-slate-900/90 border border-slate-700/80 text-[10px] font-semibold text-slate-400 whitespace-nowrap shrink-0"
+                    title="Caminhe até o setor indicado pela trilha luminosa no chão para atender o chamado"
+                  >
+                    Vá até o setor
+                  </span>
                 )}
               </div>
 
@@ -289,8 +302,42 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
           <div className="h-5 w-px bg-slate-800 mx-0.5" />
 
-          {/* Quick Diagnostic Tools (Hardware & OverOS) */}
-          {activeProblem && (
+          {/* Night Shift ("Plantão Noturno") Toggle Button */}
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-label={nightShift ? 'Desativar Plantão Noturno' : 'Ativar Plantão Noturno'}
+            aria-pressed={nightShift}
+            onClick={(e) => {
+              e.currentTarget.blur();
+              onToggleNightShift();
+            }}
+            className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0 ${
+              nightShift
+                ? 'bg-indigo-500/25 hover:bg-indigo-500/35 border-indigo-400/50 text-indigo-200 shadow-sm'
+                : 'bg-slate-800/90 hover:bg-slate-700 border-slate-700/80 text-amber-200'
+            }`}
+            title={
+              nightShift
+                ? 'Plantão Noturno Ativo (+50% Pontos · Maior Gasto de Energia · Café +50%)'
+                : 'Turno Diurno — Clique para ativar o Plantão Noturno (+50% Pontos)'
+            }
+          >
+            {nightShift ? (
+              <>
+                <Moon className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
+                <span className="hidden xl:inline">Plantão Noturno</span>
+              </>
+            ) : (
+              <>
+                <Sun className="w-3.5 h-3.5 text-amber-300 shrink-0" />
+                <span className="hidden xl:inline">Diurno</span>
+              </>
+            )}
+          </button>
+
+          {/* Quick Diagnostic Tools (Hardware & OverOS) — ONLY available when physically at the target sector! */}
+          {activeProblem && isAtTarget && (
             <>
               <button
                 type="button"
@@ -301,7 +348,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   onOpenHardwareWorkbench();
                 }}
                 className="h-8 px-2 sm:px-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0"
-                title="Bancada de Hardware 3D"
+                title="Bancada de Hardware 3D (No Setor)"
               >
                 <Cpu className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden md:inline">Hardware</span>
@@ -316,7 +363,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   onOpenVirtualOS();
                 }}
                 className="h-8 px-2 sm:px-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/35 text-sky-300 flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0"
-                title="Computador Virtual (OverOS)"
+                title="Computador Virtual OverOS (No Setor)"
               >
                 <Laptop className="w-3.5 h-3.5 shrink-0" />
                 <span className="hidden md:inline">OverOS</span>
@@ -446,6 +493,11 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   <span className="text-sm font-extrabold font-mono-tabular text-amber-400">
                     +{resolvedModalData.reward.totalEarned} pts
                   </span>
+                  {resolvedModalData.reward.nightShiftBonus > 0 && (
+                    <span className="text-[10px] font-semibold text-indigo-300 block">
+                      Inclui +{resolvedModalData.reward.nightShiftBonus} pts Noturno
+                    </span>
+                  )}
                 </div>
               )}
             </div>

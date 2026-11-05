@@ -12,6 +12,7 @@ const STORAGE_KEY = 'overclocked_save_v1';
 export interface OverclockedSaveData {
   playerName: string;
   difficulty: DifficultyLevel;
+  nightShift?: boolean;
   inputMode?: InputControlMode;
   musicVolume: number;
   sfxVolume: number;
@@ -30,6 +31,7 @@ export interface OverclockedSaveData {
 const DEFAULT_SAVE: OverclockedSaveData = {
   playerName: '',
   difficulty: 'normal',
+  nightShift: false,
   musicVolume: 0.45,
   sfxVolume: 0.7,
   muted: false,
@@ -91,6 +93,7 @@ export function loadSaveData(): OverclockedSaveData {
         parsed.difficulty === 'dificil'
           ? parsed.difficulty
           : DEFAULT_SAVE.difficulty,
+      nightShift: Boolean(parsed.nightShift),
       inputMode,
       musicVolume:
         typeof parsed.musicVolume === 'number' ? parsed.musicVolume : DEFAULT_SAVE.musicVolume,
@@ -151,6 +154,7 @@ export function resetSaveData(): OverclockedSaveData {
     voiceEnabled: current.voiceEnabled,
     playerName: '',
     difficulty: 'normal',
+    nightShift: false,
     inputMode: undefined,
     resolvedCount: 0,
     points: 0,

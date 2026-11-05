@@ -1,16 +1,18 @@
 import React from 'react';
 import { DifficultyLevel } from '../problems/validator';
 import { PlayerCustomization } from '../progression/progressionSystem';
-import { Info, Mic, MicOff, Play, Shirt, User } from 'lucide-react';
+import { Info, Mic, MicOff, Moon, Play, Shirt, Sun, User } from 'lucide-react';
 import { OVERCLOCKED_ICON_URL, OVERCLOCKED_LOGO_URL } from './CreditsModal';
 
 interface TitleScreenProps {
   playerName: string;
   difficulty: DifficultyLevel;
+  nightShift: boolean;
   voiceEnabled: boolean;
   playerCustomization: PlayerCustomization;
   onChangePlayerName: (name: string) => void;
   onSelectDifficulty: (d: DifficultyLevel) => void;
+  onToggleNightShift: () => void;
   onToggleVoiceEnabled: () => void;
   onChangeGender: (genero: 'masculino' | 'feminino') => void;
   onOpenCustomization: () => void;
@@ -21,10 +23,12 @@ interface TitleScreenProps {
 export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
   playerName,
   difficulty,
+  nightShift,
   voiceEnabled,
   playerCustomization,
   onChangePlayerName,
   onSelectDifficulty,
+  onToggleNightShift,
   onToggleVoiceEnabled,
   onChangeGender,
   onOpenCustomization,
@@ -44,7 +48,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
   return (
     <div className="fixed inset-0 z-20 flex flex-col justify-between p-4 sm:p-6 md:p-10 overflow-y-auto bg-[linear-gradient(90deg,rgba(9,13,22,0.96)_0%,rgba(9,13,22,0.88)_46%,rgba(9,13,22,0.14)_74%,rgba(9,13,22,0.0)_100%)] pointer-events-auto">
       {/* Left Content Column leaving >50% live 3D office vista unobstructed on Desktop */}
-      <div className="my-auto max-w-md space-y-3.5 sm:space-y-5">
+      <div className="my-auto max-w-md space-y-3 sm:space-y-4">
         {/* Official OVERCLOCKED Logo Banner + Power Emblem */}
         <div className="p-3 sm:p-3.5 rounded-2xl bg-white border-2 border-purple-500/40 shadow-2xl flex items-center gap-3">
           <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-slate-50 border border-slate-200 p-1.5 flex items-center justify-center shrink-0">
@@ -67,7 +71,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
         </div>
 
         {/* Clean Player Identification & Preferences Card */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-[#0f172a] border border-slate-800 shadow-2xl space-y-3.5 sm:space-y-4">
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#0f172a] border border-slate-800 shadow-2xl space-y-3 sm:space-y-3.5">
           {/* Name Input */}
           <div>
             <label
@@ -83,7 +87,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
               value={playerName}
               onChange={(e) => onChangePlayerName(e.target.value)}
               placeholder="Digite seu nome..."
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#090d16] border border-slate-700 focus:border-purple-400 focus:outline-none text-sm text-slate-100 placeholder:text-slate-500"
+              className="w-full px-3.5 py-2 rounded-xl bg-[#090d16] border border-slate-700 focus:border-purple-400 focus:outline-none text-sm text-slate-100 placeholder:text-slate-500"
             />
           </div>
 
@@ -164,7 +168,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
                     type="button"
                     onClick={() => onSelectDifficulty(item.id)}
                     aria-pressed={selected}
-                    className={`p-2 sm:p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
                       selected
                         ? 'bg-[#111c33] border-[#38bdf8] shadow-md'
                         : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
@@ -179,6 +183,60 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Shift Atmosphere & Risk/Reward Selector: Turno Diurno vs Plantão Noturno */}
+          <div>
+            <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">
+              Modalidade de Turno
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (nightShift) onToggleNightShift();
+                }}
+                aria-pressed={!nightShift}
+                className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
+                  !nightShift
+                    ? 'bg-[#111c33] border-amber-400/80 shadow-md'
+                    : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <Sun className="w-4 h-4 text-amber-300 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-slate-100 block truncate">
+                    Turno Diurno
+                  </span>
+                  <span className="text-[10px] text-slate-400 block truncate">
+                    Energia e café padrão
+                  </span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (!nightShift) onToggleNightShift();
+                }}
+                aria-pressed={nightShift}
+                className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
+                  nightShift
+                    ? 'bg-indigo-950/80 border-indigo-400 shadow-md'
+                    : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+                }`}
+              >
+                <Moon className="w-4 h-4 text-indigo-300 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-xs font-bold text-indigo-100 block truncate">
+                    Plantão Noturno
+                  </span>
+                  <span className="text-[10px] text-indigo-300 block truncate">
+                    +50% pts · +Energia/Café
+                  </span>
+                </div>
+              </button>
             </div>
           </div>
         </div>

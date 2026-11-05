@@ -458,6 +458,46 @@ test('Company Bankruptcy (Game Over) detection, step energy drain, and Full Rese
   assert.deepEqual(resetState.purchasedAccessoryIds, DEFAULT_PURCHASED_ACCESSORIES);
   assert.equal(resetState.playerCustomization.genero, 'feminino');
   assert.equal(resetState.playerCustomization.roupaId, 'uniforme_ti');
+
+  // Verify Plantão Noturno (Night Shift) increases energy drain, coffee prices (+50%), and ticket point rewards (+50% base points)
+  const dayStep1 = calculateActionStepEnergyDrain('normal', 2, false, 0, false);
+  const dayStep2 = calculateActionStepEnergyDrain('normal', 2, true, 1, false);
+  const nightStep1 = calculateActionStepEnergyDrain('normal', 2, false, 0, true);
+  const nightStep2 = calculateActionStepEnergyDrain('normal', 2, true, 1, true);
+  assert.equal(dayStep1 + dayStep2, 12, 'Daytime Normal ticket should drain 12% energy');
+  assert.equal(nightStep1 + nightStep2, 20, 'Night Shift Normal ticket should drain 20% energy');
+
+  const dayCoffeePrice = getCoffeeDynamicPrice(ALL_COFFEES[1], 'normal', 0, 0, false);
+  const nightCoffeePrice = getCoffeeDynamicPrice(ALL_COFFEES[1], 'normal', 0, 0, true);
+  assert.ok(
+    nightCoffeePrice > dayCoffeePrice,
+    `Night Shift coffee price (${nightCoffeePrice}) must be higher than daytime (${dayCoffeePrice})`
+  );
+
+  const dayReward = calculateTicketReward({
+    difficulty: 'normal',
+    categoria: 'Software',
+    errorCount: 0,
+    isRushHour: false,
+    isNightShift: false,
+    currentPoints: 0,
+    resolvedCountAfter: 1,
+    unlockedMedals: ['primeiro_chamado', 'mestre_overos', 'olho_clinico'],
+  });
+  const nightReward = calculateTicketReward({
+    difficulty: 'normal',
+    categoria: 'Software',
+    errorCount: 0,
+    isRushHour: false,
+    isNightShift: true,
+    currentPoints: 0,
+    resolvedCountAfter: 1,
+    unlockedMedals: ['primeiro_chamado', 'mestre_overos', 'olho_clinico'],
+  });
+  assert.equal(dayReward.nightShiftBonus, 0);
+  assert.equal(nightReward.nightShiftBonus, 90, 'Normal Night Shift bonus should be +90 pts (+50% of 180)');
+  assert.equal(nightReward.totalEarned, dayReward.totalEarned + 90);
 });
+
 
 

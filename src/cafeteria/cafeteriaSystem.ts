@@ -189,11 +189,13 @@ export function getCoffeeDynamicPrice(
   coffee: CoffeeItem,
   difficulty: DifficultyLevel = 'facil',
   currentPoints = 0,
-  resolvedCount = 0
+  resolvedCount = 0,
+  nightShift = false
 ): number {
   const baseCost = Math.max(10, coffee.custoPontos);
   const diffMultiplier =
     difficulty === 'facil' ? 1.0 : difficulty === 'normal' ? 1.15 : 1.35;
+  const nightMultiplier = nightShift ? 1.5 : 1.0;
 
   // Gentle progression scale capped at +40% max so coffee always stays affordable
   const pointsTier = Math.floor(Math.max(0, currentPoints) / 400);
@@ -202,8 +204,8 @@ export function getCoffeeDynamicPrice(
     1 + pointsTier * 0.06 + Math.max(0, resolvedCount) * 0.03
   );
 
-  const rawPrice = baseCost * diffMultiplier * progressionMultiplier;
-  if (difficulty === 'facil' && pointsTier === 0 && resolvedCount === 0) {
+  const rawPrice = baseCost * diffMultiplier * progressionMultiplier * nightMultiplier;
+  if (difficulty === 'facil' && pointsTier === 0 && resolvedCount === 0 && !nightShift) {
     return baseCost;
   }
   return Math.max(baseCost, Math.round(rawPrice / 5) * 5);
@@ -251,7 +253,15 @@ export function isPlayerNearCafeteriaCounter(playerPos: Vec2): boolean {
 export const LOW_ENERGY_THRESHOLD = 20;
 export const SLEEP_RECOVERY_ENERGY = 10;
 
-export function calculateEnergyDrainOnTicket(difficulty: DifficultyLevel): number {
+export function calculateEnergyDrainOnTicket(
+  difficulty: DifficultyLevel,
+  nightShift = false
+): number {
+  if (nightShift) {
+    if (difficulty === 'facil') return 16;
+    if (difficulty === 'normal') return 20;
+    return 26;
+  }
   if (difficulty === 'facil') return 10;
   if (difficulty === 'normal') return 12;
   return 16;
@@ -259,15 +269,16 @@ export function calculateEnergyDrainOnTicket(difficulty: DifficultyLevel): numbe
 
 /**
  * Computes the energy drained on each required diagnostic action step while attending a ticket,
- * so the total energy across all required steps of a ticket equals calculateEnergyDrainOnTicket(difficulty).
+ * so the total energy across all required steps of a ticket equals calculateEnergyDrainOnTicket(difficulty, nightShift).
  */
 export function calculateActionStepEnergyDrain(
   difficulty: DifficultyLevel,
   totalRequiredSteps: number,
   isFinalStep: boolean,
-  stepsCompletedBeforeThis: number
+  stepsCompletedBeforeThis: number,
+  nightShift = false
 ): number {
-  const totalTicketDrain = calculateEnergyDrainOnTicket(difficulty);
+  const totalTicketDrain = calculateEnergyDrainOnTicket(difficulty, nightShift);
   const safeTotalSteps = Math.max(1, totalRequiredSteps);
   const perStep = Math.floor(totalTicketDrain / safeTotalSteps);
   if (isFinalStep) {
@@ -279,9 +290,10 @@ export function calculateActionStepEnergyDrain(
 
 export function applyTicketEnergyDrain(
   currentEnergy: number,
-  difficulty: DifficultyLevel
+  difficulty: DifficultyLevel,
+  nightShift = false
 ): number {
-  return Math.max(0, currentEnergy - calculateEnergyDrainOnTicket(difficulty));
+  return Math.max(0, currentEnergy - calculateEnergyDrainOnTicket(difficulty, nightShift));
 }
 
 export function applyErrorEnergyDrain(currentEnergy: number): number {
@@ -338,13 +350,15 @@ export function applySleepOnJobPenalty(
 export function getCheapestCoffeePrice(
   difficulty: DifficultyLevel = 'facil',
   currentPoints = 0,
-  resolvedCount = 0
+  resolvedCount = 0,
+  nightShift = false
 ): number {
   return getCoffeeDynamicPrice(
     ALL_COFFEES[0],
     difficulty,
     currentPoints,
-    resolvedCount
+    resolvedCount,
+    nightShift
   );
 }
 
@@ -357,12 +371,14 @@ export function isCompanyBankrupt(
   currentEnergy: number,
   currentPoints: number,
   difficulty: DifficultyLevel = 'facil',
-  resolvedCount = 0
+  resolvedCount = 0,
+  nightShift = false
 ): boolean {
   const minCoffeePrice = getCheapestCoffeePrice(
     difficulty,
     currentPoints,
-    resolvedCount
+    resolvedCount,
+    nightShift
   );
   if (currentEnergy <= 0 && currentPoints < minCoffeePrice) {
     return true;
@@ -373,14 +389,13 @@ export function isCompanyBankrupt(
   return false;
 }
 
-
-
 export function purchaseAndDrinkCoffee(
   currentEnergy: number,
   currentPoints: number,
   coffee: CoffeeItem,
   difficulty: DifficultyLevel = 'facil',
-  resolvedCount = 0
+  resolvedCount = 0,
+  nightShift = false
 ): {
   success: boolean;
   nextEnergy: number;
@@ -392,7 +407,8 @@ export function purchaseAndDrinkCoffee(
     coffee,
     difficulty,
     currentPoints,
-    resolvedCount
+    resolvedCount,
+    nightShift
   );
 
   if (currentPoints < dynamicCost) {

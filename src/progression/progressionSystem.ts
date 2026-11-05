@@ -511,6 +511,7 @@ export interface TicketScoreBreakdown {
   basePoints: number;
   cleanBonus: number;
   rushHourBonus: number;
+  nightShiftBonus: number;
   medalBonus: number;
   totalEarned: number;
   newlyUnlockedMedals: MedalDefinition[];
@@ -765,6 +766,7 @@ export function calculateTicketReward(params: {
   categoria: ProblemCategory;
   errorCount: number;
   isRushHour: boolean;
+  isNightShift?: boolean;
   currentPoints: number;
   resolvedCountAfter: number;
   unlockedMedals: string[];
@@ -773,6 +775,7 @@ export function calculateTicketReward(params: {
     params.difficulty === 'facil' ? 120 : params.difficulty === 'normal' ? 180 : 260;
   const cleanBonus = params.errorCount === 0 ? 40 : 0;
   const rushHourBonus = params.isRushHour ? 75 : 0;
+  const nightShiftBonus = params.isNightShift ? Math.round(basePoints * 0.5) : 0;
 
   const newlyUnlockedMedals: MedalDefinition[] = [];
   const has = (id: string) =>
@@ -809,6 +812,7 @@ export function calculateTicketReward(params: {
     basePoints +
     cleanBonus +
     rushHourBonus +
+    nightShiftBonus +
     newlyUnlockedMedals.reduce((acc, m) => acc + m.pontosRecompensa, 0);
 
   if (runningTotal >= 500) {
@@ -819,6 +823,7 @@ export function calculateTicketReward(params: {
     basePoints +
     cleanBonus +
     rushHourBonus +
+    nightShiftBonus +
     newlyUnlockedMedals.reduce((acc, m) => acc + m.pontosRecompensa, 0);
 
   if (runningTotal >= 1500 || params.resolvedCountAfter >= 15) {
@@ -826,12 +831,13 @@ export function calculateTicketReward(params: {
   }
 
   const medalBonus = newlyUnlockedMedals.reduce((acc, m) => acc + m.pontosRecompensa, 0);
-  const totalEarned = basePoints + cleanBonus + rushHourBonus + medalBonus;
+  const totalEarned = basePoints + cleanBonus + rushHourBonus + nightShiftBonus + medalBonus;
 
   return {
     basePoints,
     cleanBonus,
     rushHourBonus,
+    nightShiftBonus,
     medalBonus,
     totalEarned,
     newlyUnlockedMedals,
