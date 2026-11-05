@@ -52,8 +52,8 @@ export const ALL_COFFEES: CoffeeItem[] = [
     id: 'cafe_coado',
     nome: 'Café Coado da Casa',
     descricao: 'Tradicional e quentinho para recuperar o fôlego entre os chamados.',
-    custoPontos: 35,
-    energiaRecuperada: 25,
+    custoPontos: 15,
+    energiaRecuperada: 35,
     corLiquido: '#451a03',
     destaque: 'Mais Barato',
   },
@@ -61,31 +61,31 @@ export const ALL_COFFEES: CoffeeItem[] = [
     id: 'expresso_duplo',
     nome: 'Expresso Duplo Curto',
     descricao: 'Extração intensa de grãos arábica selecionados para despertar na hora.',
-    custoPontos: 55,
-    energiaRecuperada: 45,
+    custoPontos: 25,
+    energiaRecuperada: 55,
     corLiquido: '#271206',
   },
   {
     id: 'cappuccino_canela',
     nome: 'Cappuccino Cremoso c/ Canela',
     descricao: 'Espuma de leite vaporizado aveludado com cacau e toque de canela.',
-    custoPontos: 90,
-    energiaRecuperada: 65,
+    custoPontos: 40,
+    energiaRecuperada: 75,
     corLiquido: '#9a3412',
   },
   {
     id: 'iced_caramel',
     nome: 'Iced Caramel Macchiato',
     descricao: 'Café gelado artesanal com leite cremoso e calda de caramelo.',
-    custoPontos: 140,
-    energiaRecuperada: 85,
+    custoPontos: 55,
+    energiaRecuperada: 90,
     corLiquido: '#d97706',
   },
   {
     id: 'combo_overclocked',
     nome: 'Combo Overclocked + Pão de Queijo',
     descricao: 'Mocha triplo especial acompanhado de porção de pão de queijo mineiro quentinho.',
-    custoPontos: 195,
+    custoPontos: 75,
     energiaRecuperada: 100,
     corLiquido: '#f59e0b',
     destaque: 'Energia 100%',
@@ -191,13 +191,16 @@ export function getCoffeeDynamicPrice(
   currentPoints = 0,
   resolvedCount = 0
 ): number {
-  const baseCost = Math.max(30, coffee.custoPontos);
+  const baseCost = Math.max(10, coffee.custoPontos);
   const diffMultiplier =
-    difficulty === 'facil' ? 1.0 : difficulty === 'normal' ? 1.45 : 2.15;
+    difficulty === 'facil' ? 1.0 : difficulty === 'normal' ? 1.15 : 1.35;
 
-  // Earnings progression scale: +18% per 250 pts accumulated and +8% per ticket resolved
-  const pointsTier = Math.floor(Math.max(0, currentPoints) / 250);
-  const progressionMultiplier = 1 + pointsTier * 0.18 + Math.max(0, resolvedCount) * 0.08;
+  // Gentle progression scale capped at +40% max so coffee always stays affordable
+  const pointsTier = Math.floor(Math.max(0, currentPoints) / 400);
+  const progressionMultiplier = Math.min(
+    1.4,
+    1 + pointsTier * 0.06 + Math.max(0, resolvedCount) * 0.03
+  );
 
   const rawPrice = baseCost * diffMultiplier * progressionMultiplier;
   if (difficulty === 'facil' && pointsTier === 0 && resolvedCount === 0) {
@@ -249,9 +252,9 @@ export const LOW_ENERGY_THRESHOLD = 20;
 export const SLEEP_RECOVERY_ENERGY = 10;
 
 export function calculateEnergyDrainOnTicket(difficulty: DifficultyLevel): number {
-  if (difficulty === 'facil') return 22;
-  if (difficulty === 'normal') return 28;
-  return 34;
+  if (difficulty === 'facil') return 10;
+  if (difficulty === 'normal') return 12;
+  return 16;
 }
 
 /**

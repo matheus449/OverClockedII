@@ -246,7 +246,7 @@ test('Cafeteria OverCoffee space is physically walkable, drains/restores energy 
 
   // Verify energy drain ONLY on ticket completion (and not on diagnostic error)
   const nextEnergyAfterTicket = applyTicketEnergyDrain(100, 'normal');
-  assert.equal(nextEnergyAfterTicket, 72);
+  assert.equal(nextEnergyAfterTicket, 88);
   assert.equal(applyErrorEnergyDrain(80), 80, 'Energy should not drain on diagnostic error');
 
   // Verify no coffees are free and buying with 0 points fails
@@ -260,12 +260,12 @@ test('Cafeteria OverCoffee space is physically walkable, drains/restores energy 
 
   const paidFirstRes = purchaseAndDrinkCoffee(50, 100, firstCoffee);
   assert.equal(paidFirstRes.success, true);
-  assert.equal(paidFirstRes.nextEnergy, 75);
+  assert.equal(paidFirstRes.nextEnergy, 85);
   assert.equal(paidFirstRes.nextPoints, 100 - firstCoffee.custoPontos);
 
   // Verify paid coffee deducts points and restores energy
   const cappuccino = ALL_COFFEES[2];
-  const capRes = purchaseAndDrinkCoffee(30, 100, cappuccino);
+  const capRes = purchaseAndDrinkCoffee(20, 100, cappuccino);
   assert.equal(capRes.success, true);
   assert.equal(capRes.nextPoints, 100 - cappuccino.custoPontos);
   assert.equal(capRes.nextEnergy, 95);
@@ -418,19 +418,19 @@ test('20% low energy warning and 0% sleep-on-the-job penalty recover 10% energy 
 
 test('Company Bankruptcy (Game Over) detection, step energy drain, and Full Reset (buildResetCareerState) wipe all clothes purchases, medals, and restore 100% energy and 0 points', () => {
   const minEasyCoffee = getCheapestCoffeePrice('facil', 0, 0);
-  assert.equal(minEasyCoffee, 35);
+  assert.equal(minEasyCoffee, 15);
 
-  // Verify step energy drain across a 2-step Normal ticket sums to 28%
+  // Verify step energy drain across a 2-step Normal ticket sums to 12%
   const step1 = calculateActionStepEnergyDrain('normal', 2, false, 0);
   const step2 = calculateActionStepEnergyDrain('normal', 2, true, 1);
-  assert.equal(step1, 14);
-  assert.equal(step2, 14);
-  assert.equal(step1 + step2, 28);
+  assert.equal(step1, 6);
+  assert.equal(step2, 6);
+  assert.equal(step1 + step2, 12);
 
   // Bankrupt when energy is 0% and points are negative or below cheapest coffee price
   assert.equal(isCompanyBankrupt(0, -120, 'normal', 2), true);
   assert.equal(isCompanyBankrupt(0, 0, 'facil', 0), true);
-  assert.equal(isCompanyBankrupt(0, 20, 'facil', 0), true);
+  assert.equal(isCompanyBankrupt(0, 10, 'facil', 0), true);
 
   // Bankrupt when in debt (< 0 pts) at exhaustion recovery energy (<= 10%)
   assert.equal(isCompanyBankrupt(10, -40, 'normal', 1), true);

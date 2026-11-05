@@ -224,7 +224,38 @@ export default function App() {
     document.body.dataset.state = gameState;
     if (gameState === 'playing') {
       soundEngine.startBackgroundTrack();
+    } else if (gameState === 'title' || gameState === 'story') {
+      soundEngine.startMenuMusic();
     }
+  }, [gameState]);
+
+  // Global button click sound effect & first-gesture menu music unlock
+  useEffect(() => {
+    const onGlobalClick = (e: MouseEvent) => {
+      if (gameState === 'title' || gameState === 'story') {
+        soundEngine.startMenuMusic();
+      }
+      const target = e.target as HTMLElement | null;
+      const btn = target?.closest('button, [role="button"]') as HTMLButtonElement | null;
+      if (btn && !btn.disabled) {
+        soundEngine.playButtonClick();
+      }
+    };
+
+    const onFirstUnlock = () => {
+      if (gameState === 'title' || gameState === 'story') {
+        soundEngine.startMenuMusic();
+      }
+    };
+
+    window.addEventListener('click', onGlobalClick, true);
+    window.addEventListener('pointerdown', onFirstUnlock, { passive: true });
+    window.addEventListener('keydown', onFirstUnlock, { passive: true });
+    return () => {
+      window.removeEventListener('click', onGlobalClick, true);
+      window.removeEventListener('pointerdown', onFirstUnlock);
+      window.removeEventListener('keydown', onFirstUnlock);
+    };
   }, [gameState]);
 
   useEffect(() => {

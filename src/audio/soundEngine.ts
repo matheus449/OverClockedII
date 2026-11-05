@@ -128,25 +128,38 @@ class SoundEngine {
     }
   }
 
-  public startAmbientMusic() {
+  public startMenuMusic() {
     this.initContext();
+    this.stopBackgroundTrack();
     if (this.ambientInterval !== null) return;
 
-    // Gentle warm Rhodes-style chord progression during story intro before background.mp3 starts
+    // Warm, catchy lofi-synth menu theme: chord pad + gentle melodic arpeggio notes
     const chords = [
       [261.63, 329.63, 392.0, 493.88], // Cmaj7
       [220.0, 261.63, 329.63, 392.0],  // Am7
       [174.61, 220.0, 261.63, 349.23], // Fmaj7
       [196.0, 246.94, 293.66, 392.0],  // G6
     ];
+    const melodies = [
+      [523.25, 659.25, 783.99, 659.25],
+      [440.0, 523.25, 659.25, 587.33],
+      [349.23, 440.0, 523.25, 659.25],
+      [392.0, 493.88, 587.33, 783.99],
+    ];
 
-    const playPadChord = () => {
+    const playMenuBar = () => {
       if (!this.ctx || !this.musicGain || this.muted || this.musicVolume <= 0.01) return;
+      if (this.ctx.state === 'suspended') {
+        this.ctx.resume().catch(() => {});
+      }
       if (this.bgAudio && !this.bgAudio.paused) return;
       const now = this.ctx.currentTime;
-      const notes = chords[this.chordStep % chords.length];
+      const barIdx = this.chordStep % chords.length;
+      const notes = chords[barIdx];
+      const arp = melodies[barIdx];
       this.chordStep++;
 
+      // Warm chord pad
       notes.forEach((freq, idx) => {
         if (!this.ctx || !this.musicGain) return;
         const osc = this.ctx.createOscillator();
@@ -155,28 +168,41 @@ class SoundEngine {
         osc.frequency.setValueAtTime(freq, now);
 
         noteGain.gain.setValueAtTime(0.0001, now);
-        noteGain.gain.linearRampToValueAtTime(0.08 / notes.length, now + 0.9);
-        noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.8);
+        noteGain.gain.linearRampToValueAtTime(0.11 / notes.length, now + 0.6);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.1);
 
         osc.connect(noteGain);
         noteGain.connect(this.musicGain);
-        osc.start(now + idx * 0.06);
-        osc.stop(now + 3.9);
+        osc.start(now + idx * 0.05);
+        osc.stop(now + 3.2);
+      });
+
+      // Gentle melodic pluck arpeggio across the bar
+      arp.forEach((freq, step) => {
+        if (!this.ctx || !this.musicGain) return;
+        const startAt = now + step * 0.75;
+        const osc = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, startAt);
+
+        g.gain.setValueAtTime(0.0001, startAt);
+        g.gain.linearRampToValueAtTime(0.055, startAt + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.62);
+
+        osc.connect(g);
+        g.connect(this.musicGain);
+        osc.start(startAt);
+        osc.stop(startAt + 0.65);
       });
     };
 
-    playPadChord();
-    this.ambientInterval = window.setInterval(playPadChord, 4000);
+    playMenuBar();
+    this.ambientInterval = window.setInterval(playMenuBar, 3000);
+  }
 
-    // Subtle office keyboard clack ambiance
-    if (this.officeChatterInterval === null) {
-      this.officeChatterInterval = window.setInterval(() => {
-        if (!this.ctx || !this.sfxGain || this.muted || this.sfxVolume <= 0.01) return;
-        if (Math.random() < 0.55) {
-          this.playSubtleKeyClick();
-        }
-      }, 900);
-    }
+  public startAmbientMusic() {
+    this.startMenuMusic();
   }
 
   public stopAmbientMusic() {
@@ -191,19 +217,38 @@ class SoundEngine {
     this.stopBackgroundTrack();
   }
 
-  private playSubtleKeyClick() {
-    if (!this.ctx || !this.sfxGain) return;
+  /**
+   * Crisp, pleasant tactile UI button click SFX triggered whenever the user clicks a button.
+   */
+  public playButtonClick() {
+    this.initContext();
+    if (!this.ctx || !this.sfxGain || this.muted) return;
     const now = this.ctx.currentTime;
+
+    // Soft tactile pop
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(900 + Math.random() * 450, now);
-    g.gain.setValueAtTime(0.018, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(640, now);
+    osc.frequency.exponentialRampToValueAtTime(980, now + 0.045);
+    g.gain.setValueAtTime(0.18, now);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.055);
     osc.connect(g);
     g.connect(this.sfxGain);
     osc.start(now);
-    osc.stop(now + 0.03);
+    osc.stop(now + 0.06);
+
+    // Subtle crisp upper harmonic transient
+    const clickOsc = this.ctx.createOscillator();
+    const clickGain = this.ctx.createGain();
+    clickOsc.type = 'triangle';
+    clickOsc.frequency.setValueAtTime(1480, now);
+    clickGain.gain.setValueAtTime(0.07, now);
+    clickGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.022);
+    clickOsc.connect(clickGain);
+    clickGain.connect(this.sfxGain);
+    clickOsc.start(now);
+    clickOsc.stop(now + 0.025);
   }
 
   public playFootstep() {
