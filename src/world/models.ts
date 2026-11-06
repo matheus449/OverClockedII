@@ -15,6 +15,8 @@ export function createWorkstationGroup(
 ): {
   group: THREE.Group;
   screenMat: THREE.MeshStandardMaterial;
+  lampBulbMat: THREE.MeshStandardMaterial;
+  deskGlowMesh: THREE.Mesh;
   alertBeacon: THREE.Mesh;
 } {
   const group = new THREE.Group();
@@ -103,6 +105,46 @@ export function createWorkstationGroup(
   mouse.position.set(0.24, 0.788, 0.12);
   group.add(mouse);
 
+  // 13. Articulated Architect Desk Lamp on the left side of the desk (glows warmly at night!)
+  const lampGroup = new THREE.Group();
+  lampGroup.position.set(-0.62, 0.77, -0.16);
+
+  const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.022, 12), mats.pcCaseMatte);
+  lampBase.position.y = 0.011;
+  lampGroup.add(lampBase);
+
+  const lampStem = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.34, 8), mats.chromeMetal);
+  lampStem.position.set(0, 0.17, -0.02);
+  lampStem.rotation.x = 0.18;
+  lampGroup.add(lampStem);
+
+  const lampShade = new THREE.Mesh(
+    new THREE.ConeGeometry(0.095, 0.13, 14, 1, true),
+    mats.pcCaseMatte
+  );
+  lampShade.position.set(0.04, 0.33, 0.05);
+  lampShade.rotation.z = -0.35;
+  lampShade.rotation.x = 0.25;
+  lampGroup.add(lampShade);
+
+  const lampBulbMat = new THREE.MeshStandardMaterial({
+    color: 0xfef08a,
+    emissive: 0xfbbf24,
+    emissiveIntensity: 0.2,
+    roughness: 0.2,
+  });
+  const lampBulb = new THREE.Mesh(new THREE.SphereGeometry(0.038, 10, 10), lampBulbMat);
+  lampBulb.position.set(0.05, 0.295, 0.06);
+  lampGroup.add(lampBulb);
+  group.add(lampGroup);
+
+  // Warm desktop light pool (illuminates the desk surface when the desk lamp turns on at night)
+  const deskGlowMesh = new THREE.Mesh(new THREE.CircleGeometry(0.58, 20), mats.floorLightPool);
+  deskGlowMesh.rotation.x = -Math.PI / 2;
+  deskGlowMesh.position.set(-0.34, 0.773, 0.02);
+  deskGlowMesh.visible = false;
+  group.add(deskGlowMesh);
+
   // Ergonomic Office Chair positioned in front of desk (+Z)
   const chairGroup = createErgonomicChair(mats);
   chairGroup.position.set(-0.08, 0, 0.62);
@@ -121,7 +163,51 @@ export function createWorkstationGroup(
   alertBeacon.visible = false;
   group.add(alertBeacon);
 
-  return { group, screenMat, alertBeacon };
+  return { group, screenMat, lampBulbMat, deskGlowMesh, alertBeacon };
+}
+
+/**
+ * Builds a sleek standing architectural floor lamp + warm radial floor light pool
+ * that illuminates sectors and corridors during the automatic nighttime phase.
+ */
+export function createStandingFloorLampGroup(
+  mats: OfficeMaterialLibrary,
+  glowColor = 0xfbbf24
+): {
+  group: THREE.Group;
+  bulbMat: THREE.MeshStandardMaterial;
+  floorPool: THREE.Mesh;
+} {
+  const group = new THREE.Group();
+
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.03, 14), mats.pcCaseMatte);
+  base.position.y = 0.015;
+  group.add(base);
+
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.025, 1.48, 10), mats.brushedMetal);
+  pole.position.y = 0.75;
+  group.add(pole);
+
+  const bulbMat = new THREE.MeshStandardMaterial({
+    color: 0xfef3c7,
+    emissive: glowColor,
+    emissiveIntensity: 2.8,
+    roughness: 0.25,
+  });
+  const diffuser = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.16, 0.34, 16), bulbMat);
+  diffuser.position.y = 1.52;
+  group.add(diffuser);
+
+  const topCap = new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.135, 0.02, 14), mats.pcCaseMatte);
+  topCap.position.y = 1.7;
+  group.add(topCap);
+
+  const floorPool = new THREE.Mesh(new THREE.CircleGeometry(2.15, 24), mats.floorLightPool);
+  floorPool.rotation.x = -Math.PI / 2;
+  floorPool.position.y = 0.028;
+  group.add(floorPool);
+
+  return { group, bulbMat, floorPool };
 }
 
 /**

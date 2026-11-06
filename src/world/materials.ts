@@ -20,6 +20,9 @@ export interface OfficeMaterialLibrary {
   plantLeaf: THREE.MeshStandardMaterial;
   plantPot: THREE.MeshStandardMaterial;
   trailGlow: THREE.MeshBasicMaterial;
+  cityDayTex: THREE.CanvasTexture;
+  cityNightTex: THREE.CanvasTexture;
+  floorLightPool: THREE.MeshBasicMaterial;
 }
 
 /**
@@ -145,13 +148,86 @@ function createCityVistaTexture(): THREE.CanvasTexture {
   return tex;
 }
 
+/**
+ * Generates a nighttime starry cityscape panorama texture with glowing skyscraper windows.
+ */
+function createNightCityVistaTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d')!;
+
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, 256);
+  skyGrad.addColorStop(0, '#020617');
+  skyGrad.addColorStop(0.55, '#0f172a');
+  skyGrad.addColorStop(1, '#1e1b4b');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, 1024, 256);
+
+  // Stars in upper sky
+  ctx.fillStyle = 'rgba(226, 232, 240, 0.75)';
+  for (let s = 0; s < 70; s++) {
+    const sx = (s * 97) % 1024;
+    const sy = (s * 43) % 110;
+    ctx.fillRect(sx, sy, s % 3 === 0 ? 2 : 1.5, s % 3 === 0 ? 2 : 1.5);
+  }
+
+  // Dark skyscraper silhouettes with lit windows
+  const buildingColors = ['#090d16', '#0f172a', '#111827', '#1e293b'];
+  for (let i = 0; i < 42; i++) {
+    const bw = 18 + ((i * 17) % 34);
+    const bh = 55 + ((i * 29) % 130);
+    const bx = (i * 25) % 1024;
+    const by = 256 - bh;
+    ctx.fillStyle = buildingColors[i % buildingColors.length];
+    ctx.fillRect(bx, by, bw, bh);
+
+    for (let wy = by + 8; wy < 248; wy += 10) {
+      for (let wx = bx + 4; wx < bx + bw - 4; wx += 6) {
+        if ((wx + wy + i) % 3 !== 0) {
+          ctx.fillStyle =
+            (wx + wy) % 5 === 0
+              ? 'rgba(56, 189, 248, 0.85)'
+              : 'rgba(251, 191, 36, 0.9)';
+          ctx.fillRect(wx, wy, 3, 5);
+        }
+      }
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/**
+ * Generates a soft radial warm-light glow texture for floor and desk pools at night.
+ */
+function createWarmLightPoolTexture(): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d')!;
+  const grad = ctx.createRadialGradient(64, 64, 4, 64, 64, 62);
+  grad.addColorStop(0, 'rgba(253, 224, 71, 0.52)');
+  grad.addColorStop(0.45, 'rgba(251, 191, 36, 0.24)');
+  grad.addColorStop(1, 'rgba(251, 191, 36, 0.0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 export function createOfficeMaterials(
   renderer: THREE.WebGLRenderer,
   isSoftwareGl: boolean
 ): OfficeMaterialLibrary {
   const maxAniso = renderer.capabilities.getMaxAnisotropy();
   const parquet = createParquetTextures(maxAniso);
-  const cityTex = createCityVistaTexture();
+  const cityDayTex = createCityVistaTexture();
+  const cityNightTex = createNightCityVistaTexture();
+  const lightPoolTex = createWarmLightPoolTexture();
 
   return {
     parquetFloor: new THREE.MeshStandardMaterial({
@@ -202,7 +278,7 @@ export function createOfficeMaterials(
       metalness: 0.82,
     }),
     cityBackdrop: new THREE.MeshBasicMaterial({
-      map: cityTex,
+      map: cityDayTex,
       side: THREE.DoubleSide,
     }),
     oakWood: new THREE.MeshStandardMaterial({
@@ -263,6 +339,14 @@ export function createOfficeMaterials(
       transparent: true,
       opacity: 0.85,
       depthWrite: false,
+    }),
+    cityDayTex,
+    cityNightTex,
+    floorLightPool: new THREE.MeshBasicMaterial({
+      map: lightPoolTex,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
     }),
   };
 }

@@ -253,6 +253,47 @@ export function isPlayerNearCafeteriaCounter(playerPos: Vec2): boolean {
 export const LOW_ENERGY_THRESHOLD = 20;
 export const SLEEP_RECOVERY_ENERGY = 10;
 
+export const DAY_SHIFT_DURATION_SECONDS = 180; // 3 minutes of daytime
+export const NIGHT_SHIFT_DURATION_SECONDS = 120; // 2 minutes of nighttime ("Plantão Noturno")
+
+/**
+ * Pure state transition helper for the automatic 3-minute Day / 2-minute Night cycle.
+ */
+export function advanceDayNightCycle(
+  isNightShift: boolean,
+  remainingSeconds: number
+): {
+  isNightShift: boolean;
+  remainingSeconds: number;
+  transitioned: boolean;
+} {
+  if (remainingSeconds > 1) {
+    return {
+      isNightShift,
+      remainingSeconds: remainingSeconds - 1,
+      transitioned: false,
+    };
+  }
+  const nextNight = !isNightShift;
+  return {
+    isNightShift: nextNight,
+    remainingSeconds: nextNight
+      ? NIGHT_SHIFT_DURATION_SECONDS
+      : DAY_SHIFT_DURATION_SECONDS,
+    transitioned: true,
+  };
+}
+
+/**
+ * Formats seconds as MM:SS (e.g. 180 -> "03:00", 120 -> "02:00").
+ */
+export function formatCycleTimer(seconds: number): string {
+  const safe = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(safe / 60);
+  const secs = safe % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
 export function calculateEnergyDrainOnTicket(
   difficulty: DifficultyLevel,
   nightShift = false

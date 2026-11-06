@@ -358,11 +358,15 @@ import {
   splitVoiceManifestForFastStart,
 } from '../ui/LoadingVoiceOverlay';
 import {
+  advanceDayNightCycle,
   applySleepOnJobPenalty,
   calculateActionStepEnergyDrain,
+  DAY_SHIFT_DURATION_SECONDS,
+  formatCycleTimer,
   getCheapestCoffeePrice,
   isCompanyBankrupt,
   isLowEnergyWarning,
+  NIGHT_SHIFT_DURATION_SECONDS,
   shouldTriggerLowEnergyAlert,
 } from '../cafeteria/cafeteriaSystem';
 import {
@@ -458,6 +462,27 @@ test('Company Bankruptcy (Game Over) detection, step energy drain, and Full Rese
   assert.deepEqual(resetState.purchasedAccessoryIds, DEFAULT_PURCHASED_ACCESSORIES);
   assert.equal(resetState.playerCustomization.genero, 'feminino');
   assert.equal(resetState.playerCustomization.roupaId, 'uniforme_ti');
+
+  // Verify automatic 3-minute Day (180s) -> 2-minute Night (120s) cycle
+  assert.equal(DAY_SHIFT_DURATION_SECONDS, 180, 'Day phase must be 3 minutes (180s)');
+  assert.equal(NIGHT_SHIFT_DURATION_SECONDS, 120, 'Night phase must be 2 minutes (120s)');
+  assert.equal(formatCycleTimer(180), '03:00');
+  assert.equal(formatCycleTimer(120), '02:00');
+
+  const tickDay = advanceDayNightCycle(false, 180);
+  assert.equal(tickDay.isNightShift, false);
+  assert.equal(tickDay.remainingSeconds, 179);
+  assert.equal(tickDay.transitioned, false);
+
+  const toNight = advanceDayNightCycle(false, 1);
+  assert.equal(toNight.isNightShift, true, 'Should automatically switch to Night Shift after 3 minutes of Day');
+  assert.equal(toNight.remainingSeconds, 120, 'Night Shift should last 120 seconds (2 minutes)');
+  assert.equal(toNight.transitioned, true);
+
+  const toDay = advanceDayNightCycle(true, 1);
+  assert.equal(toDay.isNightShift, false, 'Should automatically switch back to Day Shift after 2 minutes of Night');
+  assert.equal(toDay.remainingSeconds, 180, 'Day Shift should reset to 180 seconds (3 minutes)');
+  assert.equal(toDay.transitioned, true);
 
   // Verify Plantão Noturno (Night Shift) increases energy drain, coffee prices (+50%), and ticket point rewards (+50% base points)
   const dayStep1 = calculateActionStepEnergyDrain('normal', 2, false, 0, false);

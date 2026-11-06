@@ -7,12 +7,10 @@ import { OVERCLOCKED_ICON_URL, OVERCLOCKED_LOGO_URL } from './CreditsModal';
 interface TitleScreenProps {
   playerName: string;
   difficulty: DifficultyLevel;
-  nightShift: boolean;
   voiceEnabled: boolean;
   playerCustomization: PlayerCustomization;
   onChangePlayerName: (name: string) => void;
   onSelectDifficulty: (d: DifficultyLevel) => void;
-  onToggleNightShift: () => void;
   onToggleVoiceEnabled: () => void;
   onChangeGender: (genero: 'masculino' | 'feminino') => void;
   onOpenCustomization: () => void;
@@ -23,12 +21,10 @@ interface TitleScreenProps {
 export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
   playerName,
   difficulty,
-  nightShift,
   voiceEnabled,
   playerCustomization,
   onChangePlayerName,
   onSelectDifficulty,
-  onToggleNightShift,
   onToggleVoiceEnabled,
   onChangeGender,
   onOpenCustomization,
@@ -186,57 +182,19 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
             </div>
           </div>
 
-          {/* Shift Atmosphere & Risk/Reward Selector: Turno Diurno vs Plantão Noturno */}
-          <div>
-            <span className="text-[11px] font-semibold text-slate-400 block mb-1.5">
-              Modalidade de Turno
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  if (nightShift) onToggleNightShift();
-                }}
-                aria-pressed={!nightShift}
-                className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
-                  !nightShift
-                    ? 'bg-[#111c33] border-amber-400/80 shadow-md'
-                    : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <Sun className="w-4 h-4 text-amber-300 shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-100 block truncate">
-                    Turno Diurno
-                  </span>
-                  <span className="text-[10px] text-slate-400 block truncate">
-                    Energia e café padrão
-                  </span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (!nightShift) onToggleNightShift();
-                }}
-                aria-pressed={nightShift}
-                className={`p-2 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
-                  nightShift
-                    ? 'bg-indigo-950/80 border-indigo-400 shadow-md'
-                    : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
-                }`}
-              >
-                <Moon className="w-4 h-4 text-indigo-300 shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-xs font-bold text-indigo-100 block truncate">
-                    Plantão Noturno
-                  </span>
-                  <span className="text-[10px] text-indigo-300 block truncate">
-                    +50% pts · +Energia/Café
-                  </span>
-                </div>
-              </button>
+          {/* Automatic Day/Night Cycle Info Row */}
+          <div className="p-2.5 rounded-xl bg-[#090d16] border border-indigo-500/30 flex items-center gap-2.5">
+            <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-500/15 border border-indigo-400/30 shrink-0">
+              <Sun className="w-3.5 h-3.5 text-amber-300" />
+              <Moon className="w-3.5 h-3.5 text-indigo-300" />
+            </div>
+            <div className="min-w-0 text-[11px] leading-tight">
+              <span className="font-bold text-slate-100 block">
+                Ciclo Automático: 3 min Dia · 2 min Plantão Noturno
+              </span>
+              <span className="text-[10px] text-indigo-300 block mt-0.5">
+                À noite as luzes se acendem: +50% pontos, +gasto de energia e café +50%
+              </span>
             </div>
           </div>
         </div>

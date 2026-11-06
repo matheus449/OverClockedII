@@ -15,6 +15,7 @@ import {
   createPlantGroup,
   createPrinterGroup,
   createSectorAccentProp,
+  createStandingFloorLampGroup,
   createWorkstationGroup,
 } from '../world/models';
 import {
@@ -296,8 +297,17 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       scene.add(baseMesh);
     }
 
-    // Build Workstations, Printers, Plants, and Sector Plaques
+    // Build Workstations, Desk Lamps, Standing Floor Lamps, Printers, Plants, and Sector Plaques
     const sectorBeacons: Record<string, THREE.Mesh> = {};
+    const workstationLights: {
+      screenMat: THREE.MeshStandardMaterial;
+      lampBulbMat: THREE.MeshStandardMaterial;
+      deskGlowMesh: THREE.Mesh;
+    }[] = [];
+    const floorLampBulbMats: THREE.MeshStandardMaterial[] = [];
+    const nightLightsGroup = new THREE.Group();
+    nightLightsGroup.visible = false;
+    scene.add(nightLightsGroup);
 
     for (const sector of ALL_SECTORS) {
       if (sector.id === 'servidores' || sector.id === 'redes') {
@@ -319,6 +329,34 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       ws.group.rotation.y = sector.pcPos.rotY;
       scene.add(ws.group);
       sectorBeacons[sector.id] = ws.alertBeacon;
+      workstationLights.push({
+        screenMat: ws.screenMat,
+        lampBulbMat: ws.lampBulbMat,
+        deskGlowMesh: ws.deskGlowMesh,
+      });
+
+      // Standing Architectural Floor Lamp in the corner of each sector (lights up the room at night)
+      const isTechRoom = sector.id === 'servidores' || sector.id === 'redes';
+      const standingLamp = createStandingFloorLampGroup(
+        mats,
+        isTechRoom ? 0x38bdf8 : 0xfbbf24
+      );
+      standingLamp.bulbMat.emissiveIntensity = 0.15;
+      standingLamp.group.position.set(
+        sector.bounds.x + sector.bounds.w - 0.85,
+        0,
+        sector.bounds.z + 0.85
+      );
+      // Keep the floor light pool inside nightLightsGroup so it only glows at night
+      standingLamp.group.remove(standingLamp.floorPool);
+      standingLamp.floorPool.position.set(
+        sector.bounds.x + sector.bounds.w * 0.5,
+        0.028,
+        sector.bounds.z + sector.bounds.d * 0.5
+      );
+      nightLightsGroup.add(standingLamp.floorPool);
+      scene.add(standingLamp.group);
+      floorLampBulbMats.push(standingLamp.bulbMat);
 
       // Architectural Sector Sign Plaque above each workstation
       const plaqueCanvas = document.createElement('canvas');
@@ -361,6 +399,35 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         sector.bounds.z + sector.bounds.d * 0.5
       );
       scene.add(accent);
+    }
+
+    // 5A-Night. Add Warm Corridor Light Pools & 6 Strategic Wing PointLights for Nighttime Illumination
+    const nightPointLightConfigs: [number, number, number, number, number, number][] = [
+      [-18.5, 3.4, -9.0, 0xfde68a, 2.35, 22],
+      [-18.5, 3.4, 9.0, 0xfde68a, 2.35, 22],
+      [-7.5, 3.4, 10.5, 0xfef3c7, 2.2, 20],
+      [18.5, 3.4, -9.5, 0xfde68a, 2.35, 22],
+      [18.5, 3.4, 9.5, 0xfde68a, 2.35, 22],
+      [-10.5, 3.0, -12.0, 0x38bdf8, 2.5, 18], // Server & Network blue/cyan glow
+    ];
+    for (const [lx, ly, lz, col, intensity, dist] of nightPointLightConfigs) {
+      const pLight = new THREE.PointLight(col, intensity, dist, 1.35);
+      pLight.position.set(lx, ly, lz);
+      pLight.castShadow = false;
+      nightLightsGroup.add(pLight);
+    }
+
+    // Warm corridor floor light pools along North Avenue (z = -5.5) and South Avenue (z = +5.5)
+    for (const aveZ of [-5.5, 5.5]) {
+      for (const aveX of [-21, -13, -5, 4, 12, 21]) {
+        const corridorPool = new THREE.Mesh(
+          new THREE.CircleGeometry(2.4, 20),
+          mats.floorLightPool
+        );
+        corridorPool.rotation.x = -Math.PI / 2;
+        corridorPool.position.set(aveX, 0.029, aveZ);
+        nightLightsGroup.add(corridorPool);
+      }
     }
 
     // 5B. Build 3D Cafeteria OverCoffee Interior, Warm Café Lighting, Sign Plaque, Plant, and 4 Cafeteria NPCs
@@ -707,21 +774,37 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         cameraZoom: curZoom,
       } = propsRef.current;
 
-      // Dynamically transition 3D Office Atmosphere between Daytime and Plantão Noturno (Night Shift)
+      // Dynamically transition 3D Office Atmosphere & Indoor Office Lights between Daytime and Plantão Noturno
       const isNight = Boolean(curNightShift);
       const bgTargetHex = isNight ? 0x050816 : 0xdbeafe;
       if ((scene.background as THREE.Color).getHex() !== bgTargetHex) {
         (scene.background as THREE.Color).setHex(bgTargetHex);
         if (scene.fog instanceof THREE.FogExp2) {
           scene.fog.color.setHex(bgTargetHex);
-          scene.fog.density = isNight ? 0.0068 : 0.0045;
+          scene.fog.density = isNight ? 0.0052 : 0.0045;
         }
         hemiLight.color.setHex(isNight ? 0x38bdf8 : 0xe0f2fe);
-        hemiLight.groundColor.setHex(isNight ? 0x0f172a : 0x92400e);
-        hemiLight.intensity = isNight ? 0.65 : 1.32;
-        dirLight.color.setHex(isNight ? 0x818cf8 : 0xfff4e0);
-        dirLight.intensity = isNight ? 0.88 : 1.88;
-        renderer.toneMappingExposure = isNight ? 0.82 : 1.08;
+        hemiLight.groundColor.setHex(isNight ? 0x1e1b4b : 0x92400e);
+        hemiLight.intensity = isNight ? 0.58 : 1.32;
+        dirLight.color.setHex(isNight ? 0x6366f1 : 0xfff4e0);
+        dirLight.intensity = isNight ? 0.65 : 1.88;
+        renderer.toneMappingExposure = isNight ? 0.96 : 1.08;
+
+        // Toggle indoor nighttime office lights, desk lamps, standing floor lamps, and starry city skyline
+        nightLightsGroup.visible = isNight;
+        mats.cityBackdrop.map = isNight ? mats.cityNightTex : mats.cityDayTex;
+        mats.cityBackdrop.needsUpdate = true;
+        cafeWarmLight.intensity = isNight ? 3.2 : 1.45;
+        cafeWarmLight.distance = isNight ? 19.0 : 14.5;
+
+        for (const wl of workstationLights) {
+          wl.lampBulbMat.emissiveIntensity = isNight ? 3.6 : 0.2;
+          wl.deskGlowMesh.visible = isNight;
+          wl.screenMat.emissiveIntensity = isNight ? 1.45 : 0.75;
+        }
+        for (const bulbMat of floorLampBulbMats) {
+          bulbMat.emissiveIntensity = isNight ? 3.2 : 0.15;
+        }
       }
 
       // Hot-swap 3D Player Character Rig if customization changed

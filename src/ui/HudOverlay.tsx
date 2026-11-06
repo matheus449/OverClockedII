@@ -8,7 +8,11 @@ import {
 } from '../problems/validator';
 import { NearbyInteraction } from '../player/collision';
 import { TicketScoreBreakdown } from '../progression/progressionSystem';
-import { CAFETERIA_NPCS, CafeteriaNpc } from '../cafeteria/cafeteriaSystem';
+import {
+  CAFETERIA_NPCS,
+  CafeteriaNpc,
+  formatCycleTimer,
+} from '../cafeteria/cafeteriaSystem';
 import { isFemaleNpc, voiceNarrator } from '../audio/voiceNarrator';
 import { InputControlMode } from '../player/touchControls';
 import { TouchControlsPad } from './TouchControlsPad';
@@ -43,6 +47,7 @@ interface HudOverlayProps {
   isRushHour: boolean;
   rushHourRemaining: number;
   nightShift: boolean;
+  shiftCycleRemaining: number;
   currentSectorName: string;
   nearby: NearbyInteraction | null;
   nearCafeteria: boolean;
@@ -66,7 +71,6 @@ interface HudOverlayProps {
   onSelectQueuedTicket: (problemId: string) => void;
   onSkipTicketWait: () => void;
   onToggleRushHourManual?: () => void;
-  onToggleNightShift: () => void;
   onToggleMute: () => void;
   onToggleVoiceEnabled: () => void;
   onReplayVoice: (text: string, npc: NpcData) => void;
@@ -91,6 +95,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   isRushHour,
   rushHourRemaining,
   nightShift,
+  shiftCycleRemaining,
   currentSectorName,
   nearby,
   nearCafeteria,
@@ -108,7 +113,6 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   cameraZoom,
   onSelectQueuedTicket,
   onSkipTicketWait,
-  onToggleNightShift,
   onToggleMute,
   onToggleVoiceEnabled,
   onReplayVoice,
@@ -302,39 +306,38 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
           <div className="h-5 w-px bg-slate-800 mx-0.5" />
 
-          {/* Night Shift ("Plantão Noturno") Toggle Button */}
-          <button
-            type="button"
-            tabIndex={-1}
-            aria-label={nightShift ? 'Desativar Plantão Noturno' : 'Ativar Plantão Noturno'}
-            aria-pressed={nightShift}
-            onClick={(e) => {
-              e.currentTarget.blur();
-              onToggleNightShift();
-            }}
-            className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0 ${
+          {/* Automatic Day/Night Cycle Indicator (3 min Day -> 2 min Night automatically) */}
+          <div
+            data-testid="hud-shift-cycle-badge"
+            className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1.5 text-[11px] font-bold shrink-0 ${
               nightShift
-                ? 'bg-indigo-500/25 hover:bg-indigo-500/35 border-indigo-400/50 text-indigo-200 shadow-sm'
-                : 'bg-slate-800/90 hover:bg-slate-700 border-slate-700/80 text-amber-200'
+                ? 'bg-indigo-500/25 border-indigo-400/50 text-indigo-200 shadow-sm'
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-200'
             }`}
             title={
               nightShift
-                ? 'Plantão Noturno Ativo (+50% Pontos · Maior Gasto de Energia · Café +50%)'
-                : 'Turno Diurno — Clique para ativar o Plantão Noturno (+50% Pontos)'
+                ? `Plantão Noturno Automático (${formatCycleTimer(shiftCycleRemaining)} restantes) — +50% Pontos · Maior Gasto de Energia · Café +50%`
+                : `Turno Diurno Automático (${formatCycleTimer(shiftCycleRemaining)} até anoitecer) — Ciclo: 3 min de Dia / 2 min de Noite`
             }
           >
             {nightShift ? (
               <>
                 <Moon className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
-                <span className="hidden xl:inline">Plantão Noturno</span>
+                <span className="hidden xl:inline">Noite</span>
+                <span className="font-mono-tabular text-[11px] text-indigo-100">
+                  {formatCycleTimer(shiftCycleRemaining)}
+                </span>
               </>
             ) : (
               <>
                 <Sun className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                <span className="hidden xl:inline">Diurno</span>
+                <span className="hidden xl:inline">Dia</span>
+                <span className="font-mono-tabular text-[11px] text-amber-100">
+                  {formatCycleTimer(shiftCycleRemaining)}
+                </span>
               </>
             )}
-          </button>
+          </div>
 
           {/* Quick Diagnostic Tools (Hardware & OverOS) — ONLY available when physically at the target sector! */}
           {activeProblem && isAtTarget && (

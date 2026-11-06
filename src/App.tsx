@@ -59,18 +59,21 @@ import {
 } from './player/touchControls';
 import { Vec2 } from './pathfinding/trail';
 import {
+  advanceDayNightCycle,
   applyErrorEnergyDrain,
   applySleepOnJobPenalty,
   CafeteriaNpc,
   calculateActionStepEnergyDrain,
   CoffeeItem,
+  DAY_SHIFT_DURATION_SECONDS,
   isCompanyBankrupt,
   isLowEnergyWarning,
+  NIGHT_SHIFT_DURATION_SECONDS,
   pickRandomCafeteriaChat,
   purchaseAndDrinkCoffee,
   shouldTriggerLowEnergyAlert,
 } from './cafeteria/cafeteriaSystem';
-import { AlertTriangle, Coffee, Loader2, Moon } from 'lucide-react';
+import { AlertTriangle, Coffee, Loader2, Moon, Sun } from 'lucide-react';
 
 type GameState = 'title' | 'loading' | 'story' | 'playing' | 'paused' | 'gameover';
 
@@ -89,8 +92,22 @@ export default function App() {
   const [nightShift, setNightShift] = useState<boolean>(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('night') === '1') return true;
-    return Boolean(initialSave.nightShift);
+    if (params.get('night') === '0') return false;
+    return false;
   });
+  const [shiftCycleRemaining, setShiftCycleRemaining] = useState<number>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const customSec = params.get('cycleSec');
+    if (customSec !== null && !Number.isNaN(Number(customSec))) {
+      return Math.max(1, Math.round(Number(customSec)));
+    }
+    return params.get('night') === '1'
+      ? NIGHT_SHIFT_DURATION_SECONDS
+      : DAY_SHIFT_DURATION_SECONDS;
+  });
+  const [shiftTransitionBanner, setShiftTransitionBanner] = useState<'day' | 'night' | null>(
+    null
+  );
   const [inputMode, setInputMode] = useState<InputControlMode>(() => {
     const params = new URLSearchParams(window.location.search);
     const paramInput = params.get('input');
@@ -487,6 +504,34 @@ export default function App() {
     triggerSleepOnJobBlackout,
   ]);
 
+  // Automatic 3-Minute Day / 2-Minute Night Shift Cycle ("a cada 3 min de dia fica 2 de noite, automaticamente")
+  useEffect(() => {
+    if (gameState !== 'playing' || isSleepingBlackout) {
+      return;
+    }
+
+    const cycleTimer = window.setInterval(() => {
+      setShiftCycleRemaining((prevRem) => {
+        const next = advanceDayNightCycle(nightShift, prevRem);
+        if (next.transitioned) {
+          setNightShift(next.isNightShift);
+          saveGameData({ nightShift: next.isNightShift });
+          soundEngine.playNotification();
+          setShiftTransitionBanner(next.isNightShift ? 'night' : 'day');
+        }
+        return next.remainingSeconds;
+      });
+    }, 1000);
+
+    return () => clearInterval(cycleTimer);
+  }, [gameState, isSleepingBlackout, nightShift]);
+
+  useEffect(() => {
+    if (!shiftTransitionBanner) return;
+    const t = window.setTimeout(() => setShiftTransitionBanner(null), 4500);
+    return () => clearTimeout(t);
+  }, [shiftTransitionBanner]);
+
   // Varied Ticket Pacing & Rush Hour Timer (ticks every 1s during playing; NO passive energy drain!)
   useEffect(() => {
     if (
@@ -563,6 +608,8 @@ export default function App() {
     setPlayerName('');
     setDifficulty('normal');
     setNightShift(false);
+    setShiftCycleRemaining(DAY_SHIFT_DURATION_SECONDS);
+    setShiftTransitionBanner(null);
     setPoints(cleanCareer.points);
     setEnergy(cleanCareer.energy);
     setResolvedCount(cleanCareer.resolvedCount);
@@ -598,10 +645,13 @@ export default function App() {
     setShowInputModeModal(true);
   }, []);
 
-  // Confirmed Input Mode -> draws a first ticket and opens the Story screen immediately
+  // Confirmed Input Mode -> draws a first ticket and opens the Story screen immediately (starting on 3-min Daytime)
   const handleOpenStoryIntro = useCallback(() => {
     setShowInputModeModal(false);
     setShowCustomizationModal(false);
+    setNightShift(false);
+    setShiftCycleRemaining(DAY_SHIFT_DURATION_SECONDS);
+    setShiftTransitionBanner(null);
     resetWithRandomTicket(difficulty);
     setGameState('story');
     soundEngine.startAmbientMusic();
@@ -715,15 +765,6 @@ export default function App() {
     saveGameData({ difficulty: d });
     resetWithRandomTicket(d);
   };
-
-  const handleToggleNightShift = useCallback(() => {
-    soundEngine.playInteract();
-    setNightShift((prev) => {
-      const next = !prev;
-      saveGameData({ nightShift: next });
-      return next;
-    });
-  }, []);
 
   const handleNearbyChange = useCallback(
     (
@@ -1049,7 +1090,6 @@ export default function App() {
           <TitleScreenOverlay
             playerName={playerName}
             difficulty={difficulty}
-            nightShift={nightShift}
             voiceEnabled={voiceEnabled}
             playerCustomization={playerCustomization}
             onChangePlayerName={(name) => {
@@ -1057,7 +1097,6 @@ export default function App() {
               saveGameData({ playerName: name });
             }}
             onSelectDifficulty={handleSelectDifficulty}
-            onToggleNightShift={handleToggleNightShift}
             onToggleVoiceEnabled={() => {
               const next = !voiceEnabled;
               setVoiceEnabled(next);
@@ -1115,6 +1154,35 @@ export default function App() {
         />
       )}
 
+      {/* Automatic Day/Night Transition Notification Toast */}
+      {gameState === 'playing' && shiftTransitionBanner && !isSleepingBlackout && (
+        <div
+          role="status"
+          data-testid="shift-transition-banner"
+          className={`fixed top-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none px-4 py-2 rounded-2xl border shadow-2xl flex items-center gap-2.5 text-xs font-extrabold backdrop-blur-md transition-all ${
+            shiftTransitionBanner === 'night'
+              ? 'bg-indigo-950/95 border-indigo-400/60 text-indigo-100'
+              : 'bg-amber-950/95 border-amber-400/60 text-amber-100'
+          }`}
+        >
+          {shiftTransitionBanner === 'night' ? (
+            <>
+              <Moon className="w-4 h-4 text-indigo-300 shrink-0" />
+              <span>
+                Plantão Noturno Iniciado (2 min) · Luzes Acesas · +50% Pontos · +Energia · Café +50%
+              </span>
+            </>
+          ) : (
+            <>
+              <Sun className="w-4 h-4 text-amber-300 shrink-0" />
+              <span>
+                Amanheceu no Escritório (3 min de Dia) · Consumo de Energia e Preços de Café Normais
+              </span>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Non-Intrusive Background Voice Download Pill ("em segundo plano") */}
       {voiceEnabled &&
         bgVoiceStatus.active &&
@@ -1140,6 +1208,7 @@ export default function App() {
           isRushHour={isRushHour}
           rushHourRemaining={rushHourRemaining}
           nightShift={nightShift}
+          shiftCycleRemaining={shiftCycleRemaining}
           currentSectorName={currentSectorName}
           nearby={nearby}
           nearCafeteria={nearCafeteria}
@@ -1164,7 +1233,6 @@ export default function App() {
             enqueueNewTicket(difficulty, isRushHour);
             setNextTicketCountdown(computeNextTicketDelaySeconds(difficulty, isRushHour));
           }}
-          onToggleNightShift={handleToggleNightShift}
           onToggleMute={() => {
             const next = !muted;
             setMuted(next);
