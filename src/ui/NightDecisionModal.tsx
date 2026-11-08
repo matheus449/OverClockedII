@@ -26,9 +26,9 @@ export const NightDecisionModal: React.FC<NightDecisionModalProps> = ({
       aria-modal="true"
       aria-label="Fim do Expediente Diurno — Escolha da Noite"
       data-testid="night-decision-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 lg-modal-backdrop pointer-events-auto"
+      className="fixed inset-0 z-50 flex flex-col items-center p-2.5 sm:p-4 lg-modal-backdrop pointer-events-auto overflow-y-auto"
     >
-      <div className="w-full max-w-2xl rounded-2xl lg-modal-floating border-indigo-500/45 p-5 sm:p-6 space-y-5">
+      <div className="my-auto w-full max-w-2xl rounded-2xl lg-modal-floating border-indigo-500/45 p-4 sm:p-6 space-y-4 sm:space-y-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
           <div className="flex items-center gap-3.5">

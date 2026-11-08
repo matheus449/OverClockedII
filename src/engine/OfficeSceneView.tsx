@@ -787,12 +787,20 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       if (!container) return;
       const w = container.clientWidth || window.innerWidth;
       const h = container.clientHeight || window.innerHeight;
+      if (w <= 0 || h <= 0) return;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
       renderer.render(scene, camera);
     };
+    const onOrientationChange = () => {
+      onResize();
+      window.setTimeout(onResize, 100);
+      window.setTimeout(onResize, 300);
+    };
     window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onOrientationChange);
+    window.visualViewport?.addEventListener('resize', onResize);
 
     const _dummyMatrix = new THREE.Matrix4();
     const _dummyPos = new THREE.Vector3();
@@ -1388,6 +1396,8 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', onBlur);
       window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onOrientationChange);
+      window.visualViewport?.removeEventListener('resize', onResize);
       renderer.domElement.removeEventListener('wheel', onWheel);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
@@ -1399,7 +1409,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
   }, []);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#0d1117] touch-none">
+    <div className="fixed inset-0 w-full h-full overflow-hidden bg-[#0d1117] touch-none">
       <div
         ref={mountRef}
         data-testid="office-3d-canvas"

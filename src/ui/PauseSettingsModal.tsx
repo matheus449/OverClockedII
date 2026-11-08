@@ -1,18 +1,21 @@
 import React from 'react';
 import { DifficultyLevel } from '../problems/validator';
 import { InputControlMode } from '../player/touchControls';
+import { VisualThemeMode } from '../persistence/storage';
 import {
   Award,
   Gamepad2,
   Home,
   Info,
   Keyboard,
+  Layers,
   Mic,
   MicOff,
   Play,
   RotateCcw,
   Shirt,
   Sliders,
+  Sparkles,
   Volume2,
 } from 'lucide-react';
 import { OVERCLOCKED_ICON_URL } from './CreditsModal';
@@ -20,6 +23,7 @@ import { OVERCLOCKED_ICON_URL } from './CreditsModal';
 interface PauseSettingsModalProps {
   mode: 'paused' | 'gameover';
   difficulty: DifficultyLevel;
+  visualTheme?: VisualThemeMode;
   inputMode: InputControlMode;
   musicVolume: number;
   sfxVolume: number;
@@ -28,6 +32,7 @@ interface PauseSettingsModalProps {
   points: number;
   unlockedMedalsCount: number;
   onChangeDifficulty: (d: DifficultyLevel) => void;
+  onChangeVisualTheme?: (theme: VisualThemeMode) => void;
   onChangeInputMode: (mode: InputControlMode) => void;
   onChangeMusicVolume: (v: number) => void;
   onChangeSfxVolume: (v: number) => void;
@@ -42,6 +47,7 @@ interface PauseSettingsModalProps {
 export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
   mode,
   difficulty,
+  visualTheme = 'liquid_glass',
   inputMode,
   musicVolume,
   sfxVolume,
@@ -50,6 +56,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
   points,
   unlockedMedalsCount,
   onChangeDifficulty,
+  onChangeVisualTheme,
   onChangeInputMode,
   onChangeMusicVolume,
   onChangeSfxVolume,
@@ -64,10 +71,10 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
     <div
       role="dialog"
       aria-label={mode === 'paused' ? 'Jogo Pausado e Configurações' : 'Resumo do Turno'}
-      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-4 lg-modal-backdrop pointer-events-auto overflow-y-auto"
+      className="fixed inset-0 z-40 flex flex-col items-center p-2.5 sm:p-4 lg-modal-backdrop pointer-events-auto overflow-y-auto"
     >
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto lg-modal-floating rounded-2xl p-5 sm:p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
+      <div className="my-auto w-full max-w-md lg-modal-floating rounded-2xl p-4 sm:p-6 space-y-3.5 sm:space-y-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white p-1.5 border border-purple-400/50 flex items-center justify-center shrink-0">
               <img
@@ -77,11 +84,11 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
               />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-100">
+              <h2 className="text-base sm:text-lg font-bold text-slate-100">
                 {mode === 'paused' ? 'Pausa e Configurações' : 'Turno de Suporte Concluído'}
               </h2>
               <p className="text-xs text-slate-400">
-                OVERCLOCKED · Controles, Áudio e Dificuldade
+                OVERCLOCKED · Controles, Visual, Áudio e Dificuldade
               </p>
             </div>
           </div>
@@ -109,6 +116,43 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
             </span>
           </div>
         </div>
+
+        {/* Visual Theme Selector (Liquid Glass vs Visual Normal) */}
+        {onChangeVisualTheme && (
+          <div>
+            <span className="text-xs font-medium text-slate-300 block mb-1.5">
+              Personalização Visual da Interface
+            </span>
+            <div className="grid grid-cols-2 gap-2 p-1 lg-inner-well rounded-xl">
+              <button
+                type="button"
+                data-testid="pause-theme-liquid-glass"
+                onClick={() => onChangeVisualTheme('liquid_glass')}
+                className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer lg-control-chip ${
+                  visualTheme === 'liquid_glass'
+                    ? 'lg-control-chip-active text-white'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-sky-300" />
+                <span>Liquid Glass</span>
+              </button>
+              <button
+                type="button"
+                data-testid="pause-theme-normal"
+                onClick={() => onChangeVisualTheme('normal')}
+                className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer lg-control-chip ${
+                  visualTheme === 'normal'
+                    ? 'lg-control-chip-active text-white'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-slate-300" />
+                <span>Visual Normal</span>
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Input Mode Selector (Teclado e Mouse vs Tela Touch) */}
         <div>

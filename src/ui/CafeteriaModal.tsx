@@ -85,8 +85,8 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
       : 'from-rose-500 to-red-600';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg-modal-backdrop">
-      <div className="w-full max-w-4xl lg-modal-floating border-amber-500/35 rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 lg-modal-backdrop">
+      <div className="w-full max-w-4xl lg-modal-floating border-amber-500/35 rounded-3xl overflow-hidden flex flex-col max-h-[94dvh]">
         {/* Header */}
         <div className="px-6 py-4 lg-modal-header flex items-center justify-between">
           <div className="flex items-center gap-3.5">

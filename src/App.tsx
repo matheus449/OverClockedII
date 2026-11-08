@@ -16,7 +16,12 @@ import {
   ProblemData,
   WorkstationState,
 } from './problems/validator';
-import { loadSaveData, resetSaveData, saveGameData } from './persistence/storage';
+import {
+  loadSaveData,
+  resetSaveData,
+  saveGameData,
+  VisualThemeMode,
+} from './persistence/storage';
 import { soundEngine } from './audio/soundEngine';
 import {
   BackgroundVoiceDownloadStatus,
@@ -107,6 +112,14 @@ export default function App() {
 
   const [playerName, setPlayerName] = useState<string>(initialSave.playerName);
   const [difficulty, setDifficulty] = useState<DifficultyLevel>(initialSave.difficulty);
+  const [visualTheme, setVisualTheme] = useState<VisualThemeMode>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paramTheme = params.get('theme');
+    if (paramTheme === 'normal' || paramTheme === 'liquid_glass') {
+      return paramTheme;
+    }
+    return initialSave.visualTheme || 'liquid_glass';
+  });
   const [nightShift, setNightShift] = useState<boolean>(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('night') === '1') return true;
@@ -999,6 +1012,17 @@ export default function App() {
     resetWithRandomTicket(d);
   };
 
+  const handleSelectVisualTheme = useCallback((nextTheme: VisualThemeMode) => {
+    soundEngine.playInteract();
+    setVisualTheme(nextTheme);
+    saveGameData({ visualTheme: nextTheme });
+    document.documentElement.setAttribute('data-visual-theme', nextTheme);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-visual-theme', visualTheme);
+  }, [visualTheme]);
+
   const handleNearbyChange = useCallback(
     (
       nextNearby: NearbyInteraction | null,
@@ -1331,7 +1355,10 @@ export default function App() {
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden select-none">
+    <main
+      data-visual-theme={visualTheme}
+      className="fixed inset-0 w-full h-full overflow-hidden select-none"
+    >
       {/* Persistent 3D Isometric Office & Home Viewport */}
       <OfficeSceneView
         gameState={gameState}
@@ -1382,6 +1409,7 @@ export default function App() {
           <TitleScreenOverlay
             playerName={playerName}
             difficulty={difficulty}
+            visualTheme={visualTheme}
             voiceEnabled={voiceEnabled}
             playerCustomization={playerCustomization}
             onChangePlayerName={(name) => {
@@ -1389,6 +1417,7 @@ export default function App() {
               saveGameData({ playerName: name });
             }}
             onSelectDifficulty={handleSelectDifficulty}
+            onChangeVisualTheme={handleSelectVisualTheme}
             onToggleVoiceEnabled={() => {
               const next = !voiceEnabled;
               setVoiceEnabled(next);
@@ -1707,6 +1736,7 @@ export default function App() {
         <CharacterCustomizationModal
           playerName={playerName}
           customization={playerCustomization}
+          visualTheme={visualTheme}
           points={points}
           resolvedCount={resolvedCount}
           difficulty={difficulty}
@@ -1718,6 +1748,7 @@ export default function App() {
             setPlayerCustomization(next);
             saveGameData({ playerCustomization: next });
           }}
+          onChangeVisualTheme={handleSelectVisualTheme}
           onPurchaseOutfit={handlePurchaseOutfit}
           onPurchaseAccessory={handlePurchaseAccessory}
           onClose={() => setShowCustomizationModal(false)}
@@ -1731,6 +1762,7 @@ export default function App() {
           <PauseSettingsModal
             mode={gameState}
             difficulty={difficulty}
+            visualTheme={visualTheme}
             inputMode={inputMode}
             musicVolume={musicVolume}
             sfxVolume={sfxVolume}
@@ -1739,6 +1771,7 @@ export default function App() {
             points={points}
             unlockedMedalsCount={unlockedMedals.length}
             onChangeDifficulty={handleSelectDifficulty}
+            onChangeVisualTheme={handleSelectVisualTheme}
             onChangeInputMode={(nextMode) => {
               soundEngine.playInteract();
               setInputMode(nextMode);

@@ -23,6 +23,7 @@ import {
   Crown,
   Flame,
   Laptop,
+  Layers,
   Lock,
   Shirt,
   ShoppingBag,
@@ -33,10 +34,12 @@ import {
   X,
   Zap,
 } from 'lucide-react';
+import { VisualThemeMode } from '../persistence/storage';
 
 interface CharacterCustomizationModalProps {
   playerName: string;
   customization: PlayerCustomization;
+  visualTheme?: VisualThemeMode;
   points: number;
   resolvedCount: number;
   difficulty?: DifficultyLevel;
@@ -44,6 +47,7 @@ interface CharacterCustomizationModalProps {
   purchasedOutfitIds?: string[];
   purchasedAccessoryIds?: string[];
   onChangeCustomization: (next: PlayerCustomization) => void;
+  onChangeVisualTheme?: (theme: VisualThemeMode) => void;
   onPurchaseOutfit?: (outfit: OutfitItem) => { ok: boolean; message: string };
   onPurchaseAccessory?: (accessory: AccessoryItem) => { ok: boolean; message: string };
   onClose: () => void;
@@ -52,6 +56,7 @@ interface CharacterCustomizationModalProps {
 export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalProps> = ({
   playerName,
   customization,
+  visualTheme = 'liquid_glass',
   points,
   resolvedCount,
   difficulty = 'normal',
@@ -59,6 +64,7 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
   purchasedOutfitIds = DEFAULT_PURCHASED_OUTFITS,
   purchasedAccessoryIds = DEFAULT_PURCHASED_ACCESSORIES,
   onChangeCustomization,
+  onChangeVisualTheme,
   onPurchaseOutfit,
   onPurchaseAccessory,
   onClose,
@@ -116,9 +122,9 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
     <div
       role="dialog"
       aria-label="Personalização do Analista, Roupas, Acessórios e Medalhas"
-      className="fixed inset-0 z-40 flex items-center justify-center p-4 lg-modal-backdrop pointer-events-auto"
+      className="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-4 lg-modal-backdrop pointer-events-auto"
     >
-      <div className="w-full max-w-4xl lg-modal-floating rounded-2xl overflow-hidden flex flex-col max-h-[88vh]">
+      <div className="w-full max-w-4xl lg-modal-floating rounded-2xl overflow-hidden flex flex-col max-h-[94dvh]">
         {/* Header */}
         <div className="px-6 py-4 lg-modal-header flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -357,6 +363,43 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                   </button>
                 </div>
               </div>
+
+              {/* Interface Visual Theme Switcher (Liquid Glass vs Visual Normal) */}
+              {onChangeVisualTheme && (
+                <div className="space-y-1.5">
+                  <span className="text-xs font-semibold text-slate-300 block">
+                    Visual da Interface
+                  </span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      data-testid="cust-theme-liquid-glass"
+                      onClick={() => onChangeVisualTheme('liquid_glass')}
+                      className={`py-2 px-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer lg-control-chip ${
+                        visualTheme === 'liquid_glass'
+                          ? 'lg-control-chip-active text-white'
+                          : 'text-slate-300'
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                      Liquid Glass
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="cust-theme-normal"
+                      onClick={() => onChangeVisualTheme('normal')}
+                      className={`py-2 px-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer lg-control-chip ${
+                        visualTheme === 'normal'
+                          ? 'lg-control-chip-active text-white'
+                          : 'text-slate-300'
+                      }`}
+                    >
+                      <Layers className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                      Visual Normal
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Strictly Locked Full Wardrobe Status unless Game is Beaten */}

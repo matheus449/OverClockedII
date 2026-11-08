@@ -80,9 +80,9 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
       aria-modal="true"
       aria-label="Catálogo de Móveis e Decoração da Casa"
       data-testid="home-furniture-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 lg-modal-backdrop pointer-events-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 lg-modal-backdrop pointer-events-auto"
     >
-      <div className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-2xl lg-modal-floating overflow-hidden">
+      <div className="w-full max-w-5xl max-h-[94dvh] flex flex-col rounded-2xl lg-modal-floating overflow-hidden">
         {/* Header */}
         <div className="p-4 sm:p-5 lg-modal-header flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">

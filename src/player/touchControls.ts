@@ -54,30 +54,72 @@ export function detectMobileOrTabletClient(): boolean {
 }
 
 /**
- * Attempts to enter Fullscreen and lock screen orientation to landscape on
- * supported mobile/tablet browsers. Fails silently on browsers/iframes that
- * restrict programmatic orientation lock.
+ * Returns the most accurate current viewport width and height on mobile browsers,
+ * accounting for visualViewport and screen.orientation changes.
  */
-export async function requestLandscapeOrientationLock(): Promise<void> {
-  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+export function getEffectiveViewportSize(): { width: number; height: number } {
+  if (typeof window === 'undefined') {
+    return { width: 1280, height: 720 };
+  }
+  const vv = window.visualViewport;
+  let w = vv && vv.width > 0 ? vv.width : window.innerWidth;
+  let h = vv && vv.height > 0 ? vv.height : window.innerHeight;
+
+  // Some mobile browsers fire orientationchange and update screen.orientation.type
+  // a few frames before window.innerWidth / innerHeight swap.
+  const screenOrientationType = (
+    window.screen as Screen & { orientation?: { type?: string } }
+  )?.orientation?.type;
+  if (
+    typeof screenOrientationType === 'string' &&
+    screenOrientationType.startsWith('landscape') &&
+    h > w
+  ) {
+    const tmp = w;
+    w = h;
+    h = tmp;
+  }
+  return { width: w, height: h };
+}
+
+/**
+ * Attempts to enter Fullscreen and lock screen orientation to landscape on
+ * supported mobile/tablet browsers. Returns true if the screen is now in landscape,
+ * or false if the browser/iframe restricts programmatic orientation lock.
+ */
+export async function requestLandscapeOrientationLock(): Promise<boolean> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
   try {
-    if (detectMobileOrTabletClient() && !document.fullscreenElement && document.documentElement.requestFullscreen) {
-      await document.documentElement.requestFullscreen().catch(() => {});
+    const docEl = document.documentElement as HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void>;
+    };
+    if (detectMobileOrTabletClient() && !document.fullscreenElement) {
+      if (typeof docEl.requestFullscreen === 'function') {
+        await docEl.requestFullscreen().catch(() => {});
+      } else if (typeof docEl.webkitRequestFullscreen === 'function') {
+        await docEl.webkitRequestFullscreen().catch(() => {});
+      }
     }
   } catch {
     // Ignore fullscreen errors
   }
 
+  let locked = false;
   try {
     const orientationApi = (window.screen as Screen & {
       orientation?: { lock?: (orientation: string) => Promise<void> };
     })?.orientation;
     if (orientationApi && typeof orientationApi.lock === 'function') {
-      await orientationApi.lock('landscape').catch(() => {});
+      await orientationApi.lock('landscape').then(() => {
+        locked = true;
+      }).catch(() => {});
     }
   } catch {
     // Ignore orientation lock restriction errors
   }
+
+  const { width, height } = getEffectiveViewportSize();
+  return locked || width >= height;
 }
 
 

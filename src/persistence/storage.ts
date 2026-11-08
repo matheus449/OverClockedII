@@ -7,11 +7,14 @@ import {
 } from '../progression/progressionSystem';
 import { InputControlMode } from '../player/touchControls';
 
+export type VisualThemeMode = 'liquid_glass' | 'normal';
+
 const STORAGE_KEY = 'overclocked_save_v1';
 
 export interface OverclockedSaveData {
   playerName: string;
   difficulty: DifficultyLevel;
+  visualTheme: VisualThemeMode;
   nightShift?: boolean;
   inputMode?: InputControlMode;
   musicVolume: number;
@@ -32,6 +35,7 @@ export interface OverclockedSaveData {
 const DEFAULT_SAVE: OverclockedSaveData = {
   playerName: '',
   difficulty: 'normal',
+  visualTheme: 'liquid_glass',
   nightShift: false,
   musicVolume: 0.45,
   sfxVolume: 0.7,
@@ -96,6 +100,9 @@ export function loadSaveData(): OverclockedSaveData {
         )
       : [];
 
+    const visualTheme: VisualThemeMode =
+      parsed.visualTheme === 'normal' ? 'normal' : 'liquid_glass';
+
     return {
       playerName: typeof parsed.playerName === 'string' ? parsed.playerName : DEFAULT_SAVE.playerName,
       difficulty:
@@ -104,6 +111,7 @@ export function loadSaveData(): OverclockedSaveData {
         parsed.difficulty === 'dificil'
           ? parsed.difficulty
           : DEFAULT_SAVE.difficulty,
+      visualTheme,
       nightShift: Boolean(parsed.nightShift),
       inputMode,
       musicVolume:
@@ -161,6 +169,7 @@ export function resetSaveData(): OverclockedSaveData {
   const current = loadSaveData();
   const resetState: OverclockedSaveData = {
     ...DEFAULT_SAVE,
+    visualTheme: current.visualTheme,
     musicVolume: current.musicVolume,
     sfxVolume: current.sfxVolume,
     muted: current.muted,

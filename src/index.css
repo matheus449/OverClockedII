@@ -553,7 +553,191 @@
 }
 
 /* ============================================================================
-   3. BROWSER FALLBACKS & ACCESSIBILITY PREFERENCES
+   3. VISUAL NORMAL (CLASSIC SOLID THEME) — [data-visual-theme="normal"]
+   Allows the player to switch between Liquid Glass and Classic Solid UI at any time
+   ============================================================================ */
+
+[data-visual-theme="normal"] .lg-surface-panel,
+[data-visual-theme="normal"] .lg-modal-floating,
+[data-visual-theme="normal"] .lg-dialogue-sheet {
+  background: #0f172a;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #334155;
+  box-shadow: 0 20px 44px -10px rgba(2, 6, 23, 0.88);
+}
+
+[data-visual-theme="normal"] .lg-modal-header {
+  background: #090d16;
+  border-bottom: 1px solid #1e293b;
+}
+
+[data-visual-theme="normal"] .lg-modal-footer {
+  background: #090d16;
+  border-top: 1px solid #1e293b;
+}
+
+[data-visual-theme="normal"] .lg-modal-backdrop {
+  background: rgba(2, 6, 23, 0.82);
+}
+
+[data-visual-theme="normal"] .lg-hud-bar {
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #334155;
+  box-shadow: 0 10px 24px -6px rgba(2, 6, 23, 0.85);
+}
+
+[data-visual-theme="normal"] .lg-hud-pill,
+[data-visual-theme="normal"] .lg-inner-well {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  box-shadow: none;
+}
+
+[data-visual-theme="normal"] .lg-input-glass {
+  background: #090d16;
+  border: 1px solid #334155;
+  box-shadow: none;
+}
+
+[data-visual-theme="normal"] .lg-input-glass:focus {
+  background: #0b1120;
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25);
+}
+
+[data-visual-theme="normal"] .lg-btn-primary {
+  background: #0071e3;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #ffffff;
+  border: 1px solid #38bdf8;
+  box-shadow: 0 6px 16px -4px rgba(0, 113, 227, 0.55);
+}
+
+[data-visual-theme="normal"] .lg-btn-primary:hover:not(:disabled) {
+  background: #0077ed;
+  border-color: #7dd3fc;
+  box-shadow: 0 8px 20px -4px rgba(0, 113, 227, 0.7);
+}
+
+[data-visual-theme="normal"] .lg-btn-secondary {
+  background: #1e293b;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #e2e8f0;
+  border: 1px solid #475569;
+  box-shadow: none;
+}
+
+[data-visual-theme="normal"] .lg-btn-secondary:hover:not(:disabled) {
+  background: #334155;
+  border-color: #64748b;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+[data-visual-theme="normal"] .lg-btn-emerald {
+  background: #10b981;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #022c22;
+  border: 1px solid #34d399;
+  box-shadow: 0 6px 16px -4px rgba(16, 185, 129, 0.45);
+}
+
+[data-visual-theme="normal"] .lg-btn-emerald:hover:not(:disabled) {
+  background: #34d399;
+  border-color: #6ee7b7;
+  color: #022c22;
+}
+
+[data-visual-theme="normal"] .lg-btn-amber {
+  background: #f59e0b;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  color: #1c1917;
+  border: 1px solid #fbbf24;
+  box-shadow: 0 6px 16px -4px rgba(245, 158, 11, 0.45);
+}
+
+[data-visual-theme="normal"] .lg-btn-amber:hover:not(:disabled) {
+  background: #fbbf24;
+  border-color: #fde68a;
+  color: #1c1917;
+}
+
+[data-visual-theme="normal"] .lg-control-chip {
+  background: #090d16;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  box-shadow: none;
+}
+
+[data-visual-theme="normal"] .lg-control-chip:hover:not(:disabled) {
+  background: #1e293b;
+  border-color: #475569;
+  color: #ffffff;
+  box-shadow: none;
+}
+
+[data-visual-theme="normal"] .lg-control-chip-active {
+  background: #0071e3;
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 12px -2px rgba(0, 113, 227, 0.45);
+}
+
+[data-visual-theme="normal"] .lg-choice-card {
+  background: #090d16;
+  border: 1px solid #1e293b;
+  box-shadow: none;
+}
+
+[data-visual-theme="normal"] .lg-choice-card:hover:not(:disabled) {
+  background: #111827;
+  border-color: #334155;
+  box-shadow: 0 8px 20px -6px rgba(2, 6, 23, 0.7);
+}
+
+[data-visual-theme="normal"] .lg-choice-card-sky {
+  background: #0c2444;
+  border-color: #0284c7;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+}
+
+[data-visual-theme="normal"] .lg-choice-card-emerald {
+  background: #062c24;
+  border-color: #10b981;
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.35);
+}
+
+[data-visual-theme="normal"] .lg-touch-pad {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 2px solid #334155;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.75);
+}
+
+[data-visual-theme="normal"] .lg-touch-pad-active {
+  background: rgba(12, 36, 68, 0.95);
+  border: 2px solid #38bdf8;
+  box-shadow: 0 10px 24px rgba(14, 165, 233, 0.35);
+}
+
+[data-visual-theme="normal"] .lg-toast-glass {
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border: 1px solid #334155;
+  box-shadow: 0 14px 28px -6px rgba(2, 6, 23, 0.85);
+}
+
+/* ============================================================================
+   4. BROWSER FALLBACKS, MOBILE LANDSCAPE & ACCESSIBILITY PREFERENCES
    ============================================================================ */
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -604,3 +788,4 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.38);
 }
+
