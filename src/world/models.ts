@@ -1200,7 +1200,7 @@ export function createCafeteriaInteriorGroup(mats: OfficeMaterialLibrary): THREE
 
 export function buildNpcRigMap(
   npcs: NpcData[],
-  scene: THREE.Scene
+  scene: THREE.Object3D
 ): Record<string, CharacterRig> {
   const map: Record<string, CharacterRig> = {};
   for (const npc of npcs) {

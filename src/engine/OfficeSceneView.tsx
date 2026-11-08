@@ -47,9 +47,22 @@ import {
   getActiveTouchDirections,
   registerTouchInteractHandler,
 } from '../player/touchControls';
+import {
+  clampTapTargetToHomeBounds,
+  GameLocation,
+  getActiveFurnitureIdForSlot,
+  getActiveFurnitureIds,
+  isPlayerNearHomeBed,
+  isPlayerNearHomeDoor,
+  resolveHomePlayerMovement,
+} from '../home/homeSystem';
+import { createHomeSceneGroup } from '../world/homeModels';
 
 export interface OfficeSceneProps {
   gameState: 'title' | 'loading' | 'story' | 'playing' | 'paused' | 'gameover';
+  currentLocation?: GameLocation;
+  purchasedFurnitureIds?: string[];
+  hasSleptAtHome?: boolean;
   activeProblem: ProblemData | null;
   queuedSectorIds?: string[];
   playerCustomization?: PlayerCustomization;
@@ -63,9 +76,13 @@ export interface OfficeSceneProps {
     nearCafeteria: boolean,
     nearbyCafeteriaNpc: CafeteriaNpc | null
   ) => void;
+  onHomeProximityChange?: (nearDoor: boolean, nearBed: boolean) => void;
   onInteractRequest: (nearby: NearbyInteraction) => void;
   onOpenCafeteriaRequest?: () => void;
   onTalkToCafeteriaNpcRequest?: (npc: CafeteriaNpc) => void;
+  onOpenHomeShopRequest?: () => void;
+  onSleepInHomeBedRequest?: () => void;
+  onReturnToOfficeRequest?: () => void;
   npcEmotionOverride: { npcId: string; emotion: 'neutral' | 'waiting' | 'satisfied' | 'annoyed' } | null;
   cameraZoom: number;
   onWheelZoom?: (deltaZoom: number) => void;
@@ -76,6 +93,9 @@ const MAX_TRAIL_NODES = 80;
 
 export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
   gameState,
+  currentLocation = 'office',
+  purchasedFurnitureIds = [],
+  hasSleptAtHome = false,
   activeProblem,
   queuedSectorIds = [],
   playerCustomization = DEFAULT_CUSTOMIZATION,
@@ -84,9 +104,13 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
   onClearAutoWalk,
   onTapFloorWalk,
   onNearbyChange,
+  onHomeProximityChange,
   onInteractRequest,
   onOpenCafeteriaRequest,
   onTalkToCafeteriaNpcRequest,
+  onOpenHomeShopRequest,
+  onSleepInHomeBedRequest,
+  onReturnToOfficeRequest,
   npcEmotionOverride,
   cameraZoom,
   onWheelZoom,
@@ -97,6 +121,9 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
 
   const propsRef = useRef({
     gameState,
+    currentLocation,
+    purchasedFurnitureIds,
+    hasSleptAtHome,
     activeProblem,
     queuedSectorIds,
     playerCustomization,
@@ -105,9 +132,13 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     onClearAutoWalk,
     onTapFloorWalk,
     onNearbyChange,
+    onHomeProximityChange,
     onInteractRequest,
     onOpenCafeteriaRequest,
     onTalkToCafeteriaNpcRequest,
+    onOpenHomeShopRequest,
+    onSleepInHomeBedRequest,
+    onReturnToOfficeRequest,
     npcEmotionOverride,
     cameraZoom,
     onWheelZoom,
@@ -116,6 +147,9 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
   useEffect(() => {
     propsRef.current = {
       gameState,
+      currentLocation,
+      purchasedFurnitureIds,
+      hasSleptAtHome,
       activeProblem,
       queuedSectorIds,
       playerCustomization,
@@ -124,9 +158,13 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       onClearAutoWalk,
       onTapFloorWalk,
       onNearbyChange,
+      onHomeProximityChange,
       onInteractRequest,
       onOpenCafeteriaRequest,
       onTalkToCafeteriaNpcRequest,
+      onOpenHomeShopRequest,
+      onSleepInHomeBedRequest,
+      onReturnToOfficeRequest,
       npcEmotionOverride,
       cameraZoom,
       onWheelZoom,
@@ -134,6 +172,9 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     };
   }, [
     gameState,
+    currentLocation,
+    purchasedFurnitureIds,
+    hasSleptAtHome,
     activeProblem,
     queuedSectorIds,
     playerCustomization,
@@ -142,9 +183,13 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     onClearAutoWalk,
     onTapFloorWalk,
     onNearbyChange,
+    onHomeProximityChange,
     onInteractRequest,
     onOpenCafeteriaRequest,
     onTalkToCafeteriaNpcRequest,
+    onOpenHomeShopRequest,
+    onSleepInHomeBedRequest,
+    onReturnToOfficeRequest,
     npcEmotionOverride,
     cameraZoom,
     onWheelZoom,
@@ -221,11 +266,18 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     // 5. Build Office Floor (54m x 36m), Avenues, Background North/West Glass Windows, and 15 Sectors
     const mats = createOfficeMaterials(renderer, isSoftwareGl);
 
+    const officeWorldGroup = new THREE.Group();
+    scene.add(officeWorldGroup);
+
+    const homeScene = createHomeSceneGroup(mats);
+    homeScene.rootGroup.visible = false;
+    scene.add(homeScene.rootGroup);
+
     const mainFloor = new THREE.Mesh(new THREE.PlaneGeometry(54, 36.5), mats.parquetFloor);
     mainFloor.rotation.x = -Math.PI / 2;
     mainFloor.position.y = 0;
     mainFloor.receiveShadow = true;
-    scene.add(mainFloor);
+    officeWorldGroup.add(mainFloor);
 
     // North Avenue (z = -5.5) and South Avenue (z = +5.5) runners (offset +0.02m on Y)
     for (const aveZ of [-5.5, 5.5]) {
@@ -233,7 +285,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       aveFloor.rotation.x = -Math.PI / 2;
       aveFloor.position.set(0, 0.02, aveZ);
       aveFloor.receiveShadow = true;
-      scene.add(aveFloor);
+      officeWorldGroup.add(aveFloor);
     }
 
     // 4 North-South Cross Avenues (x = -17.0, -1.85, +12.25, +19.6) connecting North & South Avenues
@@ -242,28 +294,28 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       crossFloor.rotation.x = -Math.PI / 2;
       crossFloor.position.set(crossX, 0.022, 0);
       crossFloor.receiveShadow = true;
-      scene.add(crossFloor);
+      officeWorldGroup.add(crossFloor);
     }
 
     // Exterior Cityscape Backdrop & Panoramic Glass Window ONLY on the North (-Z) background horizon
     // (Never on the camera-facing South +Z side, so nothing ever blocks the isometric camera!)
     const northCity = new THREE.Mesh(new THREE.PlaneGeometry(68, 12), mats.cityBackdrop);
     northCity.position.set(0, 4.2, -21.5);
-    scene.add(northCity);
+    officeWorldGroup.add(northCity);
 
     const northGlass = new THREE.Mesh(new THREE.BoxGeometry(53.0, 2.3, 0.06), mats.windowGlass);
     northGlass.position.set(0, 1.35, -18.0);
     northGlass.renderOrder = 2;
-    scene.add(northGlass);
+    officeWorldGroup.add(northGlass);
 
     const topRail = new THREE.Mesh(new THREE.BoxGeometry(53.2, 0.14, 0.16), mats.windowFrame);
     topRail.position.set(0, 2.52, -18.0);
-    scene.add(topRail);
+    officeWorldGroup.add(topRail);
 
     for (let mx = -26; mx <= 26; mx += 5.2) {
       const mullion = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.55, 0.14), mats.windowFrame);
       mullion.position.set(mx, 1.3, -18.0);
-      scene.add(mullion);
+      officeWorldGroup.add(mullion);
     }
 
     // Build interior partition walls with generous 3.1m doorways from collider segments
@@ -289,12 +341,12 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       wallMesh.rotation.y = -angle;
       wallMesh.castShadow = true;
       wallMesh.receiveShadow = true;
-      scene.add(wallMesh);
+      officeWorldGroup.add(wallMesh);
 
       const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(length + 0.02, 0.1, 0.17), mats.wallBaseboard);
       baseMesh.position.set(midX, 0.05, midZ);
       baseMesh.rotation.y = -angle;
-      scene.add(baseMesh);
+      officeWorldGroup.add(baseMesh);
     }
 
     // Build Workstations, Desk Lamps, Standing Floor Lamps, Printers, Plants, and Sector Plaques
@@ -307,7 +359,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     const floorLampBulbMats: THREE.MeshStandardMaterial[] = [];
     const nightLightsGroup = new THREE.Group();
     nightLightsGroup.visible = false;
-    scene.add(nightLightsGroup);
+    officeWorldGroup.add(nightLightsGroup);
 
     for (const sector of ALL_SECTORS) {
       if (sector.id === 'servidores' || sector.id === 'redes') {
@@ -321,13 +373,13 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
           0.025,
           sector.bounds.z + sector.bounds.d * 0.5
         );
-        scene.add(sFloor);
+        officeWorldGroup.add(sFloor);
       }
 
       const ws = createWorkstationGroup(mats, sector.cor);
       ws.group.position.set(sector.pcPos.x, 0, sector.pcPos.z);
       ws.group.rotation.y = sector.pcPos.rotY;
-      scene.add(ws.group);
+      officeWorldGroup.add(ws.group);
       sectorBeacons[sector.id] = ws.alertBeacon;
       workstationLights.push({
         screenMat: ws.screenMat,
@@ -355,7 +407,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         sector.bounds.z + sector.bounds.d * 0.5
       );
       nightLightsGroup.add(standingLamp.floorPool);
-      scene.add(standingLamp.group);
+      officeWorldGroup.add(standingLamp.group);
       floorLampBulbMats.push(standingLamp.bulbMat);
 
       // Architectural Sector Sign Plaque above each workstation
@@ -380,17 +432,17 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         new THREE.MeshBasicMaterial({ map: plaqueTex, side: THREE.DoubleSide })
       );
       plaqueMesh.position.set(sector.pcPos.x, 1.55, sector.pcPos.z);
-      scene.add(plaqueMesh);
+      officeWorldGroup.add(plaqueMesh);
 
       if (sector.hasPrinter && sector.printerPos) {
         const printer = createPrinterGroup(mats);
         printer.position.set(sector.printerPos.x, 0, sector.printerPos.z);
-        scene.add(printer);
+        officeWorldGroup.add(printer);
       }
 
       const plant = createPlantGroup(mats);
       plant.position.set(sector.bounds.x + 0.9, 0, sector.bounds.z + 0.9);
-      scene.add(plant);
+      officeWorldGroup.add(plant);
 
       const accent = createSectorAccentProp(sector, mats);
       accent.position.set(
@@ -398,7 +450,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         0,
         sector.bounds.z + sector.bounds.d * 0.5
       );
-      scene.add(accent);
+      officeWorldGroup.add(accent);
     }
 
     // 5A-Night. Add Warm Corridor Light Pools & 6 Strategic Wing PointLights for Nighttime Illumination
@@ -432,19 +484,19 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
 
     // 5B. Build 3D Cafeteria OverCoffee Interior, Warm Café Lighting, Sign Plaque, Plant, and 4 Cafeteria NPCs
     const cafeteriaInterior = createCafeteriaInteriorGroup(mats);
-    scene.add(cafeteriaInterior);
+    officeWorldGroup.add(cafeteriaInterior);
 
     const cafeWarmLight = new THREE.PointLight(0xfbbf24, 1.45, 14.5, 1.4);
     cafeWarmLight.position.set(5.25, 2.4, -0.4);
-    scene.add(cafeWarmLight);
+    officeWorldGroup.add(cafeWarmLight);
 
     const cafePlant = createPlantGroup(mats);
     cafePlant.position.set(0.25, 0, -1.75);
-    scene.add(cafePlant);
+    officeWorldGroup.add(cafePlant);
 
     const cafePlant2 = createPlantGroup(mats);
     cafePlant2.position.set(10.25, 0, -1.75);
-    scene.add(cafePlant2);
+    officeWorldGroup.add(cafePlant2);
 
     const cafeSignCanvas = document.createElement('canvas');
     cafeSignCanvas.width = 320;
@@ -467,7 +519,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       new THREE.MeshBasicMaterial({ map: cafeSignTex, side: THREE.DoubleSide })
     );
     cafeSignMesh.position.set(5.25, 1.72, 3.48);
-    scene.add(cafeSignMesh);
+    officeWorldGroup.add(cafeSignMesh);
 
     const cafeteriaNpcRigs: { rig: CharacterRig; baseRotY: number; pos: Vec2 }[] = [];
     for (const cNpc of CAFETERIA_NPCS) {
@@ -485,7 +537,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       });
       cRig.group.position.set(cNpc.pos.x, 0, cNpc.pos.z);
       cRig.group.rotation.y = cNpc.rotY;
-      scene.add(cRig.group);
+      officeWorldGroup.add(cRig.group);
       cafeteriaNpcRigs.push({ rig: cRig, baseRotY: cNpc.rotY, pos: cNpc.pos });
     }
 
@@ -494,7 +546,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     const trailInstanced = new THREE.InstancedMesh(trailGeo, mats.trailGlow, MAX_TRAIL_NODES);
     trailInstanced.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     trailInstanced.frustumCulled = false;
-    scene.add(trailInstanced);
+    officeWorldGroup.add(trailInstanced);
 
     // 7. Create Player (IT Analyst) at open South Central Avenue (0, 5.5) & 15 Sector NPCs
     const buildPlayerFromCustomization = (cust: PlayerCustomization) => {
@@ -538,9 +590,9 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     });
     managerRig.group.position.set(1.45, 0, 5.1);
     managerRig.group.rotation.y = -Math.PI * 0.38;
-    scene.add(managerRig.group);
+    officeWorldGroup.add(managerRig.group);
 
-    const npcRigs = buildNpcRigMap(ALL_NPCS, scene);
+    const npcRigs = buildNpcRigMap(ALL_NPCS, officeWorldGroup);
     const npcStates = initNpcRuntimeStates(ALL_NPCS);
 
     // Pre-warm shaders on GPU and draw initial frame immediately
@@ -555,6 +607,16 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
 
     const executeContextualInteract = () => {
       if (propsRef.current.gameState !== 'playing') return;
+      if (propsRef.current.currentLocation === 'home') {
+        if (isPlayerNearHomeBed(playerPos)) {
+          propsRef.current.onSleepInHomeBedRequest?.();
+        } else if (isPlayerNearHomeDoor(playerPos)) {
+          propsRef.current.onReturnToOfficeRequest?.();
+        } else {
+          propsRef.current.onOpenHomeShopRequest?.();
+        }
+        return;
+      }
       if (isPlayerNearCafeteria(playerPos)) {
         const nearCafeNpc = findNearestCafeteriaNpc(playerPos);
         if (nearCafeNpc && nearCafeNpc.npc.id !== 'npc_barista_leo') {
@@ -657,7 +719,19 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       floorRaycaster.setFromCamera(ndcPointer, camera);
       const hit = floorRaycaster.ray.intersectPlane(floorPlane, floorHitVec);
       if (hit) {
-        const target = clampTapTargetToOfficeBounds({ x: hit.x, z: hit.z });
+        const target =
+          propsRef.current.currentLocation === 'home'
+            ? clampTapTargetToHomeBounds({ x: hit.x, z: hit.z })
+            : clampTapTargetToOfficeBounds({ x: hit.x, z: hit.z });
+        if (
+          propsRef.current.currentLocation === 'home' &&
+          !propsRef.current.hasSleptAtHome &&
+          isPlayerNearHomeBed(target) &&
+          isPlayerNearHomeBed(playerPos)
+        ) {
+          propsRef.current.onSleepInHomeBedRequest?.();
+          return;
+        }
         propsRef.current.onTapFloorWalk?.(target);
       }
     };
@@ -757,14 +831,20 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
     }
     currentCustKey = getCustKey(propsRef.current.playerCustomization);
 
+    let lastLocation: GameLocation = 'office';
+    let lastFurnitureKey = '';
+    let lastHomeProxKey = '';
+
     function tick() {
       const now = performance.now();
       const rawDt = (now - lastTime) / 1000;
       lastTime = now;
-      const dt = Math.min(rawDt, 0.05);
+      const dt = Math.min(rawDt, 0.15);
 
       const {
         gameState: currentState,
+        currentLocation: curLocation = 'office',
+        purchasedFurnitureIds: curFurniture = [],
         activeProblem: curProb,
         queuedSectorIds: curQueuedSectors,
         playerCustomization: curCust,
@@ -774,9 +854,66 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         cameraZoom: curZoom,
       } = propsRef.current;
 
-      // Dynamically transition 3D Office Atmosphere & Indoor Office Lights between Daytime and Plantão Noturno
-      const isNight = Boolean(curNightShift);
-      const bgTargetHex = isNight ? 0x050816 : 0xdbeafe;
+      // Switch between 3D Office Map and 3D Home Map seamlessly
+      if (curLocation !== lastLocation) {
+        lastLocation = curLocation;
+        officeWorldGroup.visible = curLocation === 'office';
+        homeScene.rootGroup.visible = curLocation === 'home';
+        if (emotionFloatingRef.current) {
+          emotionFloatingRef.current.style.opacity = '0';
+        }
+        if (curLocation === 'home') {
+          playerPos.x = -1.2;
+          playerPos.z = 0.6;
+          playerRotY = 0;
+          camera.position.set(4.5, 16.2, 14.8);
+          camera.lookAt(0, 0.4, -0.4);
+        } else {
+          playerPos.x = 0;
+          playerPos.z = 5.5;
+          playerRotY = 0;
+          camera.position.set(playerPos.x + 6.5, 15.5, playerPos.z + 13.5);
+          camera.lookAt(playerPos.x, 0.65, playerPos.z);
+        }
+        playerRig.group.position.set(playerPos.x, 0, playerPos.z);
+        playerRig.group.rotation.y = playerRotY;
+      }
+
+      // Sync 3D Furniture visibility inside the Home map (supporting 3 versions per slot + physical drop-in animation)
+      const nextFurnKey = curFurniture.join(',');
+      if (nextFurnKey !== lastFurnitureKey) {
+        lastFurnitureKey = nextFurnKey;
+        const activeIds = new Set(getActiveFurnitureIds(curFurniture));
+        const hasUpgradedBed = Boolean(getActiveFurnitureIdForSlot('cama_quarto', curFurniture));
+        homeScene.starterBedGroup.visible = !hasUpgradedBed;
+        for (const fId of Object.keys(homeScene.furnitureGroups)) {
+          const grp = homeScene.furnitureGroups[fId];
+          const shouldBeVisible = activeIds.has(fId);
+          if (shouldBeVisible && !grp.visible) {
+            const baseRestY = fId.startsWith('cafeteira_') ? 0.91 : fId.startsWith('tapete_') ? 0.022 : 0;
+            grp.position.y = baseRestY + 0.42;
+          }
+          grp.visible = shouldBeVisible;
+        }
+      }
+
+      // Smoothly damp any recently installed/switched 3D furniture pieces down to their resting floor/counter height
+      if (curLocation === 'home') {
+        for (const fId of Object.keys(homeScene.furnitureGroups)) {
+          const grp = homeScene.furnitureGroups[fId];
+          if (!grp.visible) continue;
+          const baseRestY = fId.startsWith('cafeteira_') ? 0.91 : fId.startsWith('tapete_') ? 0.022 : 0;
+          if (Math.abs(grp.position.y - baseRestY) > 0.002) {
+            grp.position.y = THREE.MathUtils.damp(grp.position.y, baseRestY, 12, dt);
+          } else {
+            grp.position.y = baseRestY;
+          }
+        }
+      }
+
+      // Dynamically transition 3D Atmosphere & Indoor Office Lights between Daytime, Night Shift, and Cozy Home
+      const isNight = curLocation === 'office' && Boolean(curNightShift);
+      const bgTargetHex = curLocation === 'home' ? 0x0f172a : isNight ? 0x050816 : 0xdbeafe;
       if ((scene.background as THREE.Color).getHex() !== bgTargetHex) {
         (scene.background as THREE.Color).setHex(bgTargetHex);
         if (scene.fog instanceof THREE.FogExp2) {
@@ -848,6 +985,102 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         managerRig.rightArm.rotation.x = -Math.PI * 0.55 + Math.sin(elapsedTime * 5.5) * 0.22;
         managerRig.headGroup.rotation.y = Math.sin(elapsedTime * 2.2) * 0.12;
         updateNpcsFrame(npcStates, npcRigs, playerPos, null, dt, elapsedTime);
+      } else if (currentState === 'playing' && curLocation === 'home') {
+        // HOME MAP SIMULATION LOOP: Player walks around their 3D Apartment with full furniture collision physics
+        const touchHeld = getActiveTouchDirections();
+        let { moveX, moveZ } = computeMovementVector(keysHeld, touchHeld);
+        if ((moveX !== 0 || moveZ !== 0) && curAutoTarget) {
+          propsRef.current.onClearAutoWalk();
+        } else if (moveX === 0 && moveZ === 0 && curAutoTarget) {
+          const toX = curAutoTarget.x - playerPos.x;
+          const toZ = curAutoTarget.z - playerPos.z;
+          const distToTarget = Math.hypot(toX, toZ);
+          if (distToTarget <= 0.35) {
+            propsRef.current.onClearAutoWalk();
+          } else {
+            moveX = toX / distToTarget;
+            moveZ = toZ / distToTarget;
+          }
+        }
+        const speed = 6.2;
+
+        if (moveX !== 0 || moveZ !== 0) {
+          const len = Math.hypot(moveX, moveZ);
+          const analogScale = Math.min(1, len);
+          const dx = (moveX / len) * analogScale * speed * dt;
+          const dz = (moveZ / len) * analogScale * speed * dt;
+          const next = resolveHomePlayerMovement(playerPos, { x: dx, z: dz }, curFurniture);
+          const movedDist = Math.hypot(next.x - playerPos.x, next.z - playerPos.z);
+          playerPos.x = next.x;
+          playerPos.z = next.z;
+
+          if (movedDist > 0.0005) {
+            const targetAngle = Math.atan2(dx, dz);
+            let diff = targetAngle - playerRotY;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            playerRotY += diff * (1 - Math.exp(-14 * dt));
+
+            stepDistanceAccum += movedDist;
+            if (stepDistanceAccum > 1.35) {
+              stepDistanceAccum = 0;
+              soundEngine.playFootstep();
+            }
+            const swingAmp = 0.46 * Math.max(0.45, analogScale);
+            const swing = Math.sin(elapsedTime * 11) * swingAmp;
+            playerRig.leftLeg.rotation.x = swing;
+            playerRig.rightLeg.rotation.x = -swing;
+            playerRig.leftArm.rotation.x = -swing * 0.7;
+            playerRig.rightArm.rotation.x = swing * 0.7;
+          } else if (curAutoTarget) {
+            // Reached a physical furniture/bed collider along tap-to-walk path
+            propsRef.current.onClearAutoWalk();
+          }
+        } else {
+          // Even when idle, ensure any newly bought furniture gently nudges player out of its collider
+          const nudged = resolveHomePlayerMovement(playerPos, { x: 0, z: 0 }, curFurniture);
+          playerPos.x = nudged.x;
+          playerPos.z = nudged.z;
+          playerRig.leftLeg.rotation.x = THREE.MathUtils.damp(playerRig.leftLeg.rotation.x, 0, 10, dt);
+          playerRig.rightLeg.rotation.x = THREE.MathUtils.damp(playerRig.rightLeg.rotation.x, 0, 10, dt);
+          playerRig.leftArm.rotation.x = THREE.MathUtils.damp(playerRig.leftArm.rotation.x, 0, 10, dt);
+          playerRig.rightArm.rotation.x = THREE.MathUtils.damp(playerRig.rightArm.rotation.x, 0, 10, dt);
+        }
+
+        playerRig.group.position.set(playerPos.x, 0, playerPos.z);
+        playerRig.group.rotation.y = playerRotY;
+
+        homeScene.doorBeacon.rotation.y = elapsedTime * 2.2;
+        homeScene.doorBeacon.position.y = 2.1 + Math.sin(elapsedTime * 4) * 0.06;
+
+        homeScene.bedBeacon.rotation.y = -elapsedTime * 2.5;
+        homeScene.bedBeacon.position.y = 2.22 + Math.sin(elapsedTime * 4.5) * 0.07;
+
+        const zoomFactor = curZoom || 1.0;
+        _camTargetPos.set(
+          playerPos.x * 0.65 + 4.8 * zoomFactor,
+          13.2 * zoomFactor,
+          playerPos.z * 0.65 + 11.2 * zoomFactor
+        );
+        const camAlpha = 1 - Math.exp(-7.5 * dt);
+        camera.position.lerp(_camTargetPos, camAlpha);
+        _camLookAt.lerp(_dummyPos.set(playerPos.x * 0.6, 0.55, playerPos.z * 0.6), camAlpha);
+        camera.lookAt(_camLookAt);
+
+        hudSyncTimer += dt;
+        if (hudSyncTimer >= 0.12) {
+          hudSyncTimer = 0;
+          const nearDoor = isPlayerNearHomeDoor(playerPos);
+          const nearBed = isPlayerNearHomeBed(playerPos);
+          const nextHomeKey = `${nearDoor ? '1' : '0'}|${nearBed ? '1' : '0'}`;
+          if (nextHomeKey !== lastHomeProxKey) {
+            lastHomeProxKey = nextHomeKey;
+            propsRef.current.onHomeProximityChange?.(nearDoor, nearBed);
+          }
+          if (emotionFloatingRef.current) {
+            emotionFloatingRef.current.style.opacity = '0';
+          }
+        }
       } else if (currentState === 'playing') {
         // B. Player Movement (WASD / Arrows / 360° Mobile Analog Joystick or Auto-Walk along Trail)
         const touchHeld = getActiveTouchDirections();

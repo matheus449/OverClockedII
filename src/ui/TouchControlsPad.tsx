@@ -6,14 +6,25 @@ import {
   triggerTouchInteract,
 } from '../player/touchControls';
 import {
+  BedDouble,
   Coffee,
   Cpu,
   Hand,
   Laptop,
   MessageCircle,
+  ShoppingBag,
+  Sun,
 } from 'lucide-react';
+import { GameLocation } from '../home/homeSystem';
 
 interface TouchControlsPadProps {
+  currentLocation?: GameLocation;
+  nearHomeBed?: boolean;
+  nearHomeDoor?: boolean;
+  hasSleptAtHome?: boolean;
+  onSleepInHomeBed?: () => void;
+  onOpenHomeShop?: () => void;
+  onReturnToOffice?: () => void;
   hasNearbyNpc: boolean;
   nearbyNpcFirstName?: string;
   nearCafeteria: boolean;
@@ -29,6 +40,13 @@ interface TouchControlsPadProps {
 const ANALOG_MAX_RADIUS_PX = 36;
 
 export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
+  currentLocation = 'office',
+  nearHomeBed = false,
+  nearHomeDoor = false,
+  hasSleptAtHome = false,
+  onSleepInHomeBed,
+  onOpenHomeShop,
+  onReturnToOffice,
   hasNearbyNpc,
   nearbyNpcFirstName,
   nearCafeteria,
@@ -180,63 +198,98 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
 
       {/* Right Thumb Zone: Sleek Contextual Action Buttons (Only shown when near an interactive target; NO auto-walk buttons!) */}
       <div className="pointer-events-auto flex flex-col items-end gap-1.5 pr-1 pb-0.5">
-        {hasActiveProblem && isAtTargetSector && (
-          <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              onClick={onOpenHardwareWorkbench}
-              className="min-h-[42px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
-            >
-              <Cpu className="w-4 h-4 shrink-0" />
-              <span>Hardware</span>
-            </button>
-            <button
-              type="button"
-              onClick={onOpenVirtualOS}
-              className="min-h-[42px] px-3.5 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:scale-95 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
-            >
-              <Laptop className="w-4 h-4 shrink-0" />
-              <span>OverOS</span>
-            </button>
-          </div>
-        )}
-
-        {nearCafeteria && (
-          <div className="flex items-center gap-1.5">
-            {onTalkToCafeteriaNpc && (
+        {currentLocation === 'home' ? (
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {nearHomeBed && (
               <button
                 type="button"
-                onClick={onTalkToCafeteriaNpc}
-                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-sky-400/50 text-sky-300 text-xs font-bold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+                onClick={onSleepInHomeBed}
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-emerald-300 transition cursor-pointer"
               >
-                <MessageCircle className="w-4 h-4 shrink-0" />
-                <span>
-                  {nearbyCafeteriaNpcFirstName
-                    ? `Falar com ${nearbyCafeteriaNpcFirstName}`
-                    : 'Conversar'}
-                </span>
+                <BedDouble className="w-4 h-4 shrink-0" />
+                <span>Dormir na Cama (100%)</span>
               </button>
             )}
             <button
               type="button"
-              onClick={onOpenCafeteria}
-              className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
+              onClick={onOpenHomeShop}
+              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
             >
-              <Coffee className="w-4 h-4 shrink-0" />
-              <span>Cafeteria</span>
+              <ShoppingBag className="w-4 h-4 shrink-0" />
+              <span>Loja de Móveis</span>
             </button>
+            {nearHomeDoor && hasSleptAtHome && (
+              <button
+                type="button"
+                onClick={onReturnToOffice}
+                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-sky-300 transition cursor-pointer"
+              >
+                <Sun className="w-4 h-4 shrink-0" />
+                <span>Ir Trabalhar</span>
+              </button>
+            )}
           </div>
-        )}
+        ) : (
+          <>
+            {hasActiveProblem && isAtTargetSector && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={onOpenHardwareWorkbench}
+                  className="min-h-[42px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+                >
+                  <Cpu className="w-4 h-4 shrink-0" />
+                  <span>Hardware</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenVirtualOS}
+                  className="min-h-[42px] px-3.5 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:scale-95 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+                >
+                  <Laptop className="w-4 h-4 shrink-0" />
+                  <span>OverOS</span>
+                </button>
+              </div>
+            )}
 
-        {!nearCafeteria && hasNearbyNpc && (
-          <button
-            type="button"
-            onClick={() => triggerTouchInteract()}
-            className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-emerald-300 transition cursor-pointer"
-          >
-            <Hand className="w-4 h-4 shrink-0" />
-            <span>Atender {nearbyNpcFirstName || 'Colega'}</span>
-          </button>
+            {nearCafeteria && (
+              <div className="flex items-center gap-1.5">
+                {onTalkToCafeteriaNpc && (
+                  <button
+                    type="button"
+                    onClick={onTalkToCafeteriaNpc}
+                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-sky-400/50 text-sky-300 text-xs font-bold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4 shrink-0" />
+                    <span>
+                      {nearbyCafeteriaNpcFirstName
+                        ? `Falar com ${nearbyCafeteriaNpcFirstName}`
+                        : 'Conversar'}
+                    </span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onOpenCafeteria}
+                  className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
+                >
+                  <Coffee className="w-4 h-4 shrink-0" />
+                  <span>Cafeteria</span>
+                </button>
+              </div>
+            )}
+
+            {!nearCafeteria && hasNearbyNpc && (
+              <button
+                type="button"
+                onClick={() => triggerTouchInteract()}
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-emerald-300 transition cursor-pointer"
+              >
+                <Hand className="w-4 h-4 shrink-0" />
+                <span>Atender {nearbyNpcFirstName || 'Colega'}</span>
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

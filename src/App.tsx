@@ -73,7 +73,20 @@ import {
   purchaseAndDrinkCoffee,
   shouldTriggerLowEnergyAlert,
 } from './cafeteria/cafeteriaSystem';
-import { AlertTriangle, Coffee, Loader2, Moon, Sun } from 'lucide-react';
+import {
+  advanceHomeStayTimer,
+  canReturnToOfficeFromHome,
+  equipHomeFurnitureVersion,
+  GameLocation,
+  HOME_STAY_DURATION_SECONDS,
+  HomeFurnitureItem,
+  purchaseHomeFurniture,
+  resolveNightfallChoice,
+  sleepInHomeBed,
+} from './home/homeSystem';
+import { NightDecisionModal } from './ui/NightDecisionModal';
+import { HomeFurnitureModal } from './ui/HomeFurnitureModal';
+import { AlertTriangle, BedDouble, Coffee, Loader2, Moon, Sun } from 'lucide-react';
 
 type GameState = 'title' | 'loading' | 'story' | 'playing' | 'paused' | 'gameover';
 
@@ -85,6 +98,11 @@ export default function App() {
     if (params.get('autostart') === '1') return 'playing';
     if (params.get('story') === '1') return 'story';
     return 'title';
+  });
+
+  const [currentLocation, setCurrentLocation] = useState<GameLocation>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('location') === 'home' ? 'home' : 'office';
   });
 
   const [playerName, setPlayerName] = useState<string>(initialSave.playerName);
@@ -104,6 +122,10 @@ export default function App() {
     return params.get('night') === '1'
       ? NIGHT_SHIFT_DURATION_SECONDS
       : DAY_SHIFT_DURATION_SECONDS;
+  });
+  const [showNightDecisionModal, setShowNightDecisionModal] = useState<boolean>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('nightPrompt') === '1';
   });
   const [shiftTransitionBanner, setShiftTransitionBanner] = useState<'day' | 'night' | null>(
     null
@@ -152,6 +174,7 @@ export default function App() {
     return isLowEnergyWarning(startEnergy);
   });
   const [isSleepingBlackout, setIsSleepingBlackout] = useState<boolean>(false);
+  const [sleepBlackoutMode, setSleepBlackoutMode] = useState<'exhaustion' | 'home_rest'>('exhaustion');
   const [sleepFadeOpacity, setSleepFadeOpacity] = useState<number>(0);
   const [sleepPenaltyNotice, setSleepPenaltyNotice] = useState<{
     penalty: number;
@@ -178,6 +201,28 @@ export default function App() {
   const [purchasedAccessoryIds, setPurchasedAccessoryIds] = useState<string[]>(
     initialSave.purchasedAccessoryIds
   );
+  const [purchasedFurnitureIds, setPurchasedFurnitureIds] = useState<string[]>(
+    initialSave.purchasedFurnitureIds || []
+  );
+  const [showHomeFurnitureModal, setShowHomeFurnitureModal] = useState<boolean>(false);
+  const [nearHomeDoor, setNearHomeDoor] = useState<boolean>(false);
+  const [nearHomeBed, setNearHomeBed] = useState<boolean>(false);
+  const [hasSleptAtHome, setHasSleptAtHome] = useState<boolean>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('hasSlept') === '1';
+  });
+  const [homeStayRemaining, setHomeStayRemaining] = useState<number>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const homeSec = params.get('homeSec');
+    if (homeSec !== null && !Number.isNaN(Number(homeSec))) {
+      return Math.max(1, Math.round(Number(homeSec)));
+    }
+    return HOME_STAY_DURATION_SECONDS;
+  });
+  const [homeActionToast, setHomeActionToast] = useState<{
+    ok: boolean;
+    text: string;
+  } | null>(null);
   const [playerCustomization, setPlayerCustomization] = useState<PlayerCustomization>(
     initialSave.playerCustomization
   );
@@ -381,6 +426,7 @@ export default function App() {
   // playing bocejomasculino.mp3 or bocejofeminino.mp3 and restoring 10% energy (or triggering Company Bankruptcy Game Over if in debt/out of points).
   const triggerSleepOnJobBlackout = useCallback(
     (basePoints: number) => {
+      setSleepBlackoutMode('exhaustion');
       setIsSleepingBlackout(true);
       setSleepFadeOpacity(0);
       setLowEnergyAlertOpen(false);
@@ -420,6 +466,7 @@ export default function App() {
           setUnlockedMedals(cleanCareer.unlockedMedals);
           setPurchasedOutfitIds(cleanCareer.purchasedOutfitIds);
           setPurchasedAccessoryIds(cleanCareer.purchasedAccessoryIds);
+          setPurchasedFurnitureIds([]);
           setPlayerCustomization(cleanCareer.playerCustomization);
           setRecentIds([]);
           setSleepPenaltyNotice(null);
@@ -484,7 +531,12 @@ export default function App() {
 
   // If started directly at 0% energy or already in a bankrupt state (e.g. via URL param or saved state), trigger the sleep/bankruptcy fade-out
   useEffect(() => {
-    if (gameState === 'playing' && !isSleepingBlackout && !sleepPenaltyNotice) {
+    if (
+      gameState === 'playing' &&
+      currentLocation === 'office' &&
+      !isSleepingBlackout &&
+      !sleepPenaltyNotice
+    ) {
       if (
         energy <= 0 ||
         isCompanyBankrupt(energy, points, difficulty, resolvedCount, nightShift)
@@ -494,6 +546,7 @@ export default function App() {
     }
   }, [
     gameState,
+    currentLocation,
     energy,
     isSleepingBlackout,
     sleepPenaltyNotice,
@@ -504,9 +557,15 @@ export default function App() {
     triggerSleepOnJobBlackout,
   ]);
 
-  // Automatic 3-Minute Day / 2-Minute Night Shift Cycle ("a cada 3 min de dia fica 2 de noite, automaticamente")
+  // Automatic 3-Minute Day / 2-Minute Night Shift Cycle in the Office
+  // When Day finishes and Night arrives, prompts the player with NightDecisionModal ("deseja fazer um plantao noturno ou ir para a casa descansar")
   useEffect(() => {
-    if (gameState !== 'playing' || isSleepingBlackout) {
+    if (
+      gameState !== 'playing' ||
+      currentLocation !== 'office' ||
+      isSleepingBlackout ||
+      showNightDecisionModal
+    ) {
       return;
     }
 
@@ -514,17 +573,161 @@ export default function App() {
       setShiftCycleRemaining((prevRem) => {
         const next = advanceDayNightCycle(nightShift, prevRem);
         if (next.transitioned) {
-          setNightShift(next.isNightShift);
-          saveGameData({ nightShift: next.isNightShift });
+          if (next.isNightShift) {
+            // Night arrived! Show the NightDecisionModal asking Plantão Noturno vs Ir para Casa Descansar
+            soundEngine.playNotification();
+            setShowNightDecisionModal(true);
+            return prevRem;
+          }
+          // Night shift finished -> Dawn arrives automatically
+          setNightShift(false);
+          saveGameData({ nightShift: false });
           soundEngine.playNotification();
-          setShiftTransitionBanner(next.isNightShift ? 'night' : 'day');
+          setShiftTransitionBanner('day');
         }
         return next.remainingSeconds;
       });
     }, 1000);
 
     return () => clearInterval(cycleTimer);
-  }, [gameState, isSleepingBlackout, nightShift]);
+  }, [gameState, currentLocation, isSleepingBlackout, showNightDecisionModal, nightShift]);
+
+  const handleChooseNightShift = useCallback(() => {
+    const outcome = resolveNightfallChoice(
+      'night_shift',
+      energy,
+      DAY_SHIFT_DURATION_SECONDS,
+      NIGHT_SHIFT_DURATION_SECONDS
+    );
+    setShowNightDecisionModal(false);
+    setNightShift(outcome.isNightShift);
+    setShiftCycleRemaining(outcome.nextCycleSeconds);
+    saveGameData({ nightShift: outcome.isNightShift });
+    soundEngine.playNotification();
+    setShiftTransitionBanner('night');
+  }, [energy]);
+
+  const handleChooseGoHome = useCallback(() => {
+    const outcome = resolveNightfallChoice(
+      'go_home',
+      energy,
+      DAY_SHIFT_DURATION_SECONDS,
+      NIGHT_SHIFT_DURATION_SECONDS
+    );
+    setShowNightDecisionModal(false);
+    setLowEnergyAlertOpen(false);
+    setActiveToolModal('none');
+    setActiveDialogueNpc(null);
+    setActiveCafeteriaDialogue(null);
+    setAutoWalkTarget(null);
+    voiceNarrator.stop();
+    soundEngine.playInteract();
+
+    setCurrentLocation(outcome.nextLocation);
+    setNightShift(outcome.isNightShift);
+    setShiftCycleRemaining(outcome.nextCycleSeconds);
+    setHomeStayRemaining(outcome.homeStaySeconds);
+    setHasSleptAtHome(outcome.hasSleptAtHome);
+    setHomeActionToast({
+      ok: true,
+      text: 'Bem-vindo à sua Casa (3 min até voltar ao emprego)! Caminhe até a cama no quarto e clique para dormir e recuperar 100% de energia.',
+    });
+    saveGameData({
+      energy: outcome.nextEnergy,
+      nightShift: outcome.isNightShift,
+    });
+  }, [energy]);
+
+  const handleSleepInHomeBed = useCallback(() => {
+    if (isSleepingBlackout) return;
+    setShowHomeFurnitureModal(false);
+    setSleepBlackoutMode('home_rest');
+    setIsSleepingBlackout(true);
+    setSleepFadeOpacity(0);
+    soundEngine.playYawnSleepSound(playerCustomization.genero);
+
+    window.setTimeout(() => {
+      setSleepFadeOpacity(1);
+    }, 25);
+
+    window.setTimeout(() => {
+      const res = sleepInHomeBed();
+      setEnergy(res.nextEnergy);
+      setHasSleptAtHome(res.hasSleptAtHome);
+      setLowEnergyAlertOpen(false);
+      saveGameData({ energy: res.nextEnergy });
+      soundEngine.playSuccess();
+      setHomeActionToast({
+        ok: true,
+        text: res.message,
+      });
+      setSleepFadeOpacity(0);
+      window.setTimeout(() => {
+        setIsSleepingBlackout(false);
+      }, 450);
+    }, 1500);
+  }, [isSleepingBlackout, playerCustomization.genero]);
+
+  const executeReturnToOfficeNow = useCallback(() => {
+    soundEngine.playInteract();
+    setShowHomeFurnitureModal(false);
+    setHomeActionToast(null);
+    setCurrentLocation('office');
+    setNightShift(false);
+    setShiftCycleRemaining(DAY_SHIFT_DURATION_SECONDS);
+    setShiftTransitionBanner('day');
+    saveGameData({ nightShift: false });
+  }, []);
+
+  const handleReturnToOfficeFromHome = useCallback(() => {
+    const check = canReturnToOfficeFromHome(hasSleptAtHome);
+    if (!check.allowed) {
+      soundEngine.playError();
+      setHomeActionToast({
+        ok: false,
+        text: check.reason!,
+      });
+      return;
+    }
+    executeReturnToOfficeNow();
+  }, [hasSleptAtHome, executeReturnToOfficeNow]);
+
+  // 3-Minute Home Stay Countdown Timer ("3 min contando ate a volta para o emprego")
+  useEffect(() => {
+    if (
+      gameState !== 'playing' ||
+      currentLocation !== 'home' ||
+      isSleepingBlackout
+    ) {
+      return;
+    }
+
+    const homeTimer = window.setInterval(() => {
+      setHomeStayRemaining((prev) => {
+        const step = advanceHomeStayTimer(prev, hasSleptAtHome);
+        if (step.shouldAutoReturnToOffice) {
+          window.setTimeout(() => {
+            executeReturnToOfficeNow();
+          }, 50);
+        } else if (step.shouldPromptMustSleep && prev > 0) {
+          soundEngine.playNotification();
+          setHomeActionToast({
+            ok: false,
+            text: 'Os 3 minutos em casa terminaram! Caminhe até a cama no quarto e clique para dormir agora para recuperar 100% de energia e voltar ao escritório.',
+          });
+        }
+        return step.nextRemainingSeconds;
+      });
+    }, 1000);
+
+    return () => clearInterval(homeTimer);
+  }, [gameState, currentLocation, isSleepingBlackout, hasSleptAtHome, executeReturnToOfficeNow]);
+
+  useEffect(() => {
+    if (!homeActionToast) return;
+    const t = window.setTimeout(() => setHomeActionToast(null), 5500);
+    return () => clearTimeout(t);
+  }, [homeActionToast]);
 
   useEffect(() => {
     if (!shiftTransitionBanner) return;
@@ -532,10 +735,12 @@ export default function App() {
     return () => clearTimeout(t);
   }, [shiftTransitionBanner]);
 
-  // Varied Ticket Pacing & Rush Hour Timer (ticks every 1s during playing; NO passive energy drain!)
+  // Varied Ticket Pacing & Rush Hour Timer (ticks every 1s during playing in the office; NO passive energy drain!)
   useEffect(() => {
     if (
       gameState !== 'playing' ||
+      currentLocation !== 'office' ||
+      showNightDecisionModal ||
       resolvedModalData ||
       showCustomizationModal ||
       isSleepingBlackout
@@ -572,6 +777,8 @@ export default function App() {
     return () => clearInterval(timer);
   }, [
     gameState,
+    currentLocation,
+    showNightDecisionModal,
     resolvedModalData,
     showCustomizationModal,
     isSleepingBlackout,
@@ -607,8 +814,11 @@ export default function App() {
     const cleanCareer = buildResetCareerState();
     setPlayerName('');
     setDifficulty('normal');
+    setCurrentLocation('office');
     setNightShift(false);
     setShiftCycleRemaining(DAY_SHIFT_DURATION_SECONDS);
+    setShowNightDecisionModal(false);
+    setShowHomeFurnitureModal(false);
     setShiftTransitionBanner(null);
     setPoints(cleanCareer.points);
     setEnergy(cleanCareer.energy);
@@ -616,6 +826,7 @@ export default function App() {
     setUnlockedMedals(cleanCareer.unlockedMedals);
     setPurchasedOutfitIds(cleanCareer.purchasedOutfitIds);
     setPurchasedAccessoryIds(cleanCareer.purchasedAccessoryIds);
+    setPurchasedFurnitureIds([]);
     setPlayerCustomization(cleanCareer.playerCustomization);
     setRecentIds([]);
     setLowEnergyAlertOpen(false);
@@ -649,6 +860,9 @@ export default function App() {
   const handleOpenStoryIntro = useCallback(() => {
     setShowInputModeModal(false);
     setShowCustomizationModal(false);
+    setCurrentLocation('office');
+    setShowNightDecisionModal(false);
+    setShowHomeFurnitureModal(false);
     setNightShift(false);
     setShiftCycleRemaining(DAY_SHIFT_DURATION_SECONDS);
     setShiftTransitionBanner(null);
@@ -712,6 +926,10 @@ export default function App() {
           setShowCustomizationModal(false);
           return;
         }
+        if (showHomeFurnitureModal) {
+          setShowHomeFurnitureModal(false);
+          return;
+        }
         if (activeToolModal !== 'none') {
           setActiveToolModal('none');
           return;
@@ -724,7 +942,13 @@ export default function App() {
         setGameState((prev) =>
           prev === 'playing' ? 'paused' : prev === 'paused' ? 'playing' : prev
         );
-      } else if (e.code === 'KeyP' && activeToolModal === 'none' && !showCustomizationModal && !isTyping) {
+      } else if (
+        e.code === 'KeyP' &&
+        activeToolModal === 'none' &&
+        !showCustomizationModal &&
+        !showHomeFurnitureModal &&
+        !isTyping
+      ) {
         setGameState((prev) =>
           prev === 'playing' ? 'paused' : prev === 'paused' ? 'playing' : prev
         );
@@ -739,6 +963,7 @@ export default function App() {
         gameState === 'playing' &&
         activeToolModal === 'none' &&
         !showCustomizationModal &&
+        !showHomeFurnitureModal &&
         !isTyping
       ) {
         setCameraZoom((z) => (z >= 1.9 ? 1.0 : 2.1));
@@ -754,6 +979,7 @@ export default function App() {
     activeToolModal,
     activeDialogueNpc,
     showCustomizationModal,
+    showHomeFurnitureModal,
     showCreditsModal,
     showInputModeModal,
     handlePromptInputModeBeforeStart,
@@ -1051,11 +1277,41 @@ export default function App() {
     return { ok: res.success, message: res.message };
   };
 
+  const handlePurchaseHomeFurniture = (item: HomeFurnitureItem) => {
+    const res = purchaseHomeFurniture({
+      furnitureId: item.id,
+      currentPoints: points,
+      purchasedFurnitureIds,
+    });
+    if (res.success) {
+      soundEngine.playSuccess();
+      setPoints(res.nextPoints);
+      setPurchasedFurnitureIds(res.nextPurchasedFurnitureIds);
+      saveGameData({
+        points: res.nextPoints,
+        purchasedFurnitureIds: res.nextPurchasedFurnitureIds,
+      });
+    } else {
+      soundEngine.playError();
+    }
+    return { ok: res.success, message: res.message };
+  };
+
+  const handleEquipHomeFurnitureVersion = (item: HomeFurnitureItem) => {
+    soundEngine.playInteract();
+    const nextIds = equipHomeFurnitureVersion(item.id, purchasedFurnitureIds);
+    setPurchasedFurnitureIds(nextIds);
+    saveGameData({ purchasedFurnitureIds: nextIds });
+  };
+
   return (
     <main className="relative w-screen h-screen overflow-hidden select-none">
-      {/* Persistent 3D Isometric Office Viewport (Player walks mechanically via Analog Joystick or WASD/Setas) */}
+      {/* Persistent 3D Isometric Office & Home Viewport */}
       <OfficeSceneView
         gameState={gameState}
+        currentLocation={currentLocation}
+        purchasedFurnitureIds={purchasedFurnitureIds}
+        hasSleptAtHome={hasSleptAtHome}
         activeProblem={resolvedModalData ? null : activeProblem}
         queuedSectorIds={ticketQueue.map((p) => p.setor)}
         playerCustomization={playerCustomization}
@@ -1066,12 +1322,22 @@ export default function App() {
           // Player moves mechanically via joystick or keyboard
         }}
         onNearbyChange={handleNearbyChange}
+        onHomeProximityChange={(nearDoor, nearBed) => {
+          setNearHomeDoor(nearDoor);
+          setNearHomeBed(nearBed);
+        }}
         onInteractRequest={handleInteractRequest}
         onOpenCafeteriaRequest={() => {
           soundEngine.playInteract();
           setActiveToolModal('cafeteria');
         }}
         onTalkToCafeteriaNpcRequest={handleTalkToCafeteriaNpc}
+        onOpenHomeShopRequest={() => {
+          soundEngine.playInteract();
+          setShowHomeFurnitureModal(true);
+        }}
+        onSleepInHomeBedRequest={handleSleepInHomeBed}
+        onReturnToOfficeRequest={handleReturnToOfficeFromHome}
         npcEmotionOverride={npcEmotionOverride}
         cameraZoom={cameraZoom}
         onWheelZoom={(delta) =>
@@ -1199,9 +1465,34 @@ export default function App() {
           </div>
         )}
 
+      {/* Home Action / Bed Requirement Notification Toast */}
+      {gameState === 'playing' &&
+        currentLocation === 'home' &&
+        homeActionToast &&
+        !isSleepingBlackout && (
+          <div
+            role="alert"
+            data-testid="home-action-toast"
+            className={`fixed top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none max-w-xl w-[92%] px-4 py-2.5 rounded-2xl border shadow-2xl flex items-center gap-2.5 text-xs font-extrabold transition-all ${
+              homeActionToast.ok
+                ? 'bg-emerald-950/95 border-emerald-400/60 text-emerald-100'
+                : 'bg-rose-950/95 border-rose-400/60 text-rose-100'
+            }`}
+          >
+            <BedDouble className="w-4 h-4 shrink-0" />
+            <span>{homeActionToast.text}</span>
+          </div>
+        )}
+
       {/* Playing HUD Overlay */}
       {gameState === 'playing' && (
         <HudOverlay
+          currentLocation={currentLocation}
+          purchasedFurnitureIds={purchasedFurnitureIds}
+          nearHomeDoor={nearHomeDoor}
+          nearHomeBed={nearHomeBed}
+          hasSleptAtHome={hasSleptAtHome}
+          homeStayRemaining={homeStayRemaining}
           activeProblem={activeProblem}
           ticketQueue={ticketQueue}
           nextTicketCountdown={nextTicketCountdown}
@@ -1261,6 +1552,12 @@ export default function App() {
             voiceNarrator.stop();
             setActiveCafeteriaDialogue(null);
           }}
+          onOpenHomeShop={() => {
+            soundEngine.playInteract();
+            setShowHomeFurnitureModal(true);
+          }}
+          onSleepInHomeBed={handleSleepInHomeBed}
+          onReturnToOffice={handleReturnToOfficeFromHome}
           onCycleCameraZoom={() =>
             setCameraZoom((z) => (z < 0.9 ? 1.0 : z < 1.8 ? 2.1 : 0.8))
           }
@@ -1287,6 +1584,40 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Nightfall Decision Modal ("quando chegar a noite o funcionário recebe a modal perguntando se ele deseja fazer um plantao noturno ou ir para a casa descansar") */}
+      {gameState === 'playing' &&
+        showNightDecisionModal &&
+        !isSleepingBlackout && (
+          <NightDecisionModal
+            playerName={playerName}
+            energy={energy}
+            points={points}
+            ownedFurnitureCount={purchasedFurnitureIds.length}
+            onChooseNightShift={handleChooseNightShift}
+            onChooseGoHome={handleChooseGoHome}
+          />
+        )}
+
+      {/* Home Furniture & Decoration Catalog Modal (inside the 3D Home map) */}
+      {gameState === 'playing' &&
+        currentLocation === 'home' &&
+        showHomeFurnitureModal &&
+        !isSleepingBlackout && (
+          <HomeFurnitureModal
+            points={points}
+            purchasedFurnitureIds={purchasedFurnitureIds}
+            hasSleptAtHome={hasSleptAtHome}
+            homeStayRemaining={homeStayRemaining}
+            onPurchaseFurniture={handlePurchaseHomeFurniture}
+            onEquipFurnitureVersion={handleEquipHomeFurnitureVersion}
+            onReturnToOffice={handleReturnToOfficeFromHome}
+            onClose={() => {
+              soundEngine.playInteract();
+              setShowHomeFurnitureModal(false);
+            }}
+          />
+        )}
 
       {/* Interactive 3D/Tactile Hardware Workbench Modal (Strictly requires being physically at the target sector!) */}
       {gameState === 'playing' &&
@@ -1550,22 +1881,37 @@ export default function App() {
         </div>
       )}
 
-      {/* 0% Energy Gradual-Yet-Fast Blackout Screen ("quando a energia acabar, a tela devera apagar gradualmente mas de maneira ainda rapida nao de maneira abrupta") */}
+      {/* Gradual-Yet-Fast Blackout Screen (Used both when collapsing at 0% energy AND when going home to rest/sleep!) */}
       {isSleepingBlackout && (
         <div
           data-testid="sleep-blackout-overlay"
-          aria-label="Tela escurecendo gradualmente — O jogador dormiu no serviço"
+          aria-label={
+            sleepBlackoutMode === 'home_rest'
+              ? 'Indo para casa descansar — Recuperando 100% de energia'
+              : 'Tela escurecendo gradualmente — O jogador dormiu no serviço'
+          }
           style={{
             opacity: sleepFadeOpacity,
             transition: 'opacity 700ms cubic-bezier(0.4, 0, 0.2, 1)',
           }}
           className="fixed inset-0 z-[200] bg-black pointer-events-auto flex items-center justify-center"
         >
-          <div className="flex flex-col items-center gap-2 text-slate-400/80">
-            <Moon className="w-8 h-8 text-amber-300/70 animate-pulse" />
-            <span className="text-xs font-bold tracking-widest uppercase">
-              Exaustão (0% Energia)... Cochilando no turno
-            </span>
+          <div className="flex flex-col items-center gap-2 text-slate-300/90">
+            {sleepBlackoutMode === 'home_rest' ? (
+              <>
+                <BedDouble className="w-8 h-8 text-emerald-300/80 animate-pulse" />
+                <span className="text-xs font-bold tracking-widest uppercase">
+                  Indo para Casa Descansar... Recuperando 100% da Energia
+                </span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-8 h-8 text-amber-300/70 animate-pulse" />
+                <span className="text-xs font-bold tracking-widest uppercase">
+                  Exaustão (0% Energia)... Cochilando no turno
+                </span>
+              </>
+            )}
           </div>
         </div>
       )}

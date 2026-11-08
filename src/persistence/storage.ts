@@ -24,6 +24,7 @@ export interface OverclockedSaveData {
   unlockedMedals: string[];
   purchasedOutfitIds: string[];
   purchasedAccessoryIds: string[];
+  purchasedFurnitureIds: string[];
   playerCustomization: PlayerCustomization;
   recentProblemIds: string[];
 }
@@ -42,6 +43,7 @@ const DEFAULT_SAVE: OverclockedSaveData = {
   unlockedMedals: [],
   purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
   purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+  purchasedFurnitureIds: [],
   playerCustomization: { ...DEFAULT_CUSTOMIZATION },
   recentProblemIds: [],
 };
@@ -54,6 +56,7 @@ export function loadSaveData(): OverclockedSaveData {
         ...DEFAULT_SAVE,
         purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
         purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+        purchasedFurnitureIds: [],
         playerCustomization: { ...DEFAULT_CUSTOMIZATION },
       };
     }
@@ -85,6 +88,14 @@ export function loadSaveData(): OverclockedSaveData {
       ? Array.from(new Set([...DEFAULT_PURCHASED_ACCESSORIES, ...parsed.purchasedAccessoryIds]))
       : [...DEFAULT_PURCHASED_ACCESSORIES];
 
+    const purchasedFurnitureIds: string[] = Array.isArray(parsed.purchasedFurnitureIds)
+      ? Array.from(
+          new Set<string>(
+            parsed.purchasedFurnitureIds.filter((x: unknown): x is string => typeof x === 'string')
+          )
+        )
+      : [];
+
     return {
       playerName: typeof parsed.playerName === 'string' ? parsed.playerName : DEFAULT_SAVE.playerName,
       difficulty:
@@ -111,6 +122,7 @@ export function loadSaveData(): OverclockedSaveData {
       unlockedMedals: Array.isArray(parsed.unlockedMedals) ? parsed.unlockedMedals : [],
       purchasedOutfitIds,
       purchasedAccessoryIds,
+      purchasedFurnitureIds,
       playerCustomization,
       recentProblemIds: Array.isArray(parsed.recentProblemIds)
         ? parsed.recentProblemIds.slice(-15)
@@ -121,6 +133,7 @@ export function loadSaveData(): OverclockedSaveData {
       ...DEFAULT_SAVE,
       purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
       purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+      purchasedFurnitureIds: [],
       playerCustomization: { ...DEFAULT_CUSTOMIZATION },
     };
   }
@@ -162,6 +175,7 @@ export function resetSaveData(): OverclockedSaveData {
     unlockedMedals: [],
     purchasedOutfitIds: [...DEFAULT_PURCHASED_OUTFITS],
     purchasedAccessoryIds: [...DEFAULT_PURCHASED_ACCESSORIES],
+    purchasedFurnitureIds: [],
     playerCustomization: { ...DEFAULT_CUSTOMIZATION },
     recentProblemIds: [],
   };

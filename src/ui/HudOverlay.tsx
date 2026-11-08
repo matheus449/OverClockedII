@@ -17,14 +17,21 @@ import { isFemaleNpc, voiceNarrator } from '../audio/voiceNarrator';
 import { InputControlMode } from '../player/touchControls';
 import { TouchControlsPad } from './TouchControlsPad';
 import {
+  calculateHomeComfortScore,
+  GameLocation,
+} from '../home/homeSystem';
+import {
   Award,
+  BedDouble,
   CheckCircle2,
   Clock,
   Coffee,
   Cpu,
   FastForward,
   Flame,
+  Home,
   Laptop,
+  Lock,
   Map,
   MessageCircle,
   Mic,
@@ -32,6 +39,7 @@ import {
   Moon,
   Pause,
   Shirt,
+  ShoppingBag,
   Sun,
   Volume2,
   VolumeX,
@@ -41,6 +49,12 @@ import {
 } from 'lucide-react';
 
 interface HudOverlayProps {
+  currentLocation?: GameLocation;
+  purchasedFurnitureIds?: string[];
+  nearHomeDoor?: boolean;
+  nearHomeBed?: boolean;
+  hasSleptAtHome?: boolean;
+  homeStayRemaining?: number;
   activeProblem: ProblemData | null;
   ticketQueue: ProblemData[];
   nextTicketCountdown: number;
@@ -78,6 +92,9 @@ interface HudOverlayProps {
   onOpenCafeteria: () => void;
   onTalkToCafeteriaNpc: (npc: CafeteriaNpc) => void;
   onCloseCafeteriaDialogue: () => void;
+  onOpenHomeShop?: () => void;
+  onSleepInHomeBed?: () => void;
+  onReturnToOffice?: () => void;
   onCycleCameraZoom: () => void;
   onToggleFullMap: () => void;
   onOpenPause: () => void;
@@ -89,6 +106,12 @@ interface HudOverlayProps {
 }
 
 export const HudOverlay: React.FC<HudOverlayProps> = ({
+  currentLocation = 'office',
+  purchasedFurnitureIds = [],
+  nearHomeDoor = false,
+  nearHomeBed = false,
+  hasSleptAtHome = false,
+  homeStayRemaining = 180,
   activeProblem,
   ticketQueue,
   nextTicketCountdown,
@@ -120,6 +143,9 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   onOpenCafeteria,
   onTalkToCafeteriaNpc,
   onCloseCafeteriaDialogue,
+  onOpenHomeShop,
+  onSleepInHomeBed,
+  onReturnToOffice,
   onToggleFullMap,
   onOpenPause,
   onOpenNpcDialogue,
@@ -140,14 +166,101 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
   );
 
   const isFullMap = cameraZoom >= 1.9;
+  const homeComfort = calculateHomeComfortScore(purchasedFurnitureIds);
 
   return (
     <div className="fixed inset-0 z-10 pointer-events-none flex flex-col justify-between p-2 sm:p-3">
       {/* SINGLE-ROW COMPACT TOP PERIMETER HUD (Left: Active Ticket Pill · Right: Sleek Metrics & Quick Tools) */}
       <div className="flex items-start justify-between gap-2 w-full">
-        {/* TOP-LEFT: Compact Active Ticket Module (Zero Auto-Walk Buttons!) */}
-        <div className="flex flex-col gap-1.5 min-w-0 max-w-[46%] sm:max-w-md">
-          {activeProblem && targetSector && targetNpc ? (
+        {/* TOP-LEFT: Compact Active Ticket Module (or Home Status Card when inside Home Map) */}
+        <div className="flex flex-col gap-1.5 min-w-0 max-w-[52%] sm:max-w-lg">
+          {currentLocation === 'home' ? (
+            <div
+              data-testid="hud-home-status-card"
+              className="pointer-events-auto bg-[#0b111e]/94 border border-emerald-500/40 rounded-2xl px-3.5 py-2.5 shadow-xl flex flex-col gap-2"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0">
+                    <Home className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-300 font-bold">
+                      <span className="truncate">Sua Casa · {homeComfort.levelTitle}</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 truncate">
+                      {homeComfort.ownedSlotsCount}/{homeComfort.totalSlots} Móveis ({homeComfort.ownedCount}/36) · Conforto +{homeComfort.totalComfort}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {nearHomeBed && !hasSleptAtHome && (
+                    <button
+                      type="button"
+                      data-testid="hud-top-sleep-bed-btn"
+                      onClick={onSleepInHomeBed}
+                      className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold flex items-center gap-1 cursor-pointer shadow-md"
+                    >
+                      <BedDouble className="w-3.5 h-3.5" />
+                      Dormir [E]
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    data-testid="hud-open-furniture-shop-btn"
+                    onClick={onOpenHomeShop}
+                    className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-extrabold flex items-center gap-1 cursor-pointer shadow-md"
+                  >
+                    <ShoppingBag className="w-3.5 h-3.5" />
+                    Loja de Móveis
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="hud-return-office-btn"
+                    onClick={onReturnToOffice}
+                    className={`px-2.5 py-1.5 rounded-xl text-[11px] font-extrabold flex items-center gap-1 cursor-pointer shadow-md ${
+                      hasSleptAtHome
+                        ? 'bg-sky-500 hover:bg-sky-400 text-slate-950'
+                        : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40'
+                    }`}
+                    title={
+                      hasSleptAtHome
+                        ? 'Voltar para o Escritório (Novo Dia)'
+                        : 'Caminhe até a cama no quarto e clique para dormir antes de voltar ao trabalho!'
+                    }
+                  >
+                    {hasSleptAtHome ? (
+                      <>
+                        <Sun className="w-3.5 h-3.5" />
+                        Ir Trabalhar
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-3 h-3" />
+                        Ir Trabalhar
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-row inside Home Status Card showing Bed Sleep Requirement */}
+              <div className="pt-1 border-t border-slate-800/80 flex items-center justify-between gap-2 text-[10px]">
+                {hasSleptAtHome ? (
+                  <span className="text-emerald-300 font-bold flex items-center gap-1">
+                    <BedDouble className="w-3 h-3 text-emerald-400 shrink-0" />
+                    Energia 100% recuperada na cama · Porta de saída liberada!
+                  </span>
+                ) : (
+                  <span className="text-amber-300 font-bold flex items-center gap-1">
+                    <BedDouble className="w-3 h-3 text-amber-400 shrink-0" />
+                    Vá até a cama no quarto e clique em Dormir para recuperar 100% de energia
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : activeProblem && targetSector && targetNpc ? (
             <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800/90 rounded-2xl px-3 py-2 shadow-xl flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -306,21 +419,33 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
           <div className="h-5 w-px bg-slate-800 mx-0.5" />
 
-          {/* Automatic Day/Night Cycle Indicator (3 min Day -> 2 min Night automatically) */}
+          {/* Automatic Day/Night Cycle Indicator (or 3-Minute Home Stay Countdown when inside Home) */}
           <div
             data-testid="hud-shift-cycle-badge"
             className={`h-8 px-2 sm:px-2.5 rounded-xl border flex items-center gap-1.5 text-[11px] font-bold shrink-0 ${
-              nightShift
+              currentLocation === 'home'
+                ? 'bg-emerald-500/20 border-emerald-400/50 text-emerald-200 shadow-sm'
+                : nightShift
                 ? 'bg-indigo-500/25 border-indigo-400/50 text-indigo-200 shadow-sm'
                 : 'bg-amber-500/10 border-amber-500/30 text-amber-200'
             }`}
             title={
-              nightShift
+              currentLocation === 'home'
+                ? `Tempo em Casa até voltar ao emprego (${formatCycleTimer(homeStayRemaining)}) — Durma na cama para recuperar 100% da energia!`
+                : nightShift
                 ? `Plantão Noturno Automático (${formatCycleTimer(shiftCycleRemaining)} restantes) — +50% Pontos · Maior Gasto de Energia · Café +50%`
                 : `Turno Diurno Automático (${formatCycleTimer(shiftCycleRemaining)} até anoitecer) — Ciclo: 3 min de Dia / 2 min de Noite`
             }
           >
-            {nightShift ? (
+            {currentLocation === 'home' ? (
+              <>
+                <Home className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                <span className="hidden xl:inline">Volta</span>
+                <span className="font-mono-tabular text-[11px] text-emerald-100">
+                  {formatCycleTimer(homeStayRemaining)}
+                </span>
+              </>
+            ) : nightShift ? (
               <>
                 <Moon className="w-3.5 h-3.5 text-indigo-300 shrink-0" />
                 <span className="hidden xl:inline">Noite</span>
@@ -793,6 +918,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           !activeDialogueNpc &&
           !activeCafeteriaDialogue && (
             <TouchControlsPad
+              currentLocation={currentLocation}
+              nearHomeBed={nearHomeBed}
+              nearHomeDoor={nearHomeDoor}
+              hasSleptAtHome={hasSleptAtHome}
+              onSleepInHomeBed={onSleepInHomeBed}
+              onOpenHomeShop={onOpenHomeShop}
+              onReturnToOffice={onReturnToOffice}
               hasNearbyNpc={Boolean(nearby)}
               nearbyNpcFirstName={nearby?.npc.nome.split(' ')[0]}
               nearCafeteria={nearCafeteria}
@@ -809,6 +941,58 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           )}
 
         {inputMode === 'keyboard_mouse' &&
+          currentLocation === 'home' && (
+            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800 rounded-2xl px-3.5 py-2 shadow-2xl flex flex-wrap items-center justify-center gap-2">
+              {nearHomeBed && (
+                <button
+                  type="button"
+                  data-testid="hud-sleep-bed-btn"
+                  onClick={onSleepInHomeBed}
+                  className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <BedDouble className="w-4 h-4" />
+                  {hasSleptAtHome
+                    ? 'Dormir Novamente na Cama (100% Energia) [E]'
+                    : 'Dormir na Cama · Recuperar 100% Energia [E]'}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onOpenHomeShop}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                Comprar Móveis para Casa [E]
+              </button>
+              {nearHomeDoor && (
+                <button
+                  type="button"
+                  data-testid="hud-door-return-office-btn"
+                  onClick={onReturnToOffice}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md ${
+                    hasSleptAtHome
+                      ? 'bg-sky-500 hover:bg-sky-400 text-slate-950'
+                      : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40'
+                  }`}
+                >
+                  {hasSleptAtHome ? (
+                    <>
+                      <Sun className="w-3.5 h-3.5" />
+                      Sair pela Porta · Novo Dia no Escritório [E]
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-3.5 h-3.5" />
+                      Porta Trancada · Vá Dormir na Cama Primeiro
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+
+        {inputMode === 'keyboard_mouse' &&
+          currentLocation === 'office' &&
           !resolvedModalData &&
           !activeDialogueNpc &&
           !activeCafeteriaDialogue &&
