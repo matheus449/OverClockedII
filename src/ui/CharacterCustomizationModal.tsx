@@ -116,13 +116,13 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
     <div
       role="dialog"
       aria-label="Personalização do Analista, Roupas, Acessórios e Medalhas"
-      className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/75 pointer-events-auto"
+      className="fixed inset-0 z-40 flex items-center justify-center p-4 lg-modal-backdrop pointer-events-auto"
     >
-      <div className="w-full max-w-4xl bg-[#0f172a] border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh]">
+      <div className="w-full max-w-4xl lg-modal-floating rounded-2xl overflow-hidden flex flex-col max-h-[88vh]">
         {/* Header */}
-        <div className="px-6 py-4 bg-[#090d16] border-b border-slate-800 flex items-center justify-between gap-4">
+        <div className="px-6 py-4 lg-modal-header flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <div className="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shadow-inner">
               <Shirt className="w-5 h-5" />
             </div>
             <div>
@@ -168,7 +168,7 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
               type="button"
               aria-label="Fechar Personalização"
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 cursor-pointer"
+              className="p-2 rounded-xl lg-btn-secondary text-slate-300 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -176,11 +176,11 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
         </div>
 
         {/* Body Layout */}
-        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+        <div className="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-white/10">
           {/* Left Column: Character Live Avatar Preview & Campaign Completion Status */}
-          <div className="md:col-span-4 p-5 bg-[#0b111e] flex flex-col justify-between gap-4">
+          <div className="md:col-span-4 p-5 bg-white/[0.02] flex flex-col justify-between gap-4">
             <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 flex flex-col items-center text-center">
+              <div className="p-4 rounded-2xl lg-inner-well flex flex-col items-center text-center">
                 <svg viewBox="0 0 140 160" className="w-36 h-40">
                   <circle cx="70" cy="80" r="60" fill="#0f172a" />
                   {customization.acessorioId === 'mochila_dev' && (
@@ -332,10 +332,10 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                     onClick={() =>
                       onChangeCustomization({ ...customization, genero: 'masculino' })
                     }
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer lg-control-chip ${
                       customization.genero === 'masculino'
-                        ? 'bg-[#0071e3] border-sky-400 text-white'
-                        : 'bg-[#090d16] border-slate-800 text-slate-300'
+                        ? 'lg-control-chip-active text-white'
+                        : 'text-slate-300'
                     }`}
                   >
                     <User className="w-3.5 h-3.5" />
@@ -346,10 +346,10 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                     onClick={() =>
                       onChangeCustomization({ ...customization, genero: 'feminino' })
                     }
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer lg-control-chip ${
                       customization.genero === 'feminino'
-                        ? 'bg-[#0071e3] border-sky-400 text-white'
-                        : 'bg-[#090d16] border-slate-800 text-slate-300'
+                        ? 'lg-control-chip-active text-white'
+                        : 'text-slate-300'
                     }`}
                   >
                     <User className="w-3.5 h-3.5" />
@@ -360,12 +360,12 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
             </div>
 
             {/* Strictly Locked Full Wardrobe Status unless Game is Beaten */}
-            <div className="pt-3 border-t border-slate-800/80">
+            <div className="pt-3 border-t border-white/10">
               <div
                 className={`p-3 rounded-xl border text-xs ${
                   gameBeaten
                     ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-300'
-                    : 'bg-[#090d16] border-slate-800 text-slate-400'
+                    : 'lg-inner-well text-slate-400'
                 }`}
               >
                 <div className="font-bold flex items-center gap-1.5 text-slate-200 mb-1">
@@ -392,7 +392,7 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
 
           {/* Right Column: Tabs */}
           <div className="md:col-span-8 p-5 flex flex-col gap-4">
-            <div className="grid grid-cols-4 gap-2 p-1 bg-[#090d16] rounded-xl border border-slate-800">
+            <div className="grid grid-cols-4 gap-2 p-1 lg-inner-well rounded-xl">
               {[
                 { id: 'roupas', label: `Roupas (${ALL_OUTFITS.length})` },
                 { id: 'acessorios', label: `Acessórios (${ALL_ACCESSORIES.length})` },
@@ -410,9 +410,9 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                       t.id as 'personagem' | 'roupas' | 'acessorios' | 'medalhas'
                     )
                   }
-                  className={`py-2 px-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
+                  className={`py-2 px-2 rounded-lg text-xs font-semibold cursor-pointer lg-control-chip ${
                     activeTab === t.id
-                      ? 'bg-[#0071e3] text-white'
+                      ? 'lg-control-chip-active text-white'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -469,14 +469,14 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                           onChangeCustomization({ ...customization, roupaId: outfit.id });
                         }
                       }}
-                      className={`p-3 rounded-xl border text-left flex items-start justify-between gap-2.5 transition-all ${
+                      className={`p-3 rounded-xl text-left flex items-start justify-between gap-2.5 lg-choice-card ${
                         isSelected
-                          ? 'bg-[#111c33] border-sky-400 shadow-md cursor-pointer'
+                          ? 'lg-choice-card-sky cursor-pointer'
                           : isOwned
-                          ? 'bg-[#090d16] border-slate-800 hover:border-slate-700 cursor-pointer'
+                          ? 'cursor-pointer'
                           : canAfford
-                          ? 'bg-[#090d16] border-amber-500/40 hover:border-amber-400 cursor-pointer'
-                          : 'bg-[#090d16]/50 border-slate-800/60 opacity-60 cursor-not-allowed'
+                          ? 'border-amber-500/40 hover:border-amber-400 cursor-pointer'
+                          : 'opacity-60 cursor-not-allowed'
                       }`}
                     >
                       <div className="flex items-start gap-2.5 min-w-0">
@@ -494,7 +494,7 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                           <span className="text-xs font-bold text-slate-100 block truncate">
                             {outfit.nome}
                           </span>
-                          <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                          <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
                             {outfit.descricao}
                           </p>
                           <span
@@ -526,15 +526,15 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
 
                       <div className="shrink-0">
                         {isSelected ? (
-                          <span className="w-5 h-5 rounded-full bg-sky-500 text-slate-950 flex items-center justify-center">
+                          <span className="w-5 h-5 rounded-full bg-sky-400/25 border border-sky-300/65 text-sky-100 flex items-center justify-center">
                             <Check className="w-3 h-3" />
                           </span>
                         ) : isOwned ? (
-                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-bold">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-[10px] font-bold">
                             Vestir
                           </span>
                         ) : canAfford ? (
-                          <span className="px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-extrabold">
+                          <span className="px-2 py-0.5 rounded bg-amber-400/20 border border-amber-300/55 text-amber-200 text-[10px] font-extrabold">
                             Comprar
                           </span>
                         ) : (
@@ -565,10 +565,10 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                       onClick={() =>
                         setAccFilter(cat.id as 'todos' | AccessoryCategory)
                       }
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer ${
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer lg-control-chip ${
                         accFilter === cat.id
-                          ? 'bg-sky-500 text-slate-950'
-                          : 'bg-[#090d16] border border-slate-800 text-slate-300 hover:border-slate-700'
+                          ? 'lg-control-chip-active text-white'
+                          : 'text-slate-300'
                       }`}
                     >
                       {cat.label}
@@ -615,14 +615,14 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                             });
                           }
                         }}
-                        className={`p-3 rounded-xl border text-left flex items-start justify-between gap-2.5 transition-all ${
+                        className={`p-3 rounded-xl text-left flex items-start justify-between gap-2.5 lg-choice-card ${
                           isSelected
-                            ? 'bg-[#111c33] border-sky-400 shadow-md cursor-pointer'
+                            ? 'lg-choice-card-sky cursor-pointer'
                             : isOwned
-                            ? 'bg-[#090d16] border-slate-800 hover:border-slate-700 cursor-pointer'
+                            ? 'cursor-pointer'
                             : canAfford
-                            ? 'bg-[#090d16] border-amber-500/40 hover:border-amber-400 cursor-pointer'
-                            : 'bg-[#090d16]/50 border-slate-800/60 opacity-60 cursor-not-allowed'
+                            ? 'border-amber-500/40 hover:border-amber-400 cursor-pointer'
+                            : 'opacity-60 cursor-not-allowed'
                         }`}
                       >
                         <div className="flex items-start gap-2.5 min-w-0">
@@ -636,7 +636,7 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                             <span className="text-xs font-bold text-slate-100 block truncate">
                               {acc.nome}
                             </span>
-                            <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                            <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
                               {acc.descricao}
                             </p>
                             <span
@@ -668,15 +668,15 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
 
                         <div className="shrink-0">
                           {isSelected ? (
-                            <span className="w-5 h-5 rounded-full bg-sky-500 text-slate-950 flex items-center justify-center">
+                            <span className="w-5 h-5 rounded-full bg-sky-400/25 border border-sky-300/65 text-sky-100 flex items-center justify-center">
                               <Check className="w-3 h-3" />
                             </span>
                           ) : isOwned ? (
-                            <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-400/35 text-emerald-300 text-[10px] font-bold">
                               Equipar
                             </span>
                           ) : canAfford ? (
-                            <span className="px-2 py-0.5 rounded bg-amber-500 text-slate-950 text-[10px] font-extrabold">
+                            <span className="px-2 py-0.5 rounded bg-amber-400/20 border border-amber-300/55 text-amber-200 text-[10px] font-extrabold">
                               Comprar
                             </span>
                           ) : (
@@ -707,10 +707,8 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                           onClick={() =>
                             onChangeCustomization({ ...customization, tomPele: tone.id })
                           }
-                          className={`p-2.5 rounded-xl border flex flex-col items-center gap-1.5 cursor-pointer ${
-                            active
-                              ? 'bg-[#111c33] border-sky-400'
-                              : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+                          className={`p-2.5 rounded-xl flex flex-col items-center gap-1.5 cursor-pointer lg-choice-card ${
+                            active ? 'lg-choice-card-sky' : ''
                           }`}
                         >
                           <span
@@ -740,10 +738,8 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                           onClick={() =>
                             onChangeCustomization({ ...customization, corCabelo: hair.id })
                           }
-                          className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer ${
-                            active
-                              ? 'bg-[#111c33] border-sky-400'
-                              : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+                          className={`p-3 rounded-xl flex items-center gap-3 cursor-pointer lg-choice-card ${
+                            active ? 'lg-choice-card-sky' : ''
                           }`}
                         >
                           <span
@@ -769,10 +765,10 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                   return (
                     <div
                       key={medal.id}
-                      className={`p-3.5 rounded-xl border flex items-start gap-3 ${
+                      className={`p-3.5 rounded-xl flex items-start gap-3 lg-choice-card ${
                         earned
-                          ? 'bg-[#111c33]/90 border-amber-500/40'
-                          : 'bg-[#090d16]/60 border-slate-800 opacity-65'
+                          ? 'border-amber-500/40'
+                          : 'opacity-65'
                       }`}
                     >
                       <div
@@ -793,7 +789,7 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
                             +{medal.pontosRecompensa} pts
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                        <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
                           {medal.descricao}
                         </p>
                       </div>
@@ -806,14 +802,14 @@ export const CharacterCustomizationModal: React.FC<CharacterCustomizationModalPr
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 bg-[#090d16] border-t border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-3.5 lg-modal-footer flex items-center justify-between">
           <span className="text-xs text-slate-400">
             Resolva chamados sem erros para ganhar pontos e liberar roupas, chapéus, óculos e fones!
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-bold cursor-pointer"
+            className="px-5 py-2 rounded-xl lg-btn-primary text-xs font-bold cursor-pointer"
           >
             Confirmar e Voltar
           </button>

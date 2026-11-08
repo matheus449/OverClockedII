@@ -149,10 +149,10 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
       <div
         role="dialog"
         aria-label="Monitor sem sinal ou computador desligado"
-        className="fixed inset-0 z-30 flex items-center justify-center p-4 bg-black/80 pointer-events-auto"
+        className="fixed inset-0 z-30 flex items-center justify-center p-4 lg-modal-backdrop pointer-events-auto"
       >
-        <div className="w-full max-w-2xl bg-[#090d16] border-4 border-slate-800 rounded-2xl p-10 text-center shadow-2xl">
-          <div className="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto mb-4">
+        <div className="w-full max-w-2xl lg-modal-floating rounded-2xl p-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto mb-4 shadow-inner">
             <Monitor className="w-7 h-7" />
           </div>
           <h2 className="text-xl font-bold text-slate-100 mb-2">
@@ -165,7 +165,7 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
             <button
               type="button"
               onClick={onSwitchToHardware}
-              className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-5 py-2.5 rounded-xl lg-btn-amber text-xs font-bold flex items-center gap-2 cursor-pointer"
             >
               <Wrench className="w-4 h-4" />
               Inspecionar Cabos e Hardware Físico
@@ -173,7 +173,7 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+              className="px-4 py-2.5 rounded-xl lg-btn-secondary text-slate-200 text-xs font-semibold cursor-pointer"
             >
               Fechar
             </button>
@@ -187,16 +187,16 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
     <div
       role="dialog"
       aria-label="Computador Virtual OverOS"
-      className="fixed inset-0 z-30 flex items-center justify-center p-3 md:p-6 bg-black/75 pointer-events-auto"
+      className="fixed inset-0 z-30 flex items-center justify-center p-3 md:p-6 lg-modal-backdrop pointer-events-auto"
     >
       {/* Monitor Frame */}
       <div
-        className={`w-full max-w-6xl h-[90dvh] md:h-[86vh] bg-[#0b1324] border-2 md:border-4 border-[#1e293b] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative ${
+        className={`w-full max-w-6xl h-[90dvh] md:h-[86vh] lg-modal-floating rounded-2xl flex flex-col overflow-hidden relative ${
           !state.resolucaoNativa ? 'scale-y-95 tracking-widest' : ''
         }`}
       >
         {/* Top Bezel Bar: NPC Quote + Switch to Physical Hardware + Close */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#090d16] border-b border-slate-800 shrink-0">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-2.5 lg-modal-header shrink-0">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
             <span className="text-xs font-bold text-sky-400 whitespace-nowrap">
               OverOS Pro · {problem.setor.toUpperCase()}
@@ -220,7 +220,7 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
               type="button"
               aria-label="Fechar Computador Virtual"
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg lg-btn-secondary text-slate-300 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -253,7 +253,7 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
         {/* Main Virtual Desktop Workspace (Responsive: horizontal dock on mobile, left sidebar on desktop) */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#13203c] to-[#0b1324] relative">
           {/* App Icons Dock (Horizontal scroll on Mobile, Left Sidebar on Desktop) */}
-          <div className="w-full md:w-60 p-2 md:p-3 flex flex-row md:flex-col gap-1.5 border-b md:border-b-0 md:border-r border-slate-800/70 bg-[#090d16]/60 shrink-0 overflow-x-auto md:overflow-y-auto">
+          <div className="w-full md:w-60 p-2 md:p-3 flex flex-row md:flex-col gap-1.5 border-b md:border-b-0 md:border-r border-white/10 bg-slate-950/45 shrink-0 overflow-x-auto md:overflow-y-auto">
             <span className="hidden md:block text-[11px] font-semibold text-slate-400 px-2 py-1">
               Ferramentas do Sistema
             </span>
@@ -265,10 +265,10 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
                   setActiveApp(app.id);
                   setStartMenuOpen(false);
                 }}
-                className={`shrink-0 md:w-full px-3 py-2 md:py-2.5 rounded-xl text-left flex items-center justify-between gap-2 transition-colors cursor-pointer ${
+                className={`shrink-0 md:w-full px-3 py-2 md:py-2.5 rounded-xl text-left flex items-center justify-between gap-2 cursor-pointer lg-control-chip ${
                   activeApp === app.id
-                    ? 'bg-[#0071e3] text-white shadow-sm'
-                    : 'text-slate-300 hover:bg-slate-800/70 bg-slate-900/60 md:bg-transparent'
+                    ? 'lg-control-chip-active text-white'
+                    : 'text-slate-300'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -284,7 +284,7 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
             ))}
 
             {showHints && (
-              <div className="hidden md:block mt-auto p-3 rounded-xl bg-[#090d16]/90 border border-slate-800">
+              <div className="hidden md:block mt-auto p-3 rounded-xl lg-inner-well">
                 <p className="text-[11px] font-semibold text-sky-400 mb-1">
                   Guia Passo a Passo:
                 </p>
@@ -299,9 +299,9 @@ export const VirtualOSModal: React.FC<VirtualOSProps> = ({
 
           {/* Right Active OS Window Area */}
           <div className="flex-1 p-3 sm:p-5 overflow-y-auto space-y-3">
-            <div className="bg-[#0f172a] border border-slate-800 rounded-xl shadow-xl overflow-hidden">
+            <div className="lg-choice-card rounded-xl shadow-xl overflow-hidden">
               {/* Window Title Bar */}
-              <div className="px-4 sm:px-5 py-2.5 sm:py-3 bg-[#1e293b]/70 border-b border-slate-800 flex items-center justify-between">
+              <div className="px-4 sm:px-5 py-2.5 sm:py-3 lg-modal-header flex items-center justify-between">
                 <span className="text-xs sm:text-sm font-semibold text-slate-100">
                   {apps.find((a) => a.id === activeApp)?.label}
                 </span>

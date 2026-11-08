@@ -43,13 +43,13 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
       aria-modal="true"
       aria-label="Escolha como você joga: Teclado e Mouse ou Tela Touch"
       data-testid="input-mode-select-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/85 backdrop-blur-md pointer-events-auto overflow-y-auto"
+      className="lg-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 pointer-events-auto overflow-y-auto"
     >
-      <div className="w-full max-w-2xl max-h-[96dvh] overflow-y-auto rounded-2xl bg-[#0f172a] border-2 border-sky-500/45 p-3.5 sm:p-5 shadow-2xl space-y-2.5 sm:space-y-3.5">
+      <div className="lg-modal-floating w-full max-w-2xl max-h-[96dvh] overflow-y-auto rounded-2xl p-4 sm:p-5 space-y-3 sm:space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-2.5">
+        <div className="flex items-center justify-between gap-3 border-b border-white/12 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white p-1 border border-purple-400/50 flex items-center justify-center shrink-0 shadow-md">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white p-1 border border-white/40 flex items-center justify-center shrink-0 shadow-md">
               <img
                 src={OVERCLOCKED_ICON_URL}
                 alt="OVERCLOCKED"
@@ -57,7 +57,7 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
               />
             </div>
             <div>
-              <span className="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider">
+              <span className="text-sky-300 text-[10px] sm:text-[11px] font-bold tracking-wide block">
                 Escolha Seu Controle Antes de Iniciar
               </span>
               <h2 className="text-sm sm:text-lg font-extrabold text-white leading-tight mt-0.5">
@@ -70,14 +70,14 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
             type="button"
             aria-label="Voltar para a tela inicial"
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer shrink-0"
+            className="lg-btn-secondary p-1.5 rounded-xl text-slate-300 cursor-pointer shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Two Choice Cards: Teclado e Mouse vs Tela Touch */}
-        <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:gap-3.5">
           {/* Option 1: Teclado e Mouse */}
           <button
             type="button"
@@ -85,20 +85,18 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
             aria-pressed={selected === 'keyboard_mouse'}
             onClick={() => setSelected('keyboard_mouse')}
             onDoubleClick={() => handleConfirm('keyboard_mouse')}
-            className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-              selected === 'keyboard_mouse'
-                ? 'bg-[#111c33] border-sky-400 shadow-lg shadow-sky-500/15'
-                : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+            className={`lg-choice-card p-3.5 rounded-xl text-left cursor-pointer flex flex-col justify-between gap-2.5 ${
+              selected === 'keyboard_mouse' ? 'lg-choice-card-sky' : ''
             }`}
           >
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-1">
-                <div className="w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-300 shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-white/10 border border-sky-300/40 flex items-center justify-center text-sky-300 shrink-0">
                   <Keyboard className="w-4 h-4" />
                 </div>
                 {selected === 'keyboard_mouse' && (
-                  <span className="px-2 py-0.5 rounded-md bg-sky-500 text-slate-950 text-[10px] font-extrabold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
+                  <span className="px-2 py-0.5 rounded-md bg-sky-400/20 border border-sky-300/55 text-sky-100 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+                    <CheckCircle2 className="w-3 h-3 text-sky-300" />
                     Selecionado
                   </span>
                 )}
@@ -108,13 +106,13 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
                 <h3 className="text-xs sm:text-sm font-extrabold text-white">
                   Teclado e Mouse
                 </h3>
-                <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
+                <p className="text-[11px] text-slate-200 mt-0.5 leading-snug">
                   Ande com <strong className="text-sky-300">WASD / Setas</strong> ou clique no chão e <strong className="text-sky-300">[E]</strong> para interagir (sem joystick na tela).
                 </p>
               </div>
             </div>
 
-            <div className="pt-1.5 border-t border-slate-800/80 flex items-center gap-1 text-[10px] font-semibold text-sky-300">
+            <div className="pt-1.5 border-t border-white/10 flex items-center gap-1 text-[10px] font-semibold text-sky-300">
               <MousePointerClick className="w-3 h-3 shrink-0" />
               <span className="truncate">Computador, Notebook ou Teclado</span>
             </div>
@@ -127,20 +125,18 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
             aria-pressed={selected === 'touch'}
             onClick={() => setSelected('touch')}
             onDoubleClick={() => handleConfirm('touch')}
-            className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-              selected === 'touch'
-                ? 'bg-[#111c33] border-emerald-400 shadow-lg shadow-emerald-500/15'
-                : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+            className={`lg-choice-card p-3.5 rounded-xl text-left cursor-pointer flex flex-col justify-between gap-2.5 ${
+              selected === 'touch' ? 'lg-choice-card-emerald' : ''
             }`}
           >
             <div className="space-y-1.5">
               <div className="flex items-center justify-between gap-1">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-white/10 border border-emerald-300/40 flex items-center justify-center text-emerald-300 shrink-0">
                   <Gamepad2 className="w-4 h-4" />
                 </div>
                 {selected === 'touch' && (
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-slate-950 text-[10px] font-extrabold flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-400/20 border border-emerald-300/55 text-emerald-100 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-300" />
                     Selecionado
                   </span>
                 )}
@@ -150,13 +146,13 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
                 <h3 className="text-xs sm:text-sm font-extrabold text-white">
                   Tela Touch (Toque)
                 </h3>
-                <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">
+                <p className="text-[11px] text-slate-200 mt-0.5 leading-snug">
                   Ativa o <strong className="text-emerald-300">Joystick Analógico Redondo 360°</strong> na tela, botões de ação e zoom de pinça.
                 </p>
               </div>
             </div>
 
-            <div className="pt-1.5 border-t border-slate-800/80 flex items-center gap-1 text-[10px] font-semibold text-emerald-300">
+            <div className="pt-1.5 border-t border-white/10 flex items-center gap-1 text-[10px] font-semibold text-emerald-300">
               <Smartphone className="w-3 h-3 shrink-0" />
               <span className="truncate">Celulares e Tablets</span>
             </div>
@@ -165,7 +161,7 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
 
         {/* Footer: Mandatory Landscape Notice + Action Buttons in one compact row */}
         <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-          <div className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/35 flex items-center gap-2 text-[11px] text-amber-200 flex-1 min-w-0">
+          <div className="lg-inner-well px-3 py-2 rounded-xl border-amber-500/35 flex items-center gap-2 text-[11px] text-amber-200 flex-1 min-w-0">
             <RotateCw className="w-4 h-4 text-amber-400 shrink-0" />
             <span className="leading-tight">
               <strong>Modo Paisagem Obrigatório:</strong> Celulares e tablets operam na horizontal em ambos os modos.
@@ -176,7 +172,7 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
+              className="lg-btn-secondary px-3.5 py-2.5 rounded-xl text-xs font-semibold cursor-pointer"
             >
               Voltar
             </button>
@@ -185,7 +181,7 @@ export const InputModeSelectModal: React.FC<InputModeSelectModalProps> = ({
               type="button"
               data-testid="confirm-input-mode-start"
               onClick={() => handleConfirm(selected)}
-              className="px-4 sm:px-5 py-2.5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xl cursor-pointer transition-transform active:scale-95 whitespace-nowrap"
+              className="lg-btn-primary px-4 sm:px-5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>
@@ -248,15 +244,15 @@ export const MandatoryLandscapeOverlay: React.FC<MandatoryLandscapeOverlayProps>
       aria-modal="true"
       aria-label="Modo Paisagem Obrigatório — Gire seu celular ou tablet"
       data-testid="mandatory-landscape-overlay"
-      className="fixed inset-0 z-[250] bg-[#060911]/98 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center select-none pointer-events-auto"
+      className="lg-modal-backdrop fixed inset-0 z-[250] flex flex-col items-center justify-center p-6 text-center select-none pointer-events-auto"
     >
-      <div className="w-full max-w-md rounded-2xl bg-[#0f172a] border-2 border-amber-500/60 p-6 shadow-2xl space-y-5">
+      <div className="lg-modal-floating w-full max-w-md rounded-2xl border-amber-500/50 p-6 space-y-5">
         <div className="mx-auto w-20 h-20 rounded-2xl bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-inner">
           <RotateCw className="w-10 h-10 animate-spin" style={{ animationDuration: '4s' }} />
         </div>
 
         <div className="space-y-2">
-          <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-300 text-[11px] font-extrabold uppercase tracking-wider inline-block">
+          <span className="text-amber-300 text-xs font-extrabold tracking-wide block">
             Orientação Horizontal Obrigatória
           </span>
           <h2 className="text-xl font-extrabold text-white">
@@ -268,7 +264,7 @@ export const MandatoryLandscapeOverlay: React.FC<MandatoryLandscapeOverlayProps>
         </div>
 
         {/* Visual Horizontal Phone Diagram */}
-        <div className="py-3 px-4 rounded-xl bg-[#090d16] border border-slate-800 flex items-center justify-center gap-4">
+        <div className="lg-inner-well py-3 px-4 rounded-xl flex items-center justify-center gap-4">
           <div className="flex flex-col items-center gap-1 opacity-55">
             <div className="w-7 h-12 rounded-md border-2 border-rose-400/70 flex items-center justify-center text-[9px] font-bold text-rose-300">
               9:16
@@ -292,7 +288,7 @@ export const MandatoryLandscapeOverlay: React.FC<MandatoryLandscapeOverlayProps>
             onClick={() => {
               void requestLandscapeOrientationLock();
             }}
-            className="w-full py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-xl cursor-pointer transition-colors"
+            className="lg-btn-amber w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 cursor-pointer"
           >
             <Maximize2 className="w-4 h-4 shrink-0" />
             <span>Forçar Modo Paisagem em Tela Cheia</span>

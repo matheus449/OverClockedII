@@ -64,10 +64,10 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
     <div
       role="dialog"
       aria-label={mode === 'paused' ? 'Jogo Pausado e Configurações' : 'Resumo do Turno'}
-      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-4 bg-black/75 pointer-events-auto overflow-y-auto"
+      className="fixed inset-0 z-40 flex items-center justify-center p-3 sm:p-4 lg-modal-backdrop pointer-events-auto overflow-y-auto"
     >
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-[#0f172a] border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto lg-modal-floating rounded-2xl p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between border-b border-white/10 pb-3.5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white p-1.5 border border-purple-400/50 flex items-center justify-center shrink-0">
               <img
@@ -90,19 +90,19 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
 
         {/* Stat Tiles (Tabular Nums) */}
         <div className="grid grid-cols-3 gap-2.5">
-          <div className="p-2.5 rounded-xl bg-[#090d16] border border-slate-800">
+          <div className="p-2.5 rounded-xl lg-inner-well">
             <span className="text-[10px] text-slate-400 block">Chamados</span>
             <span className="text-lg font-bold font-mono-tabular text-slate-100">
               {resolvedCount}
             </span>
           </div>
-          <div className="p-2.5 rounded-xl bg-[#090d16] border border-slate-800">
+          <div className="p-2.5 rounded-xl lg-inner-well">
             <span className="text-[10px] text-amber-400 block">Pontos</span>
             <span className="text-lg font-bold font-mono-tabular text-amber-300">
               {points}
             </span>
           </div>
-          <div className="p-2.5 rounded-xl bg-[#090d16] border border-slate-800">
+          <div className="p-2.5 rounded-xl lg-inner-well">
             <span className="text-[10px] text-sky-400 block">Medalhas</span>
             <span className="text-lg font-bold font-mono-tabular text-sky-400">
               {unlockedMedalsCount}/8
@@ -115,13 +115,13 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
           <span className="text-xs font-medium text-slate-300 block mb-1.5">
             Modo de Controle (Teclado/Mouse ou Tela Touch)
           </span>
-          <div className="grid grid-cols-2 gap-2 p-1 bg-[#090d16] rounded-xl border border-slate-800">
+          <div className="grid grid-cols-2 gap-2 p-1 lg-inner-well rounded-xl">
             <button
               type="button"
               onClick={() => onChangeInputMode('keyboard_mouse')}
-              className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+              className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer lg-control-chip ${
                 inputMode === 'keyboard_mouse'
-                  ? 'bg-[#0071e3] text-white'
+                  ? 'lg-control-chip-active text-white'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -131,10 +131,10 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
             <button
               type="button"
               onClick={() => onChangeInputMode('touch')}
-              className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+              className={`py-2 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer ${
                 inputMode === 'touch'
-                  ? 'bg-emerald-500 text-slate-950 font-bold'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'lg-btn-emerald font-bold'
+                  : 'lg-control-chip text-slate-400 hover:text-slate-200'
               }`}
             >
               <Gamepad2 className="w-3.5 h-3.5" />
@@ -202,7 +202,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer ${
                 voiceEnabled
                   ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-                  : 'bg-slate-800 text-slate-400'
+                  : 'lg-btn-secondary text-slate-400'
               }`}
             >
               {voiceEnabled ? 'Ativada' : 'Desativada'}
@@ -215,15 +215,15 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
           <span className="text-xs font-medium text-slate-300 block mb-1.5">
             Dificuldade e Ritmo dos Chamados
           </span>
-          <div className="grid grid-cols-3 gap-2 p-1 bg-[#090d16] rounded-xl border border-slate-800">
+          <div className="grid grid-cols-3 gap-2 p-1 lg-inner-well rounded-xl">
             {(['facil', 'normal', 'dificil'] as DifficultyLevel[]).map((d) => (
               <button
                 key={d}
                 type="button"
                 onClick={() => onChangeDifficulty(d)}
-                className={`py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer ${
+                className={`py-1.5 rounded-lg text-xs font-semibold capitalize cursor-pointer lg-control-chip ${
                   difficulty === d
-                    ? 'bg-[#0071e3] text-white'
+                    ? 'lg-control-chip-active text-white'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -239,7 +239,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
             type="button"
             data-start={mode === 'gameover' ? 'true' : undefined}
             onClick={onResume}
-            className="w-full py-3 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full py-3 rounded-xl lg-btn-primary text-xs font-bold flex items-center justify-center gap-2 cursor-pointer"
           >
             <Play className="w-4 h-4 fill-current" />
             {mode === 'paused' ? 'Continuar Atendimento' : 'Continuar Turno'}
@@ -248,7 +248,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
           <button
             type="button"
             onClick={onOpenCustomization}
-            className="w-full py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 text-xs font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Shirt className="w-3.5 h-3.5" />
             <Award className="w-3.5 h-3.5" />
@@ -268,7 +268,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
             <button
               type="button"
               onClick={onRestartShift}
-              className="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="py-2.5 rounded-xl lg-btn-secondary text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Sortear Chamado
@@ -277,7 +277,7 @@ export const PauseSettingsModal: React.FC<PauseSettingsModalProps> = ({
             <button
               type="button"
               onClick={onReturnToTitle}
-              className="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="py-2.5 rounded-xl lg-btn-secondary text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Home className="w-3.5 h-3.5" />
               Tela Inicial

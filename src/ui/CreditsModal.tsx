@@ -26,11 +26,11 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
     <div
       role="dialog"
       aria-label="Créditos e Sobre o Jogo OVERCLOCKED"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-slate-950/85 backdrop-blur-md pointer-events-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 lg-modal-backdrop pointer-events-auto"
     >
-      <div className="w-full max-w-3xl max-h-[90vh] bg-[#0f172a] border border-purple-500/35 rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-3xl max-h-[90vh] lg-modal-floating border-purple-500/35 rounded-3xl overflow-hidden flex flex-col">
         {/* Top Modal Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-purple-950/70 via-slate-900 to-slate-900 border-b border-slate-800 flex items-center justify-between gap-4 shrink-0">
+        <div className="px-6 py-4 lg-modal-header flex items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-white p-1.5 border border-purple-400/50 shadow-md flex items-center justify-center shrink-0">
               <img
@@ -53,7 +53,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
             type="button"
             aria-label="Fechar tela de créditos"
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl lg-btn-secondary text-slate-300 hover:text-white cursor-pointer"
             title="Fechar [Esc]"
           >
             <X className="w-5 h-5" />
@@ -88,7 +88,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
           </div>
 
           {/* About & Author / Idealization Card */}
-          <div className="p-5 rounded-2xl bg-[#090d16] border border-slate-800 space-y-3">
+          <div className="p-5 rounded-2xl lg-inner-well space-y-3">
             <div className="flex items-center gap-2 text-purple-400 text-xs font-bold uppercase tracking-wider">
               <GraduationCap className="w-4 h-4" />
               <span>Idealização, Conceito & Propósito Educacional</span>
@@ -100,8 +100,8 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
               na <strong>NexusCorp Operações</strong>, o jogador vivencia diagnósticos reais de
               hardware, sistemas operacionais, redes e atendimento humano.
             </p>
-            <div className="pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+            <div className="pt-2 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div className="p-3 rounded-xl lg-hud-pill">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 block">
                   Direção & Criação
                 </span>
@@ -112,7 +112,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
                   Idealização, Roteiro & Regras de Simulação
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div className="p-3 rounded-xl lg-hud-pill">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 block">
                   Identidade Visual
                 </span>
@@ -123,7 +123,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
                   Logotipo Power Roxo & Design Isométrico 3D
                 </span>
               </div>
-              <div className="p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+              <div className="p-3 rounded-xl lg-hud-pill">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">
                   Didática em TI
                 </span>
@@ -139,7 +139,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
 
           {/* Game Systems & Mechanics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 space-y-2">
+            <div className="p-4 rounded-2xl lg-inner-well space-y-2">
               <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider">
                 <Wrench className="w-4 h-4" />
                 <span>Simulação Técnica & Diagnóstico</span>
@@ -151,7 +151,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
               </ul>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#090d16] border border-slate-800 space-y-2">
+            <div className="p-4 rounded-2xl lg-inner-well space-y-2">
               <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider">
                 <Coffee className="w-4 h-4" />
                 <span>Rotina, Cafeteria & Progressão</span>
@@ -165,7 +165,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
           </div>
 
           {/* Tech Stack Footer */}
-          <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div className="p-4 rounded-2xl lg-hud-pill flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs text-slate-300">
               <Code2 className="w-4 h-4 text-purple-400 shrink-0" />
               <span>
@@ -182,11 +182,11 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ onClose }) => {
         </div>
 
         {/* Bottom Action Footer */}
-        <div className="px-6 py-4 bg-[#090d16] border-t border-slate-800 flex items-center justify-end shrink-0">
+        <div className="px-6 py-4 lg-modal-footer flex items-center justify-end shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg transition-colors cursor-pointer"
+            className="px-6 py-2.5 rounded-xl lg-btn-primary text-xs font-bold flex items-center gap-2 cursor-pointer"
           >
             <Sparkles className="w-4 h-4" />
             Voltar ao Jogo

@@ -155,41 +155,39 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
           onPointerUp={handlePointerUpOrCancel}
           onPointerCancel={handlePointerUpOrCancel}
           onLostPointerCapture={() => resetStick()}
-          className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center touch-none cursor-grab active:cursor-grabbing shadow-2xl transition-colors ${
-            isDragging
-              ? 'bg-[#090d16]/90 border-2 border-sky-400/85 shadow-sky-500/25'
-              : 'bg-[#090d16]/75 border-2 border-slate-700/80'
+          className={`relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center touch-none cursor-grab active:cursor-grabbing lg-touch-pad ${
+            isDragging ? 'lg-touch-pad-active' : ''
           }`}
         >
           {/* Inner 360° Guide Ring */}
           <div
             className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-dashed pointer-events-none transition-colors ${
-              isDragging ? 'border-sky-400/45' : 'border-slate-700/60'
+              isDragging ? 'border-sky-400/50' : 'border-white/15'
             }`}
           />
 
           {/* Subtle Cardinal Compass Ticks on Outer Ring */}
-          <span className="pointer-events-none absolute top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-slate-500/70" />
-          <span className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-slate-500/70" />
-          <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-slate-500/70" />
-          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-slate-500/70" />
+          <span className="pointer-events-none absolute top-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-slate-400/70" />
+          <span className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-slate-400/70" />
+          <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-slate-400/70" />
+          <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-slate-400/70" />
 
           {/* Movable Round Thumbstick Knob */}
           <div
             ref={knobRef}
             data-testid="analog-joystick-knob"
-            className={`pointer-events-none absolute w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-xl border-2 ${
+            className={`pointer-events-none absolute w-11 h-11 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shadow-xl border backdrop-blur-md ${
               isDragging
-                ? 'bg-sky-500 border-sky-200 shadow-sky-500/40'
-                : 'bg-slate-800/95 border-slate-500/90'
+                ? 'bg-sky-400/25 border-sky-200/80 shadow-[0_0_20px_rgba(56,189,248,0.35),inset_0_1px_1px_rgba(255,255,255,0.65)]'
+                : 'bg-white/15 border-white/35 shadow-[0_6px_16px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.45)]'
             }`}
           >
             {/* Tactile Center Grip Ring */}
             <div
               className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border ${
                 isDragging
-                  ? 'border-slate-950/40 bg-sky-300/40'
-                  : 'border-slate-600 bg-slate-900/70'
+                  ? 'border-white/50 bg-sky-300/25'
+                  : 'border-white/25 bg-white/10'
               }`}
             />
           </div>
@@ -204,7 +202,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
               <button
                 type="button"
                 onClick={onSleepInHomeBed}
-                className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-emerald-300 transition cursor-pointer"
+                className="min-h-[44px] px-4 py-2 rounded-xl lg-btn-emerald text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
               >
                 <BedDouble className="w-4 h-4 shrink-0" />
                 <span>Dormir na Cama (100%)</span>
@@ -213,7 +211,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
             <button
               type="button"
               onClick={onOpenHomeShop}
-              className="min-h-[44px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
+              className="min-h-[44px] px-3.5 py-2 rounded-xl lg-btn-amber text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
             >
               <ShoppingBag className="w-4 h-4 shrink-0" />
               <span>Loja de Móveis</span>
@@ -222,7 +220,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
               <button
                 type="button"
                 onClick={onReturnToOffice}
-                className="min-h-[44px] px-3.5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-sky-300 transition cursor-pointer"
+                className="min-h-[44px] px-3.5 py-2 rounded-xl lg-btn-primary text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
               >
                 <Sun className="w-4 h-4 shrink-0" />
                 <span>Ir Trabalhar</span>
@@ -236,7 +234,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
                 <button
                   type="button"
                   onClick={onOpenHardwareWorkbench}
-                  className="min-h-[42px] px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+                  className="min-h-[42px] px-3.5 py-2 rounded-xl lg-btn-amber text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Cpu className="w-4 h-4 shrink-0" />
                   <span>Hardware</span>
@@ -244,7 +242,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
                 <button
                   type="button"
                   onClick={onOpenVirtualOS}
-                  className="min-h-[42px] px-3.5 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] active:scale-95 text-white text-xs font-extrabold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+                  className="min-h-[42px] px-3.5 py-2 rounded-xl lg-btn-primary text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Laptop className="w-4 h-4 shrink-0" />
                   <span>OverOS</span>
@@ -258,7 +256,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
                   <button
                     type="button"
                     onClick={onTalkToCafeteriaNpc}
-                    className="min-h-[44px] px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-sky-400/50 text-sky-300 text-xs font-bold flex items-center gap-1.5 shadow-lg transition cursor-pointer"
+                    className="min-h-[44px] px-3.5 py-2 rounded-xl lg-btn-secondary border-sky-400/45 text-sky-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                   >
                     <MessageCircle className="w-4 h-4 shrink-0" />
                     <span>
@@ -272,7 +270,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
                   <button
                     type="button"
                     onClick={onOpenCafeteria}
-                    className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
+                    className="min-h-[44px] px-4 py-2 rounded-xl lg-btn-amber text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
                   >
                     <Coffee className="w-4 h-4 shrink-0" />
                     <span>Cafeteria</span>
@@ -285,7 +283,7 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
               <button
                 type="button"
                 onClick={() => triggerTouchInteract()}
-                className="min-h-[44px] px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-emerald-300 transition cursor-pointer"
+                className="min-h-[44px] px-4 py-2 rounded-xl lg-btn-emerald text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
               >
                 <Hand className="w-4 h-4 shrink-0" />
                 <span>Atender {nearbyNpcFirstName || 'Colega'}</span>

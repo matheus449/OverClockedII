@@ -34,12 +34,12 @@ export function GameOverBankruptcyModal({
       aria-modal="true"
       aria-label="Game Over — A Empresa Faliu"
       data-testid="bankruptcy-gameover-modal"
-      className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-5 bg-slate-950/92 backdrop-blur-md pointer-events-auto overflow-y-auto"
+      className="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-5 lg-modal-backdrop pointer-events-auto overflow-y-auto"
     >
-      <div className="w-full max-w-xl rounded-2xl bg-[#0b1120] border-2 border-rose-500/80 shadow-[0_0_60px_rgba(244,63,94,0.28)] overflow-hidden my-auto">
+      <div className="w-full max-w-xl rounded-2xl lg-modal-floating border-rose-400/50 shadow-[0_0_50px_rgba(244,63,94,0.18)] overflow-hidden my-auto">
         {/* Top Corporate Liquidation Banner */}
-        <div className="bg-gradient-to-r from-rose-950/90 via-slate-900 to-rose-950/90 border-b border-rose-500/30 px-5 py-4 flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/50 flex items-center justify-center text-rose-400 shrink-0 shadow-inner">
+        <div className="lg-modal-header border-b border-rose-400/25 px-5 py-4 flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-400/40 flex items-center justify-center text-rose-300 shrink-0 shadow-inner">
             <AlertOctagon className="w-7 h-7 animate-pulse" />
           </div>
           <div className="min-w-0">
@@ -60,7 +60,7 @@ export function GameOverBankruptcyModal({
         {/* Main Body */}
         <div className="p-5 space-y-4">
           {/* Official Dismissal & Bankruptcy Letter */}
-          <div className="rounded-xl bg-slate-900/90 border border-slate-800 p-4 space-y-2.5">
+          <div className="rounded-xl lg-inner-well p-4 space-y-2.5">
             <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
               Olá, <strong className="text-white">{displayName}</strong>. Você ficou devendo créditos (
               <strong className="text-rose-400 font-mono-tabular">{finalPoints} pts</strong>), sua energia acabou (
@@ -76,7 +76,7 @@ export function GameOverBankruptcyModal({
 
           {/* Career Liquidation Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="p-3 rounded-xl bg-[#090d16] border border-rose-500/30 flex flex-col justify-between">
+            <div className="p-3 rounded-xl lg-inner-well border-rose-500/30 flex flex-col justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
                 Dívida Final
@@ -86,7 +86,7 @@ export function GameOverBankruptcyModal({
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800 flex flex-col justify-between">
+            <div className="p-3 rounded-xl lg-inner-well flex flex-col justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <Briefcase className="w-3.5 h-3.5 text-sky-400" />
                 Chamados
@@ -96,7 +96,7 @@ export function GameOverBankruptcyModal({
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800 flex flex-col justify-between">
+            <div className="p-3 rounded-xl lg-inner-well flex flex-col justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <Shirt className="w-3.5 h-3.5 text-amber-400" />
                 Roupas Resetadas
@@ -106,7 +106,7 @@ export function GameOverBankruptcyModal({
               </span>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#090d16] border border-slate-800 flex flex-col justify-between">
+            <div className="p-3 rounded-xl lg-inner-well flex flex-col justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <Award className="w-3.5 h-3.5 text-purple-400" />
                 Medalhas
@@ -131,7 +131,7 @@ export function GameOverBankruptcyModal({
               type="button"
               data-testid="bankruptcy-reset-btn"
               onClick={onConfirmFullReset}
-              className="w-full py-3.5 px-5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm uppercase tracking-wider shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+              className="w-full py-3.5 px-5 rounded-xl lg-btn-emerald font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer"
             >
               <RotateCcw className="w-4 h-4 stroke-[2.5]" />
               Tentar Novamente · Recomeçar Jogo do Zero (Desde a Apresentação)

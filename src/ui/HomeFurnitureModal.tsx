@@ -80,13 +80,13 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
       aria-modal="true"
       aria-label="Catálogo de Móveis e Decoração da Casa"
       data-testid="home-furniture-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 pointer-events-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 lg-modal-backdrop pointer-events-auto"
     >
-      <div className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-2xl bg-[#0f172a] border border-slate-700 shadow-2xl overflow-hidden">
+      <div className="w-full max-w-5xl max-h-[92vh] flex flex-col rounded-2xl lg-modal-floating overflow-hidden">
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-[#090d16]">
+        <div className="p-4 sm:p-5 lg-modal-header flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 shadow-inner">
               <Home className="w-5 h-5" />
             </div>
             <div>
@@ -106,7 +106,7 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center gap-1.5 text-sky-300 text-xs font-bold font-mono-tabular">
+            <div className="px-3 py-1.5 rounded-xl lg-hud-pill flex items-center gap-1.5 text-sky-300 text-xs font-bold font-mono-tabular">
               <Clock className="w-3.5 h-3.5 text-sky-400" />
               <span>Volta: {formatCycleTimer(homeStayRemaining)}</span>
             </div>
@@ -125,7 +125,7 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
               type="button"
               aria-label="Fechar Catálogo de Móveis"
               onClick={onClose}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+              className="p-2 rounded-xl lg-btn-secondary text-slate-300 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -133,17 +133,17 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="px-4 sm:px-5 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2 flex-wrap bg-[#0b111e]">
+        <div className="px-4 sm:px-5 py-2.5 border-b border-white/10 flex items-center justify-between gap-2 flex-wrap bg-white/[0.02]">
           <div className="flex items-center gap-1.5 flex-wrap">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer lg-control-chip ${
                   selectedCategory === cat.id
-                    ? 'bg-sky-500 text-slate-950'
-                    : 'bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800'
+                    ? 'lg-control-chip-active text-white'
+                    : 'text-slate-300'
                 }`}
               >
                 {cat.label}
@@ -183,12 +183,12 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
               <div
                 key={slot.slotId}
                 data-testid={`furniture-card-${item.id}`}
-                className={`rounded-2xl border p-4 flex flex-col justify-between gap-3 transition-all ${
+                className={`rounded-2xl p-4 flex flex-col justify-between gap-3 lg-choice-card ${
                   isEquipped
-                    ? 'bg-emerald-950/20 border-emerald-500/45'
+                    ? 'lg-choice-card-emerald'
                     : isOwned
-                    ? 'bg-sky-950/20 border-sky-500/40'
-                    : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+                    ? 'lg-choice-card-sky'
+                    : ''
                 }`}
               >
                 <div className="space-y-2.5">
@@ -205,7 +205,7 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
                   </div>
 
                   {/* 3-Version Selector Tabs (V1 / V2 / V3) */}
-                  <div className="grid grid-cols-3 gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800">
+                  <div className="grid grid-cols-3 gap-1 lg-inner-well p-1 rounded-xl">
                     {versions.map((verItem) => {
                       const verOwned = purchasedFurnitureIds.includes(verItem.id);
                       const verActive = verItem.versao === selectedVer;
@@ -222,7 +222,7 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
                           }
                           className={`py-1 px-1.5 rounded-lg text-[10px] font-extrabold transition-colors cursor-pointer flex items-center justify-center gap-1 ${
                             verActive
-                              ? 'bg-sky-500 text-slate-950 shadow-sm'
+                              ? 'lg-control-chip-active text-white'
                               : verOwned
                               ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
                               : 'text-slate-400 hover:text-slate-200'
@@ -242,10 +242,10 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
                     <h3 className="text-sm font-extrabold text-white mt-0.5">{item.nome}</h3>
                   </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed">{item.descricao}</p>
+                  <p className="text-xs text-slate-300 leading-relaxed">{item.descricao}</p>
                 </div>
 
-                <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                <div className="pt-2.5 border-t border-white/10 flex items-center justify-between gap-2">
                   <span className="text-xs font-extrabold font-mono-tabular text-amber-300">
                     {item.preco} pts
                   </span>
@@ -266,7 +266,7 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
                           text: `${item.nome} (${item.tierLabel}) equipado em 3D!`,
                         });
                       }}
-                      className="px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl lg-btn-primary text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Usar V{item.versao}
@@ -279,10 +279,10 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
                         const res = onPurchaseFurniture(item);
                         setFeedback({ ok: res.ok, text: res.message });
                       }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 cursor-pointer ${
                         canAfford
-                          ? 'bg-amber-500 hover:bg-amber-400 text-slate-950'
-                          : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                          ? 'lg-btn-amber'
+                          : 'lg-btn-secondary text-slate-400'
                       }`}
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-800 bg-[#090d16] flex flex-wrap items-center justify-between gap-3">
+        <div className="p-4 lg-modal-footer flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs">
             {hasSleptAtHome ? (
               <span className="text-emerald-300 font-bold flex items-center gap-1.5">
@@ -315,7 +315,7 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer"
+              className="px-4 py-2 rounded-xl lg-btn-secondary text-slate-200 text-xs font-bold cursor-pointer"
             >
               Caminhar pela Casa
             </button>
@@ -323,10 +323,10 @@ export const HomeFurnitureModal: React.FC<HomeFurnitureModalProps> = ({
               type="button"
               data-testid="modal-return-office-btn"
               onClick={onReturnToOffice}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md ${
+              className={`px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-1.5 cursor-pointer ${
                 hasSleptAtHome
-                  ? 'bg-sky-500 hover:bg-sky-400 text-slate-950'
-                  : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40'
+                  ? 'lg-btn-primary text-white'
+                  : 'lg-btn-secondary text-amber-300 border-amber-500/40'
               }`}
             >
               {hasSleptAtHome ? (

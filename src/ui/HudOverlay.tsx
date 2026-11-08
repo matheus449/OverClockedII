@@ -177,11 +177,11 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           {currentLocation === 'home' ? (
             <div
               data-testid="hud-home-status-card"
-              className="pointer-events-auto bg-[#0b111e]/94 border border-emerald-500/40 rounded-2xl px-3.5 py-2.5 shadow-xl flex flex-col gap-2"
+              className="pointer-events-auto lg-hud-bar border-emerald-500/40 rounded-2xl px-3.5 py-2.5 flex flex-col gap-2"
             >
               <div className="flex flex-wrap items-center justify-between gap-2.5">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-300 shrink-0 shadow-inner">
                     <Home className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
@@ -200,7 +200,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                       type="button"
                       data-testid="hud-top-sleep-bed-btn"
                       onClick={onSleepInHomeBed}
-                      className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold flex items-center gap-1 cursor-pointer shadow-md"
+                      className="px-2.5 py-1.5 rounded-xl lg-btn-emerald text-[11px] font-extrabold flex items-center gap-1 cursor-pointer"
                     >
                       <BedDouble className="w-3.5 h-3.5" />
                       Dormir [E]
@@ -210,7 +210,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                     type="button"
                     data-testid="hud-open-furniture-shop-btn"
                     onClick={onOpenHomeShop}
-                    className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-extrabold flex items-center gap-1 cursor-pointer shadow-md"
+                    className="px-2.5 py-1.5 rounded-xl lg-btn-amber text-[11px] font-extrabold flex items-center gap-1 cursor-pointer"
                   >
                     <ShoppingBag className="w-3.5 h-3.5" />
                     Loja de Móveis
@@ -219,10 +219,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                     type="button"
                     data-testid="hud-return-office-btn"
                     onClick={onReturnToOffice}
-                    className={`px-2.5 py-1.5 rounded-xl text-[11px] font-extrabold flex items-center gap-1 cursor-pointer shadow-md ${
+                    className={`px-2.5 py-1.5 rounded-xl text-[11px] font-extrabold flex items-center gap-1 cursor-pointer ${
                       hasSleptAtHome
-                        ? 'bg-sky-500 hover:bg-sky-400 text-slate-950'
-                        : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40'
+                        ? 'lg-btn-primary text-white'
+                        : 'lg-btn-secondary text-amber-300 border-amber-500/40'
                     }`}
                     title={
                       hasSleptAtHome
@@ -246,7 +246,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               </div>
 
               {/* Sub-row inside Home Status Card showing Bed Sleep Requirement */}
-              <div className="pt-1 border-t border-slate-800/80 flex items-center justify-between gap-2 text-[10px]">
+              <div className="pt-1 border-t border-white/10 flex items-center justify-between gap-2 text-[10px]">
                 {hasSleptAtHome ? (
                   <span className="text-emerald-300 font-bold flex items-center gap-1">
                     <BedDouble className="w-3 h-3 text-emerald-400 shrink-0" />
@@ -261,11 +261,11 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               </div>
             </div>
           ) : activeProblem && targetSector && targetNpc ? (
-            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800/90 rounded-2xl px-3 py-2 shadow-xl flex flex-col gap-1.5">
+            <div className="pointer-events-auto lg-hud-bar rounded-2xl px-3 py-2 flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
                     style={{ backgroundColor: targetSector.cor }}
                   />
                   <div className="min-w-0 flex-1">
@@ -289,13 +289,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                       e.currentTarget.blur();
                       if (nearby) onOpenNpcDialogue(nearby);
                     }}
-                    className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold transition-colors whitespace-nowrap cursor-pointer shrink-0 shadow-md"
+                    className="px-2.5 py-1.5 rounded-xl lg-btn-emerald text-[11px] font-extrabold whitespace-nowrap cursor-pointer shrink-0"
                   >
                     Atender [E]
                   </button>
                 ) : (
                   <span
-                    className="hidden sm:inline-flex px-2 py-1 rounded-lg bg-slate-900/90 border border-slate-700/80 text-[10px] font-semibold text-slate-400 whitespace-nowrap shrink-0"
+                    className="hidden sm:inline-flex px-2 py-1 rounded-lg lg-hud-pill text-[10px] font-semibold text-slate-300 whitespace-nowrap shrink-0"
                     title="Caminhe até o setor indicado pela trilha luminosa no chão para atender o chamado"
                   >
                     Vá até o setor
@@ -305,7 +305,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
               {/* Sub-row: Current Sector & Queue Tabs or Rush Hour / Low Energy Micro-Alerts */}
               {(ticketQueue.length > 1 || isRushHour || (energy <= 20 && energy > 0)) && (
-                <div className="pt-1 border-t border-slate-800/80 flex items-center gap-1.5 flex-wrap text-[10px]">
+                <div className="pt-1 border-t border-white/10 flex items-center gap-1.5 flex-wrap text-[10px]">
                   {isRushHour && (
                     <span className="text-amber-300 font-bold flex items-center gap-1">
                       <Flame className="w-3 h-3 text-orange-400 shrink-0" />
@@ -330,10 +330,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                           key={prob.id}
                           type="button"
                           onClick={() => onSelectQueuedTicket(prob.id)}
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold transition-colors cursor-pointer ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold cursor-pointer lg-control-chip ${
                             isSelected
-                              ? 'bg-sky-500 text-slate-950'
-                              : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                              ? 'lg-control-chip-active text-white'
+                              : 'text-slate-300'
                           }`}
                         >
                           #{idx + 1} {sec?.nome.split(' ')[0] || prob.setor}
@@ -344,7 +344,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               )}
             </div>
           ) : !resolvedModalData ? (
-            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800/90 rounded-2xl px-3 py-2 shadow-xl flex items-center gap-2.5">
+            <div className="pointer-events-auto lg-hud-bar rounded-2xl px-3 py-2 flex items-center gap-2.5">
               <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
               <div className="min-w-0">
                 <span className="text-[11px] font-bold text-emerald-400 block truncate">
@@ -357,7 +357,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               <button
                 type="button"
                 onClick={onSkipTicketWait}
-                className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+                className="px-2.5 py-1 rounded-xl lg-btn-secondary text-sky-300 text-[11px] font-bold flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
               >
                 <FastForward className="w-3 h-3" />
                 Receber Agora
@@ -369,7 +369,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
         </div>
 
         {/* TOP-RIGHT: Sleek Unified Status & Quick-Action Bar */}
-        <div className="pointer-events-auto flex items-center gap-1 sm:gap-1.5 bg-[#0b111e]/92 border border-slate-800/90 rounded-2xl px-2 py-1.5 shadow-xl shrink-0">
+        <div className="pointer-events-auto flex items-center gap-1 sm:gap-1.5 lg-hud-bar rounded-2xl px-2 py-1.5 shrink-0">
           {/* Energy Readout */}
           <div
             className={`px-2 py-1 rounded-xl border flex items-center gap-1 transition-colors ${
@@ -389,7 +389,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
           {/* Points Readout */}
           <div
-            className="px-2 py-1 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center gap-1"
+            className="px-2 py-1 rounded-xl lg-hud-pill flex items-center gap-1"
             title="Saldo de Pontos (Moeda para comprar cafés e roupas)"
           >
             <Award
@@ -408,7 +408,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
           {/* Resolved Tickets Counter */}
           <div
-            className="hidden sm:flex px-2 py-1 rounded-xl bg-slate-900/90 border border-slate-800 items-center gap-1 text-slate-200"
+            className="hidden sm:flex px-2 py-1 rounded-xl lg-hud-pill items-center gap-1 text-slate-200"
             title="Chamados Resolvidos"
           >
             <CheckCircle2 className="w-3.5 h-3.5 text-sky-400 shrink-0" />
@@ -417,7 +417,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
             </span>
           </div>
 
-          <div className="h-5 w-px bg-slate-800 mx-0.5" />
+          <div className="h-5 w-px bg-white/10 mx-0.5" />
 
           {/* Automatic Day/Night Cycle Indicator (or 3-Minute Home Stay Countdown when inside Home) */}
           <div
@@ -508,7 +508,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onOpenCustomization();
             }}
-            className="h-8 px-2 sm:px-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-amber-300 flex items-center gap-1 text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+            className="h-8 px-2 sm:px-2.5 rounded-xl lg-btn-secondary text-amber-300 flex items-center gap-1 text-[11px] font-bold cursor-pointer shrink-0"
             title="Loja de Roupas, Acessórios e Medalhas [C]"
           >
             <Shirt className="w-3.5 h-3.5 shrink-0" />
@@ -529,10 +529,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onToggleFullMap();
             }}
-            className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
+            className={`w-8 h-8 rounded-xl flex items-center justify-center cursor-pointer shrink-0 lg-control-chip ${
               isFullMap
-                ? 'bg-sky-500 text-slate-950'
-                : 'bg-slate-800/90 hover:bg-slate-700 text-slate-200'
+                ? 'lg-control-chip-active text-white'
+                : 'text-slate-200'
             }`}
             title="Visão do Mapa Inteiro [V]"
           >
@@ -551,7 +551,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
             className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 ${
               voiceEnabled
                 ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-                : 'bg-slate-800/90 hover:bg-slate-700 text-slate-400'
+                : 'lg-btn-secondary text-slate-400'
             }`}
             title={voiceEnabled ? 'Voz Humanizada Ativada' : 'Voz Humanizada Desativada'}
           >
@@ -567,7 +567,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onToggleMute();
             }}
-            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-xl lg-btn-secondary text-slate-200 flex items-center justify-center cursor-pointer shrink-0"
             title="Áudio [M]"
           >
             {muted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5" />}
@@ -582,7 +582,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               e.currentTarget.blur();
               onOpenPause();
             }}
-            className="w-8 h-8 rounded-xl bg-slate-800/90 hover:bg-slate-700 text-slate-200 flex items-center justify-center transition-colors cursor-pointer shrink-0"
+            className="w-8 h-8 rounded-xl lg-btn-secondary text-slate-200 flex items-center justify-center cursor-pointer shrink-0"
             title="Pausar [Esc / P]"
           >
             <Pause className="w-3.5 h-3.5" />
@@ -596,11 +596,11 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           <div
             role="dialog"
             aria-label="Chamado Concluído"
-            className="pointer-events-auto w-full max-w-lg bg-[#0f172a] border border-emerald-500/40 rounded-2xl p-5 shadow-2xl space-y-3.5"
+            className="pointer-events-auto w-full max-w-lg lg-dialogue-sheet border-emerald-500/45 rounded-2xl p-5 space-y-3.5"
           >
             <div className="flex items-center justify-between gap-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 shadow-inner">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
@@ -647,7 +647,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                 </div>
               )}
 
-            <div className="p-3.5 rounded-xl bg-[#090d16] border border-slate-800 space-y-1">
+            <div className="p-3.5 rounded-xl lg-inner-well space-y-1">
               <span className="text-xs font-semibold text-sky-400 block">
                 O que você aprendeu na prática:
               </span>
@@ -660,7 +660,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               <button
                 type="button"
                 onClick={onOpenCustomization}
-                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-2 rounded-xl lg-btn-secondary text-amber-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
               >
                 <Shirt className="w-4 h-4" />
                 Loja de Roupas
@@ -669,7 +669,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               <button
                 type="button"
                 onClick={onNextTicketAfterResolve}
-                className="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition-colors cursor-pointer"
+                className="px-4 py-2 rounded-xl lg-btn-primary text-xs font-semibold cursor-pointer"
               >
                 {ticketQueue.length > 1
                   ? 'Atender Próximo da Fila'
@@ -683,13 +683,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           <div
             role="region"
             aria-label={`Relato de ${activeDialogueNpc.nome}`}
-            className="pointer-events-auto w-full max-w-xl bg-[#0f172a] border border-slate-700 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3.5"
+            className="pointer-events-auto w-full max-w-xl lg-dialogue-sheet rounded-2xl p-4 sm:p-5 space-y-3.5"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3.5 min-w-0">
                 <svg
                   viewBox="0 0 56 56"
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#090d16] border border-slate-800 shrink-0"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#090d16] border border-white/10 shrink-0 shadow-inner"
                 >
                   <rect width="56" height="56" rx="12" fill="#090d16" />
                   <path
@@ -750,7 +750,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   type="button"
                   aria-label="Fechar mensagem do funcionário"
                   onClick={onCloseNpcDialogue}
-                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer"
+                  className="p-1.5 rounded-lg lg-btn-secondary text-slate-300 cursor-pointer"
                   title="Fechar [Esc]"
                 >
                   <X className="w-4 h-4" />
@@ -762,15 +762,15 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
             activeProblem &&
             activeDialogueNpc.setor === activeProblem.setor &&
             isAtTarget ? (
-              <div className="pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs text-slate-400">
+              <div className="pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs text-slate-300">
                   Escolha como iniciar o diagnóstico desta estação:
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={onOpenHardwareWorkbench}
-                    className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl lg-btn-amber text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                   >
                     <Wrench className="w-3.5 h-3.5" />
                     Inspecionar Hardware
@@ -778,7 +778,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   <button
                     type="button"
                     onClick={onOpenVirtualOS}
-                    className="px-3.5 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    className="px-3.5 py-2 rounded-xl lg-btn-primary text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                   >
                     <Laptop className="w-3.5 h-3.5" />
                     Computador Virtual (OverOS)
@@ -786,12 +786,12 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+              <div className="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
                 <span>Este setor não possui chamados pendentes no momento.</span>
                 <button
                   type="button"
                   onClick={onCloseNpcDialogue}
-                  className="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium cursor-pointer"
+                  className="px-3 py-1 rounded-lg lg-btn-secondary text-slate-200 font-medium cursor-pointer"
                 >
                   Entendido
                 </button>
@@ -805,13 +805,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           <div
             role="region"
             aria-label={`Conversa na Cafeteria com ${activeCafeteriaDialogue.npc.nome}`}
-            className="pointer-events-auto w-full max-w-xl bg-[#0f172a] border border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl space-y-3.5"
+            className="pointer-events-auto w-full max-w-xl lg-dialogue-sheet border-amber-500/40 rounded-2xl p-4 sm:p-5 space-y-3.5"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3.5 min-w-0">
                 <svg
                   viewBox="0 0 56 56"
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#090d16] border border-amber-500/30 shrink-0"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-[#090d16] border border-amber-500/30 shrink-0 shadow-inner"
                 >
                   <rect width="56" height="56" rx="12" fill="#090d16" />
                   <path
@@ -861,7 +861,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   type="button"
                   aria-label="Fechar conversa da cafeteria"
                   onClick={onCloseCafeteriaDialogue}
-                  className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors cursor-pointer shrink-0"
+                  className="p-1.5 rounded-lg lg-btn-secondary text-slate-300 cursor-pointer shrink-0"
                   title="Fechar [Esc]"
                 >
                   <X className="w-4 h-4" />
@@ -869,7 +869,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               </div>
             </div>
 
-            <div className="pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div className="pt-2.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-[11px] text-slate-400 mr-1">Na Cafeteria:</span>
                 {CAFETERIA_NPCS.map((cNpc) => (
@@ -879,8 +879,8 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                     onClick={() => onTalkToCafeteriaNpc(cNpc)}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold cursor-pointer transition-colors ${
                       activeCafeteriaDialogue.npc.id === cNpc.id
-                        ? 'bg-amber-500 text-slate-950 font-bold'
-                        : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                        ? 'lg-btn-amber font-bold'
+                        : 'lg-control-chip text-slate-200'
                     }`}
                   >
                     {cNpc.nome.split(' ')[0]}
@@ -904,7 +904,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                       onCloseCafeteriaDialogue();
                       onOpenCafeteria();
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl lg-btn-amber text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                   >
                     <Coffee className="w-3.5 h-3.5" />
                     Balcão de Cafés
@@ -947,13 +947,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
 
         {inputMode === 'keyboard_mouse' &&
           currentLocation === 'home' && (
-            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800 rounded-2xl px-3.5 py-2 shadow-2xl flex flex-wrap items-center justify-center gap-2">
+            <div className="pointer-events-auto lg-hud-bar rounded-2xl px-3.5 py-2 flex flex-wrap items-center justify-center gap-2">
               {nearHomeBed && (
                 <button
                   type="button"
                   data-testid="hud-sleep-bed-btn"
                   onClick={onSleepInHomeBed}
-                  className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
+                  className="px-4 py-1.5 rounded-xl lg-btn-emerald text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
                 >
                   <BedDouble className="w-4 h-4" />
                   {hasSleptAtHome
@@ -964,7 +964,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               <button
                 type="button"
                 onClick={onOpenHomeShop}
-                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
+                className="px-3.5 py-1.5 rounded-xl lg-btn-amber text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
               >
                 <ShoppingBag className="w-3.5 h-3.5" />
                 Comprar Móveis para Casa [E]
@@ -974,10 +974,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   type="button"
                   data-testid="hud-door-return-office-btn"
                   onClick={onReturnToOffice}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 cursor-pointer ${
                     hasSleptAtHome
-                      ? 'bg-sky-500 hover:bg-sky-400 text-slate-950'
-                      : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40'
+                      ? 'lg-btn-primary text-white'
+                      : 'lg-btn-secondary text-amber-300 border-amber-500/40'
                   }`}
                 >
                   {hasSleptAtHome ? (
@@ -1002,13 +1002,13 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           !activeDialogueNpc &&
           !activeCafeteriaDialogue &&
           (nearCafeteria || nearbyCafeteriaNpc || nearby) && (
-            <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800 rounded-2xl px-3.5 py-2 shadow-2xl flex items-center gap-2">
+            <div className="pointer-events-auto lg-hud-bar rounded-2xl px-3.5 py-2 flex items-center gap-2">
               {nearCafeteria && (
                 <button
                   type="button"
                   data-testid="hud-open-cafeteria-counter-btn"
                   onClick={onOpenCafeteria}
-                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
+                  className="px-3.5 py-1.5 rounded-xl lg-btn-amber text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Coffee className="w-3.5 h-3.5" />
                   Balcão de Cafés [E]
@@ -1033,7 +1033,7 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                 <button
                   type="button"
                   onClick={() => onOpenNpcDialogue(nearby)}
-                  className="px-4 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
+                  className="px-4 py-1.5 rounded-xl lg-btn-emerald text-xs font-extrabold flex items-center gap-1.5 cursor-pointer"
                 >
                   Falar com {nearby.npc.nome.split(' ')[0]} [E]
                 </button>

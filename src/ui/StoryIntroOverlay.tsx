@@ -46,16 +46,16 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
     <div
       role="dialog"
       aria-label="Boas-vindas da Gerente Helena Vasconcelos"
-      className="fixed inset-0 z-20 flex items-center justify-start p-3.5 sm:p-6 md:p-12 overflow-y-auto bg-[linear-gradient(90deg,rgba(9,13,22,0.95)_0%,rgba(9,13,22,0.86)_52%,rgba(9,13,22,0.12)_85%,rgba(9,13,22,0.0)_100%)] pointer-events-auto"
+      className="fixed inset-0 z-20 flex items-center justify-start p-3.5 sm:p-6 md:p-12 overflow-y-auto bg-[linear-gradient(90deg,rgba(8,10,16,0.28)_0%,rgba(8,10,16,0.14)_52%,transparent_100%)] pointer-events-auto"
     >
-      <div className="my-auto w-full max-w-xl bg-[#0f172a] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5">
+      <div className="lg-dialogue-sheet my-auto w-full max-w-xl rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
         {/* Manager Header: Helena Vasconcelos */}
-        <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between gap-4 border-b border-white/12 pb-4">
           <div className="flex items-center gap-4">
             {/* Custom SVG Portrait of Manager Helena Vasconcelos */}
             <svg
               viewBox="0 0 72 72"
-              className="w-16 h-16 rounded-2xl bg-[#090d16] border border-amber-500/40 shrink-0 shadow-md"
+              className="w-16 h-16 rounded-2xl bg-[#090d16] border border-amber-400/45 shrink-0 shadow-md"
             >
               <rect width="72" height="72" rx="14" fill="#090d16" />
               {/* Long Hair Back */}
@@ -92,13 +92,12 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
             </svg>
 
             <div>
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-bold uppercase tracking-wider">
-                  Gerente Geral
-                </span>
-                <span className="text-xs text-slate-400">NexusCorp Operações</span>
+              <div className="flex items-center gap-2 text-xs text-slate-300">
+                <span className="font-bold text-amber-300">Gerente Geral</span>
+                <span>·</span>
+                <span>NexusCorp Operações</span>
               </div>
-              <h2 className="text-lg font-extrabold text-slate-100 mt-0.5">
+              <h2 className="text-lg font-extrabold text-white mt-0.5">
                 Helena Vasconcelos
               </h2>
             </div>
@@ -113,7 +112,7 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
                 force: true,
               })
             }
-            className="p-2.5 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-300 transition-colors cursor-pointer"
+            className="lg-btn-secondary p-2.5 rounded-xl text-sky-300 cursor-pointer"
             title="Ouvir mensagem da Gerente Helena"
           >
             <Volume2 className="w-4 h-4" />
@@ -121,14 +120,14 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
         </div>
 
         {/* Storytelling Narrative Body */}
-        <div className="space-y-3 text-xs md:text-sm text-slate-200 leading-relaxed">
+        <div className="space-y-3 text-xs md:text-sm text-slate-100 leading-relaxed">
           <p>
-            &ldquo;<strong className="text-emerald-400">Graças a Deus que você está aqui, {cleanName}!</strong>{' '}
+            &ldquo;<strong className="text-emerald-300">Graças a Deus que você está aqui, {cleanName}!</strong>{' '}
             Estávamos contando os minutos para a sua chegada! A empresa está passando por
             um período super corrido: estamos em semana de fechamento global, auditoria no
             Financeiro e migração do nosso sistema interno <strong>OverOS</strong>.&rdquo;
           </p>
-          <p className="text-slate-300">
+          <p className="text-slate-200">
             &ldquo;No meio dessa correria toda nos 15 setores, cabos foram esbarrados,
             impressoras travaram e vários computadores pararam de responder. Cada chamado
             resolvido rende <strong>pontos, medalhas, roupas e acessórios</strong> — mas
@@ -138,16 +137,16 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
         </div>
 
         {/* Randomly Drawn First Ticket Recommendation Box */}
-        <div className="p-4 rounded-xl bg-[#090d16] border border-sky-500/40 space-y-2.5">
+        <div className="lg-inner-well p-4 rounded-xl border-sky-500/35 space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-sky-400 flex items-center gap-1.5">
+            <span className="text-xs font-bold text-sky-300 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4" />
               &ldquo;Sugiro que comece pelo chamado:&rdquo;
             </span>
             <button
               type="button"
               onClick={onRerollFirstProblem}
-              className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-300 flex items-center gap-1 cursor-pointer"
+              className="lg-btn-secondary px-2.5 py-1 rounded-lg text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
               title="Sortear outro chamado inicial"
             >
               <Shuffle className="w-3 h-3" />
@@ -157,15 +156,15 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
 
           <div className="flex items-center gap-3 pt-1">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-slate-700"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/15"
               style={{ backgroundColor: `${targetSector.cor}25` }}
             >
               <Navigation className="w-5 h-5" style={{ color: targetSector.cor }} />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-bold text-slate-100">
+              <div className="text-xs font-bold text-white">
                 Setor: {targetSector.nome}{' '}
-                <span className="font-normal text-slate-400">· {targetNpc.nome}</span>
+                <span className="font-normal text-slate-300">· {targetNpc.nome}</span>
               </div>
               <p className="text-xs text-amber-300 font-medium truncate mt-0.5">
                 &ldquo;{firstProblem.descricaoCurta}&rdquo;
@@ -183,7 +182,7 @@ export const StoryIntroOverlay: React.FC<StoryIntroOverlayProps> = ({
               voiceNarrator.stop();
               onBeginShift();
             }}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95 cursor-pointer"
+            className="lg-btn-primary w-full sm:w-auto px-6 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Atender Chamado em {targetSector.nome}</span>
             <ArrowRight className="w-4 h-4" />

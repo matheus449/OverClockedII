@@ -85,10 +85,10 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
       : 'from-rose-500 to-red-600';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md">
-      <div className="w-full max-w-4xl bg-slate-900/95 border border-amber-500/30 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg-modal-backdrop">
+      <div className="w-full max-w-4xl lg-modal-floating border-amber-500/35 rounded-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 bg-gradient-to-r from-amber-950/80 via-slate-900 to-slate-900 border-b border-amber-500/20 flex items-center justify-between">
+        <div className="px-6 py-4 lg-modal-header flex items-center justify-between">
           <div className="flex items-center gap-3.5">
             <div className="w-11 h-11 rounded-2xl bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300 shadow-inner">
               <Coffee className="w-6 h-6" />
@@ -117,7 +117,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition cursor-pointer"
+            className="p-2 rounded-xl lg-btn-secondary text-slate-300 hover:text-white cursor-pointer"
             title="Voltar ao Espaço da Cafeteria (ESC)"
           >
             <X className="w-5 h-5" />
@@ -125,7 +125,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
         </div>
 
         {/* Status Bar: Energia + Pontos */}
-        <div className="px-6 py-3.5 bg-slate-950/70 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
+        <div className="px-6 py-3.5 bg-white/[0.02] border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4 flex-1 min-w-[240px]">
             <div className="flex items-center gap-2">
               <Zap
@@ -145,7 +145,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
               </div>
             </div>
 
-            <div className="flex-1 max-w-xs h-3.5 bg-slate-800 rounded-full overflow-hidden border border-white/10 p-0.5">
+            <div className="flex-1 max-w-xs h-3.5 lg-inner-well rounded-full overflow-hidden p-0.5">
               <div
                 className={`h-full rounded-full bg-gradient-to-r ${energyColor} transition-all duration-500`}
                 style={{ width: `${Math.max(4, Math.min(100, energy))}%` }}
@@ -159,7 +159,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-slate-900 border border-white/10">
+          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl lg-hud-pill">
             <Award className="w-4 h-4 text-amber-400" />
             <span className="text-xs text-slate-400 font-medium">Seus Pontos:</span>
             <span
@@ -219,7 +219,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                 return (
                   <div
                     key={coffee.id}
-                    className="p-3.5 rounded-2xl bg-slate-800/60 hover:bg-slate-800/90 border border-white/10 transition flex items-center justify-between gap-3"
+                    className="p-3.5 rounded-2xl lg-choice-card flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <div
@@ -240,7 +240,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                             {dynamicCost} pts
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">
+                        <p className="text-xs text-slate-300 mt-0.5 line-clamp-2">
                           {coffee.descricao}
                         </p>
                       </div>
@@ -250,12 +250,12 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                       type="button"
                       onClick={() => handleOrderCoffee(coffee)}
                       disabled={isFull || !canAfford}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition cursor-pointer ${
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 cursor-pointer ${
                         isFull
-                          ? 'bg-slate-800 text-slate-500 border border-white/5 cursor-not-allowed'
+                          ? 'lg-btn-secondary text-slate-500 cursor-not-allowed'
                           : !canAfford
                           ? 'bg-rose-950/40 text-rose-300/60 border border-rose-500/20 cursor-not-allowed'
-                          : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20'
+                          : 'lg-btn-amber'
                       }`}
                     >
                       {isFull
@@ -278,7 +278,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                 Atendimento no Balcão
               </h3>
 
-              <div className="p-4 rounded-2xl bg-slate-950/90 border border-amber-500/30 space-y-2">
+              <div className="p-4 rounded-2xl lg-inner-well border-amber-500/30 space-y-2">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                   <span className="text-xs font-bold text-white">{barista.nome}</span>
@@ -289,7 +289,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                 </p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-800/50 border border-white/10 space-y-2.5">
+              <div className="p-4 rounded-2xl lg-inner-well space-y-2.5">
                 <span className="text-xs font-bold text-amber-300 block">
                   Pessoal nas Mesas da Cafeteria (3D)
                 </span>
@@ -309,7 +309,7 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
                           onTalkToNpcInRoom(npc);
                         }
                       }}
-                      className="w-full p-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/10 flex items-center justify-between gap-2 text-left transition cursor-pointer"
+                      className="w-full p-2.5 rounded-xl lg-choice-card flex items-center justify-between gap-2 text-left cursor-pointer"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div
@@ -339,14 +339,14 @@ export const CafeteriaModal: React.FC<CafeteriaModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3.5 bg-slate-950/90 border-t border-white/10 flex items-center justify-between">
+        <div className="px-6 py-3.5 lg-modal-footer flex items-center justify-between">
           <span className="text-xs text-slate-400">
             No Modo Difícil os cafés têm custo elevado de alta demanda. Caminhe até os colegas na sala para bater papo!
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition cursor-pointer"
+            className="px-4 py-2 rounded-xl lg-btn-secondary text-white text-xs font-bold cursor-pointer"
           >
             Voltar à Sala da Cafeteria
           </button>

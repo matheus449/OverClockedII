@@ -42,7 +42,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
   ];
 
   return (
-    <section className="fixed inset-0 z-20 flex flex-col justify-center p-4 sm:p-6 md:p-10 overflow-y-auto bg-[linear-gradient(90deg,rgba(9,13,22,0.96)_0%,rgba(9,13,22,0.88)_46%,rgba(9,13,22,0.14)_74%,rgba(9,13,22,0.0)_100%)] pointer-events-auto">
+    <section className="fixed inset-0 z-20 flex flex-col justify-center p-4 sm:p-6 md:p-10 overflow-y-auto bg-[linear-gradient(90deg,rgba(8,10,16,0.28)_0%,rgba(8,10,16,0.12)_48%,transparent_100%)] pointer-events-auto">
       <div className="w-full max-w-md my-auto space-y-3">
         {/* 1. Game Logo matching the exact width of the form (standalone img) */}
         <img
@@ -57,11 +57,11 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
             e.preventDefault();
             onStartGame();
           }}
-          className="w-full p-4 sm:p-5 rounded-2xl bg-[#0f172a] border border-slate-800 shadow-2xl space-y-3"
+          className="lg-surface-panel w-full p-4 sm:p-5 rounded-2xl space-y-3"
         >
           <label
             htmlFor="analyst-name-input"
-            className="text-xs font-semibold text-slate-300 block"
+            className="text-xs font-semibold text-slate-200 block"
           >
             Qual é o seu nome, Analista?
           </label>
@@ -72,20 +72,20 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
             value={playerName}
             onChange={(e) => onChangePlayerName(e.target.value)}
             placeholder="Digite seu nome..."
-            className="w-full px-3.5 py-2 rounded-xl bg-[#090d16] border border-slate-700 focus:border-purple-400 focus:outline-none text-sm text-slate-100 placeholder:text-slate-500 block"
+            className="lg-input-glass w-full px-3.5 py-2.5 rounded-xl text-sm text-slate-100 placeholder:text-slate-400 block"
           />
 
-          <span className="text-[11px] font-semibold text-slate-400 block pt-0.5">
+          <span className="text-[11px] font-semibold text-slate-300 block pt-0.5">
             Personagem & Narração por Voz
           </span>
           <fieldset className="grid grid-cols-3 gap-2 m-0 p-0 border-0">
             <button
               type="button"
               onClick={() => onChangeGender('masculino')}
-              className={`py-2 px-2.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`py-2 px-2.5 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 ${
                 playerCustomization.genero === 'masculino'
-                  ? 'bg-[#0071e3] border-sky-400 text-white'
-                  : 'bg-[#090d16] border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'lg-control-chip lg-control-chip-active'
+                  : 'lg-control-chip'
               }`}
             >
               <User className="w-3.5 h-3.5 shrink-0" />
@@ -95,10 +95,10 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
             <button
               type="button"
               onClick={() => onChangeGender('feminino')}
-              className={`py-2 px-2.5 rounded-xl border text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`py-2 px-2.5 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center gap-1.5 ${
                 playerCustomization.genero === 'feminino'
-                  ? 'bg-[#0071e3] border-sky-400 text-white'
-                  : 'bg-[#090d16] border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'lg-control-chip lg-control-chip-active'
+                  : 'lg-control-chip'
               }`}
             >
               <User className="w-3.5 h-3.5 shrink-0" />
@@ -109,15 +109,15 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
               type="button"
               onClick={onToggleVoiceEnabled}
               aria-pressed={voiceEnabled}
-              className={`py-2 px-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+              className={`py-2 px-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer ${
                 voiceEnabled
-                  ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
-                  : 'bg-[#090d16] border-slate-800 text-slate-400 hover:text-slate-200'
+                  ? 'lg-control-chip border-emerald-400/50 bg-emerald-500/20 text-emerald-200'
+                  : 'lg-control-chip'
               }`}
             >
               {voiceEnabled ? (
                 <>
-                  <Mic className="w-3.5 h-3.5 shrink-0" />
+                  <Mic className="w-3.5 h-3.5 shrink-0 text-emerald-300" />
                   Voz Ativa
                 </>
               ) : (
@@ -129,7 +129,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
             </button>
           </fieldset>
 
-          <span className="text-[11px] font-semibold text-slate-400 block pt-0.5">
+          <span className="text-[11px] font-semibold text-slate-300 block pt-0.5">
             Dificuldade
           </span>
           <fieldset className="grid grid-cols-3 gap-2 m-0 p-0 border-0">
@@ -141,16 +141,16 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
                   type="button"
                   onClick={() => onSelectDifficulty(item.id)}
                   aria-pressed={selected}
-                  className={`p-2 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`p-2.5 rounded-xl text-left cursor-pointer ${
                     selected
-                      ? 'bg-[#111c33] border-[#38bdf8] shadow-md'
-                      : 'bg-[#090d16] border-slate-800 hover:border-slate-700'
+                      ? 'lg-control-chip lg-control-chip-active'
+                      : 'lg-control-chip'
                   }`}
                 >
                   <span className="text-xs font-bold text-slate-100 block">
                     {item.titulo}
                   </span>
-                  <span className="text-[10px] text-sky-400 block mt-0.5 truncate">
+                  <span className="text-[10px] text-sky-300 block mt-0.5 truncate">
                     {item.resumo}
                   </span>
                 </button>
@@ -168,7 +168,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
               e.currentTarget.blur();
               onStartGame();
             }}
-            className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-xl transition-transform active:scale-95 cursor-pointer"
+            className="lg-btn-primary w-full sm:flex-1 py-3 px-5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
           >
             <Play className="w-4 h-4 fill-current" />
             Iniciar
@@ -177,7 +177,7 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
           <button
             type="button"
             onClick={onOpenCustomization}
-            className="flex-1 sm:flex-initial py-3 px-3.5 rounded-xl bg-[#0f172a] hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+            className="lg-btn-secondary flex-1 sm:flex-initial py-3 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
             title="Personalizar Roupas, Acessórios e Medalhas"
           >
             <Shirt className="w-4 h-4 text-sky-400" />
@@ -187,10 +187,10 @@ export const TitleScreenOverlay: React.FC<TitleScreenProps> = ({
           <button
             type="button"
             onClick={onOpenCredits}
-            className="flex-1 sm:flex-initial py-3 px-3.5 rounded-xl bg-[#0f172a] hover:bg-purple-950/60 border border-purple-500/40 text-purple-200 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+            className="lg-btn-secondary flex-1 sm:flex-initial py-3 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
             title="Abrir Tela de Créditos e Sobre o Jogo"
           >
-            <Info className="w-4 h-4 text-purple-400" />
+            <Info className="w-4 h-4 text-sky-300" />
             Créditos
           </button>
         </nav>

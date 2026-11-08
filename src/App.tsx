@@ -1451,10 +1451,10 @@ export default function App() {
         <div
           role="status"
           data-testid="shift-transition-banner"
-          className={`fixed top-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none px-4 py-2 rounded-2xl border shadow-2xl flex items-center gap-2.5 text-xs font-extrabold backdrop-blur-md transition-all ${
+          className={`fixed top-16 left-1/2 -translate-x-1/2 z-30 pointer-events-none px-4 py-2 rounded-2xl lg-toast-glass flex items-center gap-2.5 text-xs font-extrabold transition-all ${
             shiftTransitionBanner === 'night'
-              ? 'bg-indigo-950/95 border-indigo-400/60 text-indigo-100'
-              : 'bg-amber-950/95 border-amber-400/60 text-amber-100'
+              ? 'border-indigo-400/60 text-indigo-100'
+              : 'border-amber-400/60 text-amber-100'
           }`}
         >
           {shiftTransitionBanner === 'night' ? (
@@ -1482,7 +1482,7 @@ export default function App() {
         !isSleepingBlackout && (
           <div
             aria-live="polite"
-            className="fixed bottom-16 left-4 z-20 pointer-events-none px-3 py-1.5 rounded-xl bg-slate-950/90 border border-sky-500/35 text-[11px] font-semibold text-sky-300 flex items-center gap-2 shadow-lg backdrop-blur-sm"
+            className="fixed bottom-16 left-4 z-20 pointer-events-none px-3 py-1.5 rounded-xl lg-toast-glass border-sky-500/35 text-[11px] font-semibold text-sky-300 flex items-center gap-2"
           >
             <Loader2 className="w-3.5 h-3.5 text-sky-400 animate-spin shrink-0" />
             <span>
@@ -1499,10 +1499,10 @@ export default function App() {
           <div
             role="alert"
             data-testid="home-action-toast"
-            className={`fixed top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none max-w-xl w-[92%] px-4 py-2.5 rounded-2xl border shadow-2xl flex items-center gap-2.5 text-xs font-extrabold transition-all ${
+            className={`fixed top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none max-w-xl w-[92%] px-4 py-2.5 rounded-2xl lg-toast-glass flex items-center gap-2.5 text-xs font-extrabold transition-all ${
               homeActionToast.ok
-                ? 'bg-emerald-950/95 border-emerald-400/60 text-emerald-100'
-                : 'bg-rose-950/95 border-rose-400/60 text-rose-100'
+                ? 'border-emerald-400/60 text-emerald-100'
+                : 'border-rose-400/60 text-rose-100'
             }`}
           >
             <BedDouble className="w-4 h-4 shrink-0" />
@@ -1811,11 +1811,11 @@ export default function App() {
           <div
             role="alertdialog"
             aria-label="Alerta de Energia Baixa"
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm pointer-events-auto"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 lg-modal-backdrop pointer-events-auto"
           >
-            <div className="w-full max-w-md rounded-2xl bg-[#0f172a] border-2 border-rose-500 p-6 shadow-2xl space-y-4">
+            <div className="w-full max-w-md rounded-2xl lg-modal-floating border-rose-500/75 p-6 space-y-4">
               <div className="flex items-start gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/50 flex items-center justify-center text-rose-400 shrink-0 animate-pulse">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/50 flex items-center justify-center text-rose-400 shrink-0 animate-pulse shadow-inner">
                   <AlertTriangle className="w-6 h-6" />
                 </div>
                 <div>
@@ -1833,11 +1833,11 @@ export default function App() {
                 <strong className="text-amber-300">Cafeteria OverCoffee</strong> para tomar um café agora mesmo! Se sua energia chegar a <strong>0%</strong>, você vai dormir no serviço e terá vários pontos descontados.
               </p>
 
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setLowEnergyAlertOpen(false)}
-                  className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                  className="w-full sm:w-auto px-4 py-2 rounded-xl lg-btn-amber text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Coffee className="w-4 h-4" />
                   Entendido · Vou Caminhar até a Cafeteria
@@ -1852,11 +1852,11 @@ export default function App() {
         <div
           role="alertdialog"
           aria-label="Você Dormiu no Serviço"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm pointer-events-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 lg-modal-backdrop pointer-events-auto"
         >
-          <div className="w-full max-w-md rounded-2xl bg-[#0f172a] border-2 border-rose-500/80 p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md rounded-2xl lg-modal-floating border-rose-500/75 p-6 space-y-4">
             <div className="flex items-start gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0 shadow-inner">
                 <Moon className="w-6 h-6" />
               </div>
               <div>
@@ -1873,7 +1873,7 @@ export default function App() {
               {sleepPenaltyNotice.message}
             </p>
 
-            <div className="p-3.5 rounded-xl bg-[#090d16] border border-slate-800 flex items-center justify-between text-xs">
+            <div className="p-3.5 rounded-xl lg-inner-well flex items-center justify-between text-xs">
               <div>
                 <span className="text-slate-400 block">Desconto Aplicado:</span>
                 <span className="text-sm font-black font-mono-tabular text-rose-400">
@@ -1898,11 +1898,11 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-white/10">
               <button
                 type="button"
                 onClick={() => setSleepPenaltyNotice(null)}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl lg-btn-amber text-xs font-extrabold flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Coffee className="w-4 h-4" />
                 Voltar ao Turno ({sleepPenaltyNotice.recoveredEnergy}% Energia)

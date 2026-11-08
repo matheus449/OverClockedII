@@ -26,13 +26,13 @@ export const NightDecisionModal: React.FC<NightDecisionModalProps> = ({
       aria-modal="true"
       aria-label="Fim do Expediente Diurno — Escolha da Noite"
       data-testid="night-decision-modal"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 pointer-events-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 lg-modal-backdrop pointer-events-auto"
     >
-      <div className="w-full max-w-2xl rounded-2xl bg-[#0f172a] border-2 border-indigo-500/50 p-5 sm:p-6 shadow-2xl space-y-5">
+      <div className="w-full max-w-2xl rounded-2xl lg-modal-floating border-indigo-500/45 p-5 sm:p-6 space-y-5">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-300 shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-300 shrink-0 shadow-inner">
               <Moon className="w-6 h-6" />
             </div>
             <div>
@@ -46,11 +46,11 @@ export const NightDecisionModal: React.FC<NightDecisionModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold flex items-center gap-1.5 text-emerald-300">
+            <div className="px-2.5 py-1.5 rounded-xl lg-hud-pill text-xs font-bold flex items-center gap-1.5 text-emerald-300">
               <Zap className="w-3.5 h-3.5 text-emerald-400" />
               <span>{energy}%</span>
             </div>
-            <div className="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold flex items-center gap-1.5 text-amber-300">
+            <div className="px-2.5 py-1.5 rounded-xl lg-hud-pill text-xs font-bold flex items-center gap-1.5 text-amber-300">
               <Award className="w-3.5 h-3.5 text-amber-400" />
               <span>{points} pts</span>
             </div>
@@ -66,7 +66,7 @@ export const NightDecisionModal: React.FC<NightDecisionModalProps> = ({
         {/* Two Option Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Option 1: Plantão Noturno */}
-          <div className="rounded-2xl bg-[#090d16] border border-indigo-500/40 p-4 flex flex-col justify-between gap-4">
+          <div className="rounded-2xl lg-choice-card border-indigo-500/40 p-4 flex flex-col justify-between gap-4">
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[10px] font-bold uppercase">
@@ -97,7 +97,7 @@ export const NightDecisionModal: React.FC<NightDecisionModalProps> = ({
               type="button"
               data-testid="choose-night-shift-btn"
               onClick={onChooseNightShift}
-              className="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-extrabold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg"
+              className="w-full py-2.5 px-4 rounded-xl lg-btn-primary text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer"
             >
               <Moon className="w-4 h-4" />
               Fazer Plantão Noturno
@@ -105,7 +105,7 @@ export const NightDecisionModal: React.FC<NightDecisionModalProps> = ({
           </div>
 
           {/* Option 2: Ir para Casa Descansar */}
-          <div className="rounded-2xl bg-[#090d16] border border-emerald-500/40 p-4 flex flex-col justify-between gap-4">
+          <div className="rounded-2xl lg-choice-card lg-choice-card-emerald p-4 flex flex-col justify-between gap-4">
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase">
@@ -136,7 +136,7 @@ export const NightDecisionModal: React.FC<NightDecisionModalProps> = ({
               type="button"
               data-testid="choose-go-home-btn"
               onClick={onChooseGoHome}
-              className="w-full py-2.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-lg"
+              className="w-full py-2.5 px-4 rounded-xl lg-btn-emerald text-xs font-extrabold flex items-center justify-center gap-2 cursor-pointer"
             >
               <Home className="w-4 h-4" />
               Ir para Casa Descansar
