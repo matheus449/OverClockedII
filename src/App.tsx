@@ -271,9 +271,12 @@ export default function App() {
     'none' | 'hardware' | 'virtualos' | 'cafeteria'
   >('none');
 
-  // Strict check: player MUST be physically at the active ticket's sector to attend it!
+  // Strict check: player MUST be physically inside the office AND inside the active ticket's sector room to attend it!
   const isAtActiveTicketSector = Boolean(
-    nearby && activeProblem && nearby.sector.id === activeProblem.setor
+    currentLocation === 'office' &&
+      nearby &&
+      activeProblem &&
+      nearby.sector.id === activeProblem.setor
   );
   const [lastDiagnosticMessage, setLastDiagnosticMessage] = useState<{
     text: string;
@@ -616,6 +619,10 @@ export default function App() {
     );
     setShowNightDecisionModal(false);
     setLowEnergyAlertOpen(false);
+    setNearby(null);
+    setNearCafeteria(false);
+    setNearbyCafeteriaNpc(null);
+    setCurrentSectorName('Sua Casa');
     setActiveToolModal('none');
     setActiveDialogueNpc(null);
     setActiveCafeteriaDialogue(null);
@@ -1003,11 +1010,14 @@ export default function App() {
       setCurrentSectorName(sectorName);
       setNearCafeteria(isNearCaf);
       setNearbyCafeteriaNpc(nextCafeNpc);
-      if (!isNearCaf) {
+      if (!isNearCaf && !nextCafeNpc) {
         setActiveCafeteriaDialogue((prev) => {
           if (prev) voiceNarrator.stop();
           return null;
         });
+      }
+      if (!isNearCaf) {
+        setActiveToolModal((prev) => (prev === 'cafeteria' ? 'none' : prev));
       }
       setActiveDialogueNpc((prevNpc) => {
         if (!prevNpc) return null;
@@ -1029,6 +1039,7 @@ export default function App() {
 
   const handleTalkToCafeteriaNpc = useCallback(
     (npc: CafeteriaNpc) => {
+      if (currentLocation !== 'office' || (!nearCafeteria && !nearbyCafeteriaNpc)) return;
       soundEngine.playInteract();
       setActiveCafeteriaDialogue((prev) => {
         const line = pickRandomCafeteriaChat(
@@ -1044,11 +1055,12 @@ export default function App() {
         return { npc, message: line };
       });
     },
-    [voiceEnabled]
+    [currentLocation, nearCafeteria, nearbyCafeteriaNpc, voiceEnabled]
   );
 
   const openNpcDialogueWithVoice = useCallback(
     (npc: NpcData) => {
+      if (currentLocation !== 'office' || !nearby || nearby.npc.id !== npc.id) return;
       soundEngine.playInteract();
       setActiveDialogueNpc(npc);
 
@@ -1069,18 +1081,26 @@ export default function App() {
         );
       }
     },
-    [ticketQueue]
+    [currentLocation, nearby, ticketQueue]
   );
 
   const handleInteractRequest = useCallback(
     (targetNearby: NearbyInteraction) => {
+      if (currentLocation !== 'office') return;
       openNpcDialogueWithVoice(targetNearby.npc);
     },
-    [openNpcDialogueWithVoice]
+    [currentLocation, openNpcDialogueWithVoice]
   );
 
   const handleExecuteDiagnosticAction = (action: DiagnosticAction) => {
-    if (!activeProblem || !activeWorkstationState || !isAtActiveTicketSector) return;
+    if (
+      currentLocation !== 'office' ||
+      !activeProblem ||
+      !activeWorkstationState ||
+      !isAtActiveTicketSector
+    ) {
+      return;
+    }
     const result = applyDiagnosticAction(activeWorkstationState, activeProblem, action);
     setWorkstationMap((prev) => ({
       ...prev,
@@ -1208,6 +1228,12 @@ export default function App() {
   };
 
   const handleDrinkCoffee = (coffee: CoffeeItem) => {
+    if (currentLocation !== 'office' || !nearCafeteria) {
+      return {
+        ok: false,
+        reason: 'Caminhe até o balcão da Cafeteria OverCoffee dentro do escritório para pedir um café!',
+      };
+    }
     const res = purchaseAndDrinkCoffee(
       energy,
       points,
@@ -1543,7 +1569,7 @@ export default function App() {
           }}
           onOpenCustomization={() => setShowCustomizationModal(true)}
           onOpenCafeteria={() => {
-            if (!nearCafeteria) return;
+            if (currentLocation !== 'office' || !nearCafeteria) return;
             soundEngine.playInteract();
             setActiveToolModal('cafeteria');
           }}
@@ -1569,12 +1595,12 @@ export default function App() {
             setActiveDialogueNpc(null);
           }}
           onOpenHardwareWorkbench={() => {
-            if (!isAtActiveTicketSector) return;
+            if (currentLocation !== 'office' || !isAtActiveTicketSector) return;
             soundEngine.playInteract();
             setActiveToolModal('hardware');
           }}
           onOpenVirtualOS={() => {
-            if (!isAtActiveTicketSector) return;
+            if (currentLocation !== 'office' || !isAtActiveTicketSector) return;
             soundEngine.playInteract();
             setActiveToolModal('virtualos');
           }}
@@ -1619,8 +1645,9 @@ export default function App() {
           />
         )}
 
-      {/* Interactive 3D/Tactile Hardware Workbench Modal (Strictly requires being physically at the target sector!) */}
+      {/* Interactive 3D/Tactile Hardware Workbench Modal (Strictly requires being physically at the target sector in the office!) */}
       {gameState === 'playing' &&
+        currentLocation === 'office' &&
         activeToolModal === 'hardware' &&
         isAtActiveTicketSector &&
         activeProblem &&
@@ -1636,8 +1663,9 @@ export default function App() {
           />
         )}
 
-      {/* Interactive Virtual OS (OverOS) Modal (Strictly requires being physically at the target sector!) */}
+      {/* Interactive Virtual OS (OverOS) Modal (Strictly requires being physically at the target sector in the office!) */}
       {gameState === 'playing' &&
+        currentLocation === 'office' &&
         activeToolModal === 'virtualos' &&
         isAtActiveTicketSector &&
         activeProblem &&
@@ -1653,8 +1681,11 @@ export default function App() {
           />
         )}
 
-      {/* Cafeteria OverCoffee Modal (Only accessible when physically inside the Cafeteria space!) */}
-      {gameState === 'playing' && activeToolModal === 'cafeteria' && nearCafeteria && (
+      {/* Cafeteria OverCoffee Modal (Only accessible when physically inside the Cafeteria space at the coffee counter!) */}
+      {gameState === 'playing' &&
+        currentLocation === 'office' &&
+        activeToolModal === 'cafeteria' &&
+        nearCafeteria && (
         <CafeteriaModal
           energy={energy}
           points={points}

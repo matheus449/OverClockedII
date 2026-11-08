@@ -464,8 +464,8 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
             )}
           </div>
 
-          {/* Quick Diagnostic Tools (Hardware & OverOS) — ONLY available when physically at the target sector! */}
-          {activeProblem && isAtTarget && (
+          {/* Quick Diagnostic Tools (Hardware & OverOS) — ONLY available when physically at the target sector in the office! */}
+          {currentLocation === 'office' && activeProblem && isAtTarget && (
             <>
               <button
                 type="button"
@@ -758,7 +758,10 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
               </div>
             </div>
 
-            {activeProblem && activeDialogueNpc.setor === activeProblem.setor ? (
+            {currentLocation === 'office' &&
+            activeProblem &&
+            activeDialogueNpc.setor === activeProblem.setor &&
+            isAtTarget ? (
               <div className="pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xs text-slate-400">
                   Escolha como iniciar o diagnóstico desta estação:
@@ -894,17 +897,19 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
                   <MessageCircle className="w-3.5 h-3.5" />
                   Outro Assunto
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onCloseCafeteriaDialogue();
-                    onOpenCafeteria();
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Coffee className="w-3.5 h-3.5" />
-                  Balcão de Cafés
-                </button>
+                {nearCafeteria && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onCloseCafeteriaDialogue();
+                      onOpenCafeteria();
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Coffee className="w-3.5 h-3.5" />
+                    Balcão de Cafés
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -996,34 +1001,35 @@ export const HudOverlay: React.FC<HudOverlayProps> = ({
           !resolvedModalData &&
           !activeDialogueNpc &&
           !activeCafeteriaDialogue &&
-          (nearCafeteria || nearby) && (
+          (nearCafeteria || nearbyCafeteriaNpc || nearby) && (
             <div className="pointer-events-auto bg-[#0b111e]/92 border border-slate-800 rounded-2xl px-3.5 py-2 shadow-2xl flex items-center gap-2">
               {nearCafeteria && (
-                <>
-                  <button
-                    type="button"
-                    onClick={onOpenCafeteria}
-                    className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
-                  >
-                    <Coffee className="w-3.5 h-3.5" />
-                    Balcão de Cafés [E]
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onTalkToCafeteriaNpc(nearbyCafeteriaNpc || CAFETERIA_NPCS[1])
-                    }
-                    className="px-3.5 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    {nearbyCafeteriaNpc
-                      ? `Conversar com ${nearbyCafeteriaNpc.nome.split(' ')[0]} [E]`
-                      : 'Conversar na Cafeteria'}
-                  </button>
-                </>
+                <button
+                  type="button"
+                  data-testid="hud-open-cafeteria-counter-btn"
+                  onClick={onOpenCafeteria}
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
+                >
+                  <Coffee className="w-3.5 h-3.5" />
+                  Balcão de Cafés [E]
+                </button>
+              )}
+              {(nearCafeteria || nearbyCafeteriaNpc) && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    onTalkToCafeteriaNpc(nearbyCafeteriaNpc || CAFETERIA_NPCS[0])
+                  }
+                  className="px-3.5 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  {nearbyCafeteriaNpc
+                    ? `Conversar com ${nearbyCafeteriaNpc.nome.split(' ')[0]} [E]`
+                    : 'Conversar na Cafeteria'}
+                </button>
               )}
 
-              {!nearCafeteria && nearby && (
+              {!nearCafeteria && !nearbyCafeteriaNpc && nearby && (
                 <button
                   type="button"
                   onClick={() => onOpenNpcDialogue(nearby)}

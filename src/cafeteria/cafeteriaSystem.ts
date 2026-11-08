@@ -212,19 +212,27 @@ export function getCoffeeDynamicPrice(
 }
 
 /**
- * Finds the closest Cafeteria NPC within conversational range (2.4m) inside the 3D Cafeteria space.
+ * Returns true only when the player is physically inside the 4 walls of the Cafeteria OverCoffee room.
+ */
+export function isPlayerInsideCafeteria(playerPos: Vec2): boolean {
+  const { x, z, w, d } = CAFETERIA_SPACE.bounds;
+  const inset = 0.2;
+  return (
+    playerPos.x >= x + inset &&
+    playerPos.x <= x + w - inset &&
+    playerPos.z >= z + inset &&
+    playerPos.z <= z + d - inset
+  );
+}
+
+/**
+ * Finds the closest Cafeteria NPC within conversational range (2.2m) strictly inside the 3D Cafeteria space.
  */
 export function findNearestCafeteriaNpc(
   playerPos: Vec2,
-  maxDist = 2.4
+  maxDist = 2.2
 ): { npc: CafeteriaNpc; distance: number } | null {
-  const { x, z, w, d } = CAFETERIA_SPACE.bounds;
-  if (
-    playerPos.x < x - 0.5 ||
-    playerPos.x > x + w + 0.5 ||
-    playerPos.z < z - 0.5 ||
-    playerPos.z > z + d + 0.8
-  ) {
+  if (!isPlayerInsideCafeteria(playerPos)) {
     return null;
   }
 
@@ -239,14 +247,17 @@ export function findNearestCafeteriaNpc(
 }
 
 /**
- * Checks whether the player is near the Espresso Bar Counter inside the Cafeteria to order coffee.
+ * Checks whether the player is physically inside the Cafeteria AND standing right in front of the Espresso Bar Counter to order coffee.
  */
 export function isPlayerNearCafeteriaCounter(playerPos: Vec2): boolean {
+  if (!isPlayerInsideCafeteria(playerPos)) {
+    return false;
+  }
   return (
-    playerPos.x >= 2.8 &&
-    playerPos.x <= 7.7 &&
-    playerPos.z >= -2.5 &&
-    playerPos.z <= 0.65
+    playerPos.x >= 2.6 &&
+    playerPos.x <= 7.9 &&
+    playerPos.z >= -3.2 &&
+    playerPos.z <= 0.85
   );
 }
 

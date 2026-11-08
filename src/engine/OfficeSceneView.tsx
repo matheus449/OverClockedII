@@ -38,6 +38,7 @@ import {
   CAFETERIA_SPACE,
   CafeteriaNpc,
   findNearestCafeteriaNpc,
+  isPlayerInsideCafeteria,
 } from '../cafeteria/cafeteriaSystem';
 import {
   clampTapTargetToOfficeBounds,
@@ -617,14 +618,19 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
         }
         return;
       }
-      if (isPlayerNearCafeteria(playerPos)) {
+      if (isPlayerInsideCafeteria(playerPos)) {
         const nearCafeNpc = findNearestCafeteriaNpc(playerPos);
-        if (nearCafeNpc && nearCafeNpc.npc.id !== 'npc_barista_leo') {
-          propsRef.current.onTalkToCafeteriaNpcRequest?.(nearCafeNpc.npc);
-        } else {
+        if (
+          isPlayerNearCafeteria(playerPos) &&
+          (!nearCafeNpc || nearCafeNpc.npc.id === 'npc_barista_leo')
+        ) {
           propsRef.current.onOpenCafeteriaRequest?.();
+          return;
         }
-        return;
+        if (nearCafeNpc) {
+          propsRef.current.onTalkToCafeteriaNpcRequest?.(nearCafeNpc.npc);
+          return;
+        }
       }
       const livePositions: Record<string, Vec2> = {};
       for (const k of Object.keys(npcStates)) {
@@ -820,7 +826,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
           frameId = window.setTimeout(poll, 5);
         } else {
           if (sync) gl.deleteSync(sync);
-          frameId = window.setTimeout(cb, 80);
+          frameId = window.setTimeout(cb, 16);
         }
       };
       frameId = window.setTimeout(poll, 5);
@@ -857,6 +863,8 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
       // Switch between 3D Office Map and 3D Home Map seamlessly
       if (curLocation !== lastLocation) {
         lastLocation = curLocation;
+        lastNearbySignature = '';
+        lastHomeProxKey = '';
         officeWorldGroup.visible = curLocation === 'office';
         homeScene.rootGroup.visible = curLocation === 'home';
         if (emotionFloatingRef.current) {
@@ -868,6 +876,7 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
           playerRotY = 0;
           camera.position.set(4.5, 16.2, 14.8);
           camera.lookAt(0, 0.4, -0.4);
+          propsRef.current.onNearbyChange(null, 'Sua Casa', false, null);
         } else {
           playerPos.x = 0;
           playerPos.z = 5.5;
@@ -1306,8 +1315,9 @@ export const OfficeSceneView: React.FC<OfficeSceneProps> = ({
             livePositionsCache
           );
           const currentSec = findContainingSector(playerPos, allSectorsWithCafe);
-          const nearCafeNpc = nearCafeteriaNow ? findNearestCafeteriaNpc(playerPos) : null;
-          const resolvedSectorName = nearCafeteriaNow
+          const insideCafeNow = isPlayerInsideCafeteria(playerPos);
+          const nearCafeNpc = insideCafeNow ? findNearestCafeteriaNpc(playerPos) : null;
+          const resolvedSectorName = insideCafeNow
             ? 'Cafeteria OverCoffee'
             : currentSec
             ? currentSec.nome

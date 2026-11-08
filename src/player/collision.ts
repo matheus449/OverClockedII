@@ -1,6 +1,10 @@
-import { NpcData, ProblemData, SectorData } from '../problems/validator';
+import { NpcData, ProblemData, SectorBounds, SectorData } from '../problems/validator';
 import { Vec2 } from '../pathfinding/trail';
-import { CAFETERIA_SPACE } from '../cafeteria/cafeteriaSystem';
+import {
+  CAFETERIA_SPACE,
+  isPlayerInsideCafeteria,
+  isPlayerNearCafeteriaCounter,
+} from '../cafeteria/cafeteriaSystem';
 
 export interface WallSegment {
   x1: number;
@@ -19,10 +23,28 @@ export interface ObstacleBox {
 const DOOR_HALF_WIDTH = 1.55;
 const PLAYER_RADIUS = 0.34;
 
+/**
+ * Returns true only when the player is physically inside a sector's room boundaries (not outside in the corridor or behind a wall).
+ */
+export function isPlayerInsideRoom(
+  pos: Vec2,
+  bounds: SectorBounds,
+  inset = 0.15
+): boolean {
+  return (
+    pos.x >= bounds.x + inset &&
+    pos.x <= bounds.x + bounds.w - inset &&
+    pos.z >= bounds.z + inset &&
+    pos.z <= bounds.z + bounds.d - inset
+  );
+}
+
+/**
+ * Returns true only when the player is physically inside the Cafeteria AND right in front of the Espresso Bar Counter.
+ * Standing outside/next to the Cafeteria wall or far from the counter returns false.
+ */
 export function isPlayerNearCafeteria(pos: Vec2): boolean {
-  const { x, z, w, d } = CAFETERIA_SPACE.bounds;
-  // Inside Cafeteria room or right at its south doorway
-  return pos.x >= x - 0.6 && pos.x <= x + w + 0.6 && pos.z >= z - 0.4 && pos.z <= z + d + 1.4;
+  return isPlayerInsideCafeteria(pos) && isPlayerNearCafeteriaCounter(pos);
 }
 
 /**
@@ -196,7 +218,8 @@ export interface NearbyInteraction {
 }
 
 /**
- * Finds the closest NPC/Workstation within interaction range (3.8m) of the player.
+ * Finds the closest NPC/Workstation within interaction range (3.2m) ONLY when the player
+ * is physically inside that sector's room (never through walls or from the corridor outside).
  */
 export function findNearestInteractable(
   playerPos: Vec2,
@@ -206,9 +229,12 @@ export function findNearestInteractable(
   liveNpcPositions?: Record<string, Vec2>
 ): NearbyInteraction | null {
   let closest: NearbyInteraction | null = null;
-  let minDist = 3.8;
+  let minDist = 3.2;
 
   for (const sector of sectors) {
+    // Player MUST be physically inside the sector room to interact or perform actions
+    if (!isPlayerInsideRoom(playerPos, sector.bounds)) continue;
+
     const npc = npcs.find((n) => n.setor === sector.id);
     if (!npc) continue;
 

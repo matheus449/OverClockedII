@@ -12,7 +12,11 @@ import {
   DiagnosticAction,
 } from './validator';
 import { computeFloorTrail } from '../pathfinding/trail';
-import { buildWorldColliders, resolvePlayerMovement } from '../player/collision';
+import {
+  buildWorldColliders,
+  findNearestInteractable,
+  resolvePlayerMovement,
+} from '../player/collision';
 
 test('dataset has 64+ distinct didactic problems across all 15 sectors and 4 categories', () => {
   assert.ok(ALL_PROBLEMS.length >= 64, `Expected >= 64 problems, found ${ALL_PROBLEMS.length}`);
@@ -121,6 +125,31 @@ test('player can physically walk from spawn into all 15 sectors without wall or 
       remainingDist < 0.35,
       `Player got blocked walking to sector ${sector.id}: remainingDist=${remainingDist.toFixed(2)} at (${pos.x.toFixed(2)}, ${pos.z.toFixed(2)})`
     );
+
+    // Inside the sector at the workstation, findNearestInteractable MUST detect this sector
+    const insideInteract = findNearestInteractable(pos, ALL_SECTORS, ALL_NPCS, null);
+    assert.equal(
+      insideInteract?.sector.id,
+      sector.id,
+      `Player inside sector ${sector.id} should be able to interact with its workstation/NPC`
+    );
+
+    // Standing OUTSIDE the sector's walls (in the corridor or adjacent space) MUST NOT allow interacting with this sector
+    const { x, z, w, d } = sector.bounds;
+    const outsidePoints = [
+      { x: sector.pcPos.x, z: z - 0.4 }, // outside North wall
+      { x: sector.pcPos.x, z: z + d + 0.4 }, // outside South wall
+      { x: x - 0.4, z: sector.pcPos.z }, // outside West wall
+      { x: x + w + 0.4, z: sector.pcPos.z }, // outside East wall
+    ];
+    for (const outPt of outsidePoints) {
+      const outsideInteract = findNearestInteractable(outPt, [sector], ALL_NPCS, null);
+      assert.equal(
+        outsideInteract,
+        null,
+        `Player outside sector ${sector.id} at (${outPt.x.toFixed(2)}, ${outPt.z.toFixed(2)}) must NOT be able to interact through walls`
+      );
+    }
   }
 });
 
@@ -349,7 +378,39 @@ test('Cafeteria OverCoffee space is physically walkable, drains/restores energy 
   assert.equal(
     isPlayerNearCafeteria(pos),
     true,
-    `Player should be inside/near Cafeteria OverCoffee at (${pos.x.toFixed(2)}, ${pos.z.toFixed(2)})`
+    `Player should be inside/near Cafeteria OverCoffee counter at (${pos.x.toFixed(2)}, ${pos.z.toFixed(2)})`
+  );
+
+  // Standing outside/next to the Cafeteria walls or far from the coffee counter MUST NOT allow accessing the coffee counter
+  assert.equal(
+    isPlayerNearCafeteria({ x: -0.8, z: -1.0 }),
+    false,
+    'Standing in the corridor west of the Cafeteria must NOT allow accessing the coffee counter'
+  );
+  assert.equal(
+    isPlayerNearCafeteria({ x: 11.3, z: -1.0 }),
+    false,
+    'Standing in the corridor east of the Cafeteria must NOT allow accessing the coffee counter'
+  );
+  assert.equal(
+    isPlayerNearCafeteria({ x: 5.25, z: 4.0 }),
+    false,
+    'Standing in the corridor south of the Cafeteria must NOT allow accessing the coffee counter'
+  );
+  assert.equal(
+    isPlayerNearCafeteria({ x: 5.25, z: -3.9 }),
+    false,
+    'Standing in the corridor north of the Cafeteria must NOT allow accessing the coffee counter'
+  );
+  assert.equal(
+    isPlayerNearCafeteria({ x: 1.0, z: 2.2 }),
+    false,
+    'Standing inside the Cafeteria far from the counter must NOT allow accessing the coffee counter'
+  );
+  assert.equal(
+    findNearestCafeteriaNpc({ x: -0.7, z: -0.35 }),
+    null,
+    'Standing outside the West wall next to Clara must NOT allow talking through the wall'
   );
 });
 

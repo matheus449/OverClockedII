@@ -252,9 +252,9 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
               </div>
             )}
 
-            {nearCafeteria && (
+            {(nearCafeteria || Boolean(nearbyCafeteriaNpcFirstName)) && (
               <div className="flex items-center gap-1.5">
-                {onTalkToCafeteriaNpc && (
+                {onTalkToCafeteriaNpc && (nearCafeteria || Boolean(nearbyCafeteriaNpcFirstName)) && (
                   <button
                     type="button"
                     onClick={onTalkToCafeteriaNpc}
@@ -268,18 +268,20 @@ export const TouchControlsPad: React.FC<TouchControlsPadProps> = ({
                     </span>
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={onOpenCafeteria}
-                  className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
-                >
-                  <Coffee className="w-4 h-4 shrink-0" />
-                  <span>Cafeteria</span>
-                </button>
+                {nearCafeteria && (
+                  <button
+                    type="button"
+                    onClick={onOpenCafeteria}
+                    className="min-h-[44px] px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 text-xs font-extrabold flex items-center gap-1.5 shadow-xl border border-amber-300 transition cursor-pointer"
+                  >
+                    <Coffee className="w-4 h-4 shrink-0" />
+                    <span>Cafeteria</span>
+                  </button>
+                )}
               </div>
             )}
 
-            {!nearCafeteria && hasNearbyNpc && (
+            {!nearCafeteria && !nearbyCafeteriaNpcFirstName && hasNearbyNpc && (
               <button
                 type="button"
                 onClick={() => triggerTouchInteract()}
